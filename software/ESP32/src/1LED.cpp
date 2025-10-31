@@ -19,8 +19,6 @@ TwoWire I2C_2 = TwoWire(1);  // Second I2C bus
 //Exponential Moving Average, 
 // Savitzky-Golay (fitted curve)
 
-Adafruit_VEML7700 veml = Adafruit_VEML7700();
-
 // === CONFIG ===
 const int LED_PIN = 5;                // PWM-capable pin
 const unsigned long SAMPLE_MS = 500;  // sample interval -> 500ms => 5Hz

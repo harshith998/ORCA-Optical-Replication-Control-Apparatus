@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-import socket
+import serial
 import time
 import numpy as np
 from collections import deque
 from scipy import linalg
-import board
-import neopixel
+import RPi.GPIO as GPIO
+
+# LED Configuration
+LED_PIN = 18  # GPIO 18 (PWM capable)
+PWM_FREQ = 5000  # 5kHz like Arduino
 
 # configuration
-UDP_PORT = 8888
+SERIAL_PORT = '/dev/ttyUSB0'  # Or /dev/ttyAMA0 for GPIO UART
+BAUD_RATE = 115200  # Must match Arduino's Serial.begin(115200)
 SAMPLE_MS = 500
 WINDOW_SIZE = 600  # 5 minutes @ 500ms
 BOUNDS_ALPHA = 0.05
-
-# LED Configuration (adjust for your setup)
-LED_PIN = board.D18  # GPIO 18 (PWM capable)
-NUM_LEDS = 60        # Number of LEDs in your strip
-BRIGHTNESS = 1.0     # 0.0 to 1.0
 
 # Filter selection: 'sma', 'ema', or 'sg'
 ACTIVE_FILTER = 'ema'
@@ -124,7 +123,7 @@ def compute_robust_bounds(data_array):
     return inliers.min(), inliers.max()
 
 #LED MAPPING ====================
-def map_to_led(value, min_val, max_val, num_leds):
+def map_to_led(value, min_val, max_val):
     """Map lux value to LED brightness (0-255)"""
     if max_val <= min_val:
         return 0
@@ -142,7 +141,10 @@ def main():
     print("Initializing Lux Processor...")
     
     # Initialize LED strip
-    pixels = neopixel.NeoPixel(LED_PIN, NUM_LEDS, brightness=BRIGHTNESS, auto_write=False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(LED_PIN, GPIO.OUT)
+    pwm = GPIO.PWM(LED_PIN, PWM_FREQ)
+    pwm.start(0)
     
     # Initialize filter
     if ACTIVE_FILTER == 'sma':
@@ -159,20 +161,21 @@ def main():
     min_lux = 0.0
     max_lux = 1000.0
     
-    # UDP Socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(("0.0.0.0", UDP_PORT))
-    sock.settimeout(5.0)  # 5 second timeout
-    
-    print(f"Listening on UDP port {UDP_PORT}...")
+    # Serial connection
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=5.0)
+    ser.flush()  # Clear any existing data
+
+    print(f"Listening on {SERIAL_PORT} @ {BAUD_RATE} baud...")
     print(f"Active filter: {ACTIVE_FILTER}")
     print("Ready to receive data!\n")
     
     try:
         while True:
             try:
-                data, addr = sock.recvfrom(1024)
-                packet = data.decode('utf-8').strip()
+                if ser.in_waiting > 0:
+                    packet = ser.readline().decode('utf-8').strip()
+                else:
+                    continue
                 
                 # Parse: timestamp,lux1,lux2
                 parts = packet.split(',')
@@ -204,29 +207,26 @@ def main():
                         max_lux = min_lux + 1.0
                 
                 # Map to LED brightness
-                brightness = map_to_led(filtered, min_lux, max_lux, NUM_LEDS)
+                brightness = map_to_led(filtered, min_lux, max_lux)
                 
                 # Set all LEDs to this brightness (white color)
-                pixels.fill((brightness, brightness, brightness))
-                pixels.show()
+                duty_cycle = (brightness / 255.0) * 100.0  # Convert 0-255 to 0-100%
+                pwm.ChangeDutyCycle(duty_cycle)
                 
                 # Print status
                 print(f"Raw: {raw_lux:6.2f} | Filt: {filtered:6.2f} | "
                       f"Min: {min_lux:6.2f} | Max: {max_lux:6.2f} | "
                       f"LED: {brightness:3d}")
-                
-            except socket.timeout:
-                print("No data received (timeout)...")
-                continue
             except Exception as e:
                 print(f"Error processing packet: {e}")
                 continue
     
     except KeyboardInterrupt:
         print("\nShutting down...")
-        pixels.fill((0, 0, 0))
-        pixels.show()
-        sock.close()
+        pwm.ChangeDutyCycle(0)
+        pwm.stop()
+        GPIO.cleanup()
+        ser.close()
 
 if __name__ == "__main__":
     main()
