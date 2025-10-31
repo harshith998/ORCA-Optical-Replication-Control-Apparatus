@@ -1,5 +1,3 @@
-#include <ETH.h>
-#include <WiFiUdp.h>
 #include <Wire.h>
 #include "Adafruit_VEML7700.h"
 
@@ -9,14 +7,6 @@
 #define SDA2 4
 #define SCL2 5
 
-// Network config
-IPAddress local_IP(192, 168, 1, 100);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
-IPAddress pi_IP(192, 168, 1, 200);
-const int udpPort = 8888;
-
-WiFiUDP udp;
 Adafruit_VEML7700 veml1 = Adafruit_VEML7700();
 Adafruit_VEML7700 veml2 = Adafruit_VEML7700();
 TwoWire I2C_1 = TwoWire(0);
@@ -25,32 +15,9 @@ TwoWire I2C_2 = TwoWire(1);
 const unsigned long SAMPLE_MS = 500;
 unsigned long lastSample = 0;
 
-void WiFiEvent(WiFiEvent_t event) {
-  switch (event) {
-    case ARDUINO_EVENT_ETH_CONNECTED:
-      Serial.println("ETH Connected");
-      break;
-    case ARDUINO_EVENT_ETH_GOT_IP:
-      Serial.print("ETH IP: ");
-      Serial.println(ETH.localIP());
-      break;
-    default:
-      break;
-  }
-}
 
 void setup() {
   Serial.begin(115200);
-  
-  // Initialize Ethernet
-  WiFi.onEvent(WiFiEvent);
-  ETH.begin();
-  ETH.config(local_IP, gateway, subnet);
-  
-  while (!ETH.linkUp()) {
-    Serial.println("Waiting for Ethernet...");
-    delay(1000);
-  }
   
   // Initialize sensors
   I2C_1.begin(SDA1, SCL1);
@@ -69,7 +36,7 @@ void setup() {
   veml2.setGain(VEML7700_GAIN_1);
   veml2.setIntegrationTime(VEML7700_IT_100MS);
   
-  Serial.println("Ready!");
+  delay(1000);  // Give receiver time to start
   lastSample = millis();
 }
 
@@ -83,12 +50,11 @@ void loop() {
     float lux2 = veml2.readLux();
     
     // Send as CSV: timestamp,lux1,lux2
-    String packet = String(now) + "," + String(lux1, 2) + "," + String(lux2, 2);
-    
-    udp.beginPacket(pi_IP, udpPort);
-    udp.print(packet);
-    udp.endPacket();
-    
-    Serial.println("TX: " + packet);
+    // REPLACE udp.beginPacket/print/endPacket with just println:
+    Serial.print(now);
+    Serial.print(",");
+    Serial.print(lux1, 2);
+    Serial.print(",");
+    Serial.println(lux2, 2);
   }
 }
