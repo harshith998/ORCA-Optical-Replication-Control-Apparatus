@@ -139,6 +139,7 @@ def map_to_led(value, min_val, max_val):
 #MAIN ====================
 def main():
     print("Initializing Lux Processor...")
+    time.sleep(2)
     
     # Initialize LED strip
     GPIO.setmode(GPIO.BCM)
@@ -162,8 +163,13 @@ def main():
     max_lux = 1000.0
     
     # Serial connection
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=5.0)
-    ser.flush()  # Clear any existing data
+    try:
+        ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=5.0)
+        time.sleep(2)  # Let connection stabilize
+        ser.flush()
+    except serial.SerialException as e:
+        print(f"Failed to open serial port: {e}")
+        return
 
     print(f"Listening on {SERIAL_PORT} @ {BAUD_RATE} baud...")
     print(f"Active filter: {ACTIVE_FILTER}")
