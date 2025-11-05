@@ -5,6 +5,7 @@ import numpy as np
 from collections import deque
 from scipy import linalg
 import RPi.GPIO as GPIO
+import Adafruit_CharLCD as LCD
 
 # LED Configuration
 LED_PIN = 18  # GPIO 18 (PWM capable)
