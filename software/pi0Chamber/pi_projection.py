@@ -19,11 +19,11 @@ LCD_ROWS = 2
 LCD_I2C_ADDRESS = 0x27  # Common I2C address, might be 0x3F
 
 # Switch Configuration
-SWITCH_LED_ONOFF = 5   # GPIO pin for LED on/off switch
-SWITCH_AUTO_MANUAL = 6  # GPIO pin for auto/manual switch
+SWITCH_LED_ONOFF = 17   # GPIO pin for LED on/off switch
+SWITCH_AUTO_MANUAL = 27  # GPIO pin for auto/manual switch
 
 # Potentiometer Configuration
-POT_PIN = 0  # ADC channel for potentiometer (MCP3008 CH0)
+POT_PIN = 5  # ADC channel for potentiometer (MCP3008 CH0)
 
 # configuration
 SERIAL_PORT = '/dev/ttyUSB0'  # Or /dev/ttyAMA0 for GPIO UART
