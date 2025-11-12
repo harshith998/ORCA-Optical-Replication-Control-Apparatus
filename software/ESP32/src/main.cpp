@@ -14,7 +14,7 @@ TwoWire I2C_1 = TwoWire(0);
 TwoWire I2C_2 = TwoWire(1);
 
 // Transmission Timings
-const unsigned long SAMPLE_MS = 500; // 2 Hz
+const unsigned long SAMPLE_MS = 20; // 50 Hz
 const unsigned int baudRate = 115200; // Baud rate
 unsigned long lastSample = 0;
 
@@ -53,10 +53,13 @@ void loop() {
     float lux2 = veml2.readLux();
     
     // Send as CSV: timestamp,lux1,lux2
-    Serial.print(now);
-    Serial.print(",");
-    Serial.print(lux1, 2);
-    Serial.print(",");
-    Serial.println(lux2, 2);
+    // Serial.print(now);
+    // Serial.print(",");
+    // Serial.print(lux1, 2);
+    // Serial.print(",");
+    // Serial.println(lux2, 2);
+
+    // Send only average lux value between sensors
+    Serial.print((lux1 + lux2)/2.0, 2);
   }
 }

@@ -44,10 +44,10 @@ void loop() {
 
       // Scale and cap
       float dutyValue = avg;               // scale directly (0–10 000 range)
-      if (dutyValue > 10000) dutyValue = 10000;
+      if (dutyValue > 3500) dutyValue = 3500;
 
       // Convert to PWM range
-      int pwmOut = map((int)dutyValue, 0, 10000, 0, MAX_PWM_VALUE);
+      int pwmOut = map((int)dutyValue, 0, 3500, 0, MAX_PWM_VALUE);
 
       // -------- Switch control --------
       if (digitalRead(SWITCH1_PIN) == HIGH) {
