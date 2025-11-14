@@ -18,7 +18,7 @@
 #define MAX_PWM_VALUE 1023   // Max for 10-bit
 
 // ---------- LCD Setup ----------
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Try 0x3F if no display
+LiquidCrystal_I2C lcd(0x3F, 16, 2);  // Try 0x3F if no display
 
 void setup() {
   // Serial & I2C
@@ -129,10 +129,10 @@ void loop() {
   // lcd.print("A:");
   // lcd.print(potValue);
   // lcd.print("    ");  // clear tail
-  // lcd.setCursor(0,0);
-  // lcd.print("    ");
-  // lcd.setCursor(0,0);
-  // lcd.print("Potato");
+  lcd.setCursor(0,0);
+  lcd.print("    ");
+  lcd.setCursor(0,0);
+  lcd.print("Potato");
 
   while (!Serial.available()) {}
 }
