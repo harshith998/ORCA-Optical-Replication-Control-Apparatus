@@ -1,47 +1,45 @@
 #include "InputOutput.h"
 
 InputOutput::InputOutput() : lcd(0x27, 16, 2), sw1(false), sw2(false),
-                             potValue(0), inputLux(0), pwmValue(0) {}
+                             potValue(0.0), luxValue(0) {}
 
 void InputOutput::begin() {
-  // Serial & I2C setup
+  // Serial & I2C Setup
   Serial.begin(UART0_BAUD);
   Wire.begin(LCD_SDA, LCD_SCL);
-  Wire.setClock(100000);
+  Wire.setClock(I2C_FREQUENCY);
 
-  // LCD setup
+  // LCD Init
   lcd.init();
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("ESP32 Test Start");
+  lcd.print("ESP32 Init...");
 
-  // Pin setup
+  // Configure Pins
   pinMode(SWITCH1_PIN, INPUT_PULLUP);
   pinMode(SWITCH2_PIN, INPUT_PULLUP);
   pinMode(PWM_PIN, OUTPUT);
 
-  // PWM setup
+  // Configure PWM
   ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RES_BITS);
   ledcAttachPin(PWM_PIN, PWM_CHANNEL);
 
-  Serial.println("================================");
-  Serial.println(" ESP32 Functional Pin Test");
-  Serial.println("================================");
-  delay(1500);
-
+  // Setup Complete
+  delay(1000);
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("System Ready");
+  Serial.println("==================");
+  Serial.println("   System Ready   ");
+  Serial.println("==================");
+  delay(1000);
 }
 
 void InputOutput::update() {
   readSwitches();
   readAnalog();
   readUART();
-  updatePWM();
-  printSerialSummary();
-  updateLCD();
 }
 
 void InputOutput::readSwitches() {
@@ -50,28 +48,22 @@ void InputOutput::readSwitches() {
 }
 
 void InputOutput::readAnalog() {
-  potValue = analogRead(SWITCH3_PIN);
+  potValue = map(analogRead(SWITCH3_PIN), 0, 4095, 0, 1);
 }
 
 void InputOutput::readUART() {
   if (Serial.available()) {
     String line = Serial.readStringUntil('\n');
     line.trim();
-    float val = line.toFloat();
-    if (val > 5000) val = 5000;
-    inputLux = val;
+    luxValue = line.toFloat();
   }
 }
 
-void InputOutput::updatePWM() {
-  pwmValue = map(potValue, 0, 4095, 0, MAX_PWM_VALUE);
-  if (sw1) {
-    pwmValue = map(inputLux, 0, 5000, 0, MAX_PWM_VALUE);
-  }
+void InputOutput::setPWM(float pwmValue) {
   ledcWrite(PWM_CHANNEL, pwmValue);
 }
 
-void InputOutput::printSerialSummary() {
+String InputOutput::toString() {
   Serial.print("[Switches] S1=");
   Serial.print(sw1 ? "HIGH" : "LOW ");
   Serial.print(" S2=");
@@ -79,24 +71,12 @@ void InputOutput::printSerialSummary() {
   Serial.print(" | [Analog] ");
   Serial.print(potValue);
   Serial.print(" | [Lux] ");
-  Serial.print(inputLux);
-  Serial.print(" | [PWM] ");
-  Serial.println(pwmValue);
+  Serial.print(luxValue);
 }
 
-void InputOutput::updateLCD() {
-  lcd.setCursor(0, 0);
-  lcd.print("Pot: ");
-  lcd.print(potValue);
-  lcd.print("    ");
-  lcd.setCursor(0, 1);
-  lcd.print("PWM: ");
-  lcd.print(map(pwmValue, 0, MAX_PWM_VALUE, 0, 100));
-  lcd.print("%   ");
-}
-
+// IO methods
 bool InputOutput::getSwitch1() { return sw1; }
 bool InputOutput::getSwitch2() { return sw2; }
-int  InputOutput::getAnalogValue() { return potValue; }
-int  InputOutput::getLuxValue() { return inputLux; }
-int  InputOutput::computePWM() { return pwmValue; }
+float  InputOutput::getAnalogValue() { return potValue; }
+int  InputOutput::getLuxValue() { return luxValue; }
+LiquidCrystal_I2C InputOutput::getLCD() { return lcd; }
