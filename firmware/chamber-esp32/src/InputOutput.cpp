@@ -48,7 +48,7 @@ void InputOutput::readSwitches() {
 }
 
 void InputOutput::readAnalog() {
-  potValue = map(analogRead(SWITCH3_PIN), 0, 4095, 0, 1);
+  potValue = analogRead(SWITCH3_PIN) / 4095.0;
 }
 
 void InputOutput::readUART() {
@@ -64,14 +64,15 @@ void InputOutput::setPWM(float pwmValue) {
 }
 
 String InputOutput::toString() {
-  Serial.print("[Switches] S1=");
-  Serial.print(sw1 ? "HIGH" : "LOW ");
-  Serial.print(" S2=");
-  Serial.print(sw2 ? "HIGH" : "LOW ");
-  Serial.print(" | [Analog] ");
-  Serial.print(potValue);
-  Serial.print(" | [Lux] ");
-  Serial.print(luxValue);
+  String result = "[Switches] S1=";
+  result += (sw1 ? "HIGH" : "LOW ");
+  result += " S2=";
+  result += (sw2 ? "HIGH" : "LOW ");
+  result += " | [Analog] ";
+  result += String(potValue);
+  result += " | [Lux] ";
+  result += String(luxValue);
+  return result;
 }
 
 // IO methods
