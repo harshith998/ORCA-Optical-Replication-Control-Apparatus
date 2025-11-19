@@ -14,6 +14,7 @@
 #define PWM_CHANNEL   0      // PWM Channel
 #define PWM_RES_BITS  10     // 10-bit (0–1023)
 #define MAX_PWM_VALUE 1023   // Max for 10-bit
+#define SCALE_CONSTANT 2750  // Lux scaling constant (increase to decrease intensity)
 
 // ---------- Other Settings ----------
 #define I2C_FREQUENCY 400000 // 400 kHz Frequency 

@@ -31,10 +31,10 @@ void loop() {
   }
 
   if (sw2) {
-    pwmEnabled = true;
+    pwmEnabled = false;
   }
   else {
-    pwmEnabled = false;
+    pwmEnabled = true;
   }
 
   // Determine the input value (0.0 - 1.0) depending on mode
@@ -46,7 +46,7 @@ void loop() {
     inputNorm = pot;
   } else {
     // interpret lux as a value out of 10000 (as requested)
-    inputNorm = (float)lux / 10000.0f;
+    inputNorm = (float)lux / 2750.0f;
     if (inputNorm < 0.0f) inputNorm = 0.0f;
     if (inputNorm > 1.0f) inputNorm = 1.0f;
   }
