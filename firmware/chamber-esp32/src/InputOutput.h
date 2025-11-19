@@ -287,7 +287,7 @@ private:
   // Helper methods for filtering
   float applyFilter(float rawValue);      // Apply filter to raw lux
   void updateDynamicBounds();             // Update bounds from history
-  int cmpFloat(const void *a, const void *b); // Comparator for qsort
+  static int cmpFloat(const void *a, const void *b); // Comparator for qsort
   float computeMedian(float *arr, int n);    // Compute median
   float computeMAD(float *arr, int n, float median); // Median absolute deviation
   void computeRobustBounds(float &outMin, float &outMax); // Robust outlier filtering

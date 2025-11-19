@@ -3,8 +3,8 @@
 #if ENABLE_FILTERING
 // Comparator function for qsort
 int InputOutput::cmpFloat(const void *a, const void *b) {
-  float fa = *(const float*)a;
-  float fb = *(const float*)b;
+  const float fa = *(const float*)a;
+  const float fb = *(const float*)b;
   if (fa < fb) return -1;
   if (fa > fb) return 1;
   return 0;
