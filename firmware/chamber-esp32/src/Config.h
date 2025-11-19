@@ -16,5 +16,16 @@
 #define MAX_PWM_VALUE 1023   // Max for 10-bit
 
 // ---------- Other Settings ----------
-#define I2C_FREQUENCY 400000 // 400 kHz Frequency 
-#define LOOP_DELAY_MS 100         // 100 milliseconds loop delay 
+#define I2C_FREQUENCY 400000 // 400 kHz Frequency
+#define LOOP_DELAY_MS 100         // 100 milliseconds loop delay
+
+// ---------- Filtering & Dynamic Bounds Settings ----------
+#define ENABLE_FILTERING 1        // Enable filtering and dynamic bounds (0=disabled, 1=enabled)
+#define FILTER_TYPE 1             // 0=none, 1=SMA, 2=EMA, 3=SG (Savitzky-Golay)
+#define SMA_WINDOW 11             // SMA window size (odd number recommended)
+#define EMA_ALPHA 0.1             // EMA smoothing factor (0.0-1.0, higher=more responsive)
+#define SG_WINDOW 11              // Savitzky-Golay window size (odd number)
+#define SG_POLY_ORDER 3           // SG polynomial order
+#define CALIB_WINDOW_SIZE 600     // Calibration buffer: 5 min @ 100ms = 600 samples
+#define BOUNDS_ALPHA 0.05         // Bounds smoothing (0.0-1.0, lower=slower adjustment)
+#define MAD_THRESHOLD 3.0         // Outlier threshold (3.0 sigma)
