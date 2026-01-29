@@ -17,5 +17,8 @@
 #define SCALE_CONSTANT 2750  // Lux scaling constant (increase to decrease intensity)
 
 // ---------- Other Settings ----------
-#define I2C_FREQUENCY 400000 // 400 kHz Frequency 
-#define LOOP_DELAY_MS 100         // 100 milliseconds loop delay 
+#define I2C_FREQUENCY 400000 // 400 kHz Frequency
+#define LOOP_DELAY_MS 100    // 100 milliseconds loop delay
+
+// ---------- Bounds Buffer Settings ----------
+#define LUX_BUFFER_SIZE 600  // 1 minute of samples at 100ms intervals

@@ -39,13 +39,14 @@ void loop() {
 
   // Determine the input value (0.0 - 1.0) depending on mode
   float inputNorm = 0.0f;
-  int lux = io.getLuxValue();
+  int rawLux = io.getLuxValue();
+  int lux = io.getClampedLux(rawLux);  // Clamp to 1-min bounds
   float pot = io.getAnalogValue(); // already scaled 0..1 in InputOutput
 
   if (displayMode == MODE_ANALOG) {
     inputNorm = pot;
   } else {
-    // interpret lux as a value out of 10000 (as requested)
+    // Use clamped lux for LED output
     inputNorm = (float)lux / 2750.0f;
     if (inputNorm < 0.0f) inputNorm = 0.0f;
     if (inputNorm > 1.0f) inputNorm = 1.0f;
@@ -78,9 +79,9 @@ void loop() {
     lcd.print("Pot:");
     lcd.print(pot, 3);
   } else {
-    // show raw lux reading and percent of 10k
+    // show raw lux (what's received) on LCD
     lcd.print("Lux:");
-    lcd.print(lux);
+    lcd.print(rawLux);
   }
 
   // Optional serial log for debugging
