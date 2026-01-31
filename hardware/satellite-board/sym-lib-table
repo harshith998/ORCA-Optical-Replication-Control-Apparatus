@@ -1,0 +1,8 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ProLib_pcs_2026-01-30")(type "EasyEDA (JLCEDA) Pro")(uri "${KIPRJMOD}/library/ProLib_pcs_2026-01-30.elibz")(options "")(descr ""))
+  (lib (name "ESP32-C6-DEVKITC-1-N8")(type "KiCad")(uri "${KIPRJMOD}/library/ESP32-C6-DEVKITC-1-N8.kicad_sym")(options "")(descr ""))
+  (lib (name "2026-01-30_17-18-27")(type "KiCad")(uri "${KIPRJMOD}/library/2026-01-30_17-18-27.kicad_sym")(options "")(descr ""))
+  (lib (name "MTJ-88ARX1-FSM-LG")(type "KiCad")(uri "${KIPRJMOD}/library/MTJ-88ARX1-FSM-LG.kicad_sym")(options "")(descr ""))
+  (lib (name "2026-01-31_16-24-59")(type "KiCad")(uri "${KIPRJMOD}/library/2026-01-31_16-24-59.kicad_sym")(options "")(descr ""))
+)
