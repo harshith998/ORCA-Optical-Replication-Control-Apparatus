@@ -8,4 +8,5 @@
   (lib (name "ProLib_pcs_2026-02-01")(type "EasyEDA (JLCEDA) Pro")(uri "${KIPRJMOD}/library/ProLib_pcs_2026-02-01.elibz")(options "")(descr ""))
   (lib (name "B2B-PH-K-S")(type "KiCad")(uri "${KIPRJMOD}/library/B2B-PH-K-S.kicad_sym")(options "")(descr ""))
   (lib (name "L70RE-M37")(type "KiCad")(uri "${KIPRJMOD}/library/L70RE-M37.kicad_sym")(options "")(descr ""))
+  (lib (name "1234")(type "EasyEDA (JLCEDA) Pro")(uri "${KIPRJMOD}/library/1234.elibz")(options "")(descr ""))
 )
