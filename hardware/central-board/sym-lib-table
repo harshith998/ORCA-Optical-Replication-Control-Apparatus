@@ -15,4 +15,6 @@
   (lib (name "ProLib_pcs_2026-01-30")(type "EasyEDA (JLCEDA) Pro")(uri "${KIPRJMOD}/library/ProLib_pcs_2026-01-30.elibz")(options "")(descr ""))
   (lib (name "ProLib_pcs_2026-02-02")(type "EasyEDA (JLCEDA) Pro")(uri "${KIPRJMOD}/library/ProLib_pcs_2026-02-02.elibz")(options "")(descr ""))
   (lib (name "2026-02-04_00-56-26")(type "KiCad")(uri "${KIPRJMOD}/library/2026-02-04_00-56-26.kicad_sym")(options "")(descr ""))
+  (lib (name "2026-02-04_18-40-10")(type "KiCad")(uri "${KIPRJMOD}/library/2026-02-04_18-40-10.kicad_sym")(options "")(descr ""))
+  (lib (name "RPi_Hat")(type "KiCad")(uri "${KIPRJMOD}/library/RPi_Hat.kicad_sym")(options "")(descr ""))
 )
