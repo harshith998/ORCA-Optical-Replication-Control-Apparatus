@@ -1661,7 +1661,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector_Generic:Conn_02x03_Counter_Clockwise"
+		(symbol "Connector_Generic:Conn_02x03_Odd_Even"
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -1677,7 +1677,7 @@
 					)
 				)
 			)
-			(property "Value" "Conn_02x03_Counter_Clockwise"
+			(property "Value" "Conn_02x03_Odd_Even"
 				(at 1.27 -5.08 0)
 				(effects
 					(font
@@ -1703,7 +1703,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Generic connector, double row, 02x03, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1730,7 +1730,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Conn_02x03_Counter_Clockwise_1_1"
+			(symbol "Conn_02x03_Odd_Even_1_1"
 				(rectangle
 					(start -1.27 3.81)
 					(end 3.81 -3.81)
@@ -1829,24 +1829,6 @@
 				(pin passive line
 					(at -5.08 0 0)
 					(length 3.81)
-					(name "Pin_2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 -2.54 0)
-					(length 3.81)
 					(name "Pin_3"
 						(effects
 							(font
@@ -1863,25 +1845,7 @@
 					)
 				)
 				(pin passive line
-					(at 7.62 2.54 180)
-					(length 3.81)
-					(name "Pin_6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 0 180)
+					(at -5.08 -2.54 0)
 					(length 3.81)
 					(name "Pin_5"
 						(effects
@@ -1899,7 +1863,25 @@
 					)
 				)
 				(pin passive line
-					(at 7.62 -2.54 180)
+					(at 7.62 2.54 180)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
 					(length 3.81)
 					(name "Pin_4"
 						(effects
@@ -1916,10 +1898,28 @@
 						)
 					)
 				)
+				(pin passive line
+					(at 7.62 -2.54 180)
+					(length 3.81)
+					(name "Pin_6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector_Generic:Conn_02x05_Counter_Clockwise"
+		(symbol "Connector_Generic:Conn_02x05_Odd_Even"
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -1935,7 +1935,7 @@
 					)
 				)
 			)
-			(property "Value" "Conn_02x05_Counter_Clockwise"
+			(property "Value" "Conn_02x05_Odd_Even"
 				(at 1.27 -7.62 0)
 				(effects
 					(font
@@ -1961,7 +1961,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Generic connector, double row, 02x05, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1988,7 +1988,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Conn_02x05_Counter_Clockwise_1_1"
+			(symbol "Conn_02x05_Odd_Even_1_1"
 				(rectangle
 					(start -1.27 6.35)
 					(end 3.81 -6.35)
@@ -2131,24 +2131,6 @@
 				(pin passive line
 					(at -5.08 2.54 0)
 					(length 3.81)
-					(name "Pin_2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 0 0)
-					(length 3.81)
 					(name "Pin_3"
 						(effects
 							(font
@@ -2165,25 +2147,7 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 -2.54 0)
-					(length 3.81)
-					(name "Pin_4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 -5.08 0)
+					(at -5.08 0 0)
 					(length 3.81)
 					(name "Pin_5"
 						(effects
@@ -2201,61 +2165,7 @@
 					)
 				)
 				(pin passive line
-					(at 7.62 5.08 180)
-					(length 3.81)
-					(name "Pin_10"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "10"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 2.54 180)
-					(length 3.81)
-					(name "Pin_9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 0 180)
-					(length 3.81)
-					(name "Pin_8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 -2.54 180)
+					(at -5.08 -2.54 0)
 					(length 3.81)
 					(name "Pin_7"
 						(effects
@@ -2273,7 +2183,61 @@
 					)
 				)
 				(pin passive line
-					(at 7.62 -5.08 180)
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 5.08 180)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 2.54 180)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
 					(length 3.81)
 					(name "Pin_6"
 						(effects
@@ -2283,6 +2247,42 @@
 						)
 					)
 					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -2.54 180)
+					(length 3.81)
+					(name "Pin_8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -5.08 180)
+					(length 3.81)
+					(name "Pin_10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -11813,7 +11813,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 430.53 126.0348 0)
 			(effects
 				(font
@@ -11833,6 +11833,15 @@
 		)
 		(property "Description" "Unpolarized capacitor"
 			(at 426.72 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C15195"
+			(at 426.72 127 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11949,7 +11958,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 376.8852 226.06 0)
 			(effects
 				(font
@@ -11968,6 +11977,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 375.92 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C19702"
 			(at 375.92 222.25 0)
 			(effects
 				(font
@@ -12124,6 +12142,88 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_02x03_Odd_Even")
+		(at 454.66 274.32 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "153b7c27-5b0e-4273-9228-c238bcfddc73")
+		(property "Reference" "J12"
+			(at 459.74 271.7799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "IO I2C Bus"
+			(at 459.74 274.3199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical"
+			(at 454.66 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 454.66 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 454.66 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "fd0fd5fd-6d6b-4dc5-9b91-7f0ba28598bc")
+		)
+		(pin "4"
+			(uuid "eff48249-770f-4242-bfee-7012dd0ab891")
+		)
+		(pin "6"
+			(uuid "f178adba-ed52-4fa7-b746-7197c576c102")
+		)
+		(pin "3"
+			(uuid "bdb8b2b1-d796-4ab3-8a34-1d2173091280")
+		)
+		(pin "1"
+			(uuid "fb069816-a5ca-45a3-bc63-48afc7262747")
+		)
+		(pin "5"
+			(uuid "823cfab1-fd56-403b-9df7-d456ad59c8fe")
+		)
+		(instances
+			(project ""
+				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
+					(reference "J12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 259.08 199.39 180)
 		(unit 1)
@@ -12151,7 +12251,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 260.858 199.39 90)
 			(effects
 				(font
@@ -12170,6 +12270,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 259.08 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C11702"
 			(at 259.08 199.39 0)
 			(effects
 				(font
@@ -12381,6 +12490,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C668204"
+			(at 284.48 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "de0e7cc1-f433-4b33-8a91-8e8589700e07")
 		)
@@ -12459,6 +12577,15 @@
 			)
 		)
 		(property "Description" "1A, Low Drop-out Voltage Regulator, Fixed Output 3.3V, SOT-23-5"
+			(at 400.05 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C86534"
 			(at 400.05 218.44 0)
 			(effects
 				(font
@@ -12546,6 +12673,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C9864"
+			(at 405.13 180.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "9"
 			(uuid "9658057b-e17c-488b-bcdf-7fc7f4ce7d78")
 		)
@@ -12609,7 +12745,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 377.19 273.558 90)
 			(effects
 				(font
@@ -12628,6 +12764,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 377.19 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C25804"
 			(at 377.19 271.78 0)
 			(effects
 				(font
@@ -12706,6 +12851,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C22452"
+			(at 434.34 182.88 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "13b81d07-ed17-4530-b174-8679a414dba0")
 		)
@@ -12747,7 +12901,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 170.18 225.298 90)
 			(effects
 				(font
@@ -12767,6 +12921,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 170.18 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 170.18 223.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12850,88 +13013,6 @@
 			(project "central-board"
 				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
 					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_02x03_Counter_Clockwise")
-		(at 477.52 274.32 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "310e5100-dd15-46ba-9770-af6139836c48")
-		(property "Reference" "J9"
-			(at 482.6 271.7799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "GPIO Bus"
-			(at 482.6 274.3199 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 477.52 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 477.52 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, double row, 02x03, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 477.52 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "5"
-			(uuid "c1fc6ecd-d080-46b1-b59d-e18d74a6e8e5")
-		)
-		(pin "4"
-			(uuid "f7429fc2-b266-42cc-9106-d62dbad3877a")
-		)
-		(pin "1"
-			(uuid "51143c5b-6c29-45a2-a5f0-51c797629892")
-		)
-		(pin "2"
-			(uuid "c69164d2-7188-4961-b77f-01123f085258")
-		)
-		(pin "3"
-			(uuid "d4fbd5c7-8e40-4852-80f6-073c46675614")
-		)
-		(pin "6"
-			(uuid "82bd07e1-9e84-4b4b-9dba-c268a5d20426")
-		)
-		(instances
-			(project "central-board"
-				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
-					(reference "J9")
 					(unit 1)
 				)
 			)
@@ -13116,6 +13197,15 @@
 			)
 		)
 		(property "Description" "Polarized capacitor"
+			(at 473.71 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C308917"
 			(at 473.71 135.89 0)
 			(effects
 				(font
@@ -13329,6 +13419,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C20917"
+			(at 119.38 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "019ae0ed-09e6-43dc-855b-343d66fb5528")
 		)
@@ -13392,6 +13491,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 118.11 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "~"
 			(at 118.11 127 0)
 			(effects
 				(font
@@ -13648,6 +13756,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "~"
+			(at 440.69 127 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "1310bceb-2516-4a6d-90c7-c714ddf809cf")
 		)
@@ -13713,6 +13830,15 @@
 			)
 		)
 		(property "Description" "30V Vds, 5.7A Id, N-Channel MOSFET, SOT-23"
+			(at 195.58 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C20917"
 			(at 195.58 279.4 0)
 			(effects
 				(font
@@ -13926,6 +14052,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C308917"
+			(at 485.14 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "99b4c6da-fd33-418d-bc50-66f2b7284835")
 		)
@@ -13999,6 +14134,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C20917"
+			(at 157.48 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "6faa4140-2814-4b82-8ec5-b177a4e7c348")
 		)
@@ -14045,7 +14189,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 413.7152 226.06 0)
 			(effects
 				(font
@@ -14064,6 +14208,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 412.75 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 412.75 222.25 0)
 			(effects
 				(font
@@ -14179,7 +14332,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 257.81 211.582 90)
 			(effects
 				(font
@@ -14199,6 +14352,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 257.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22808"
+			(at 257.81 213.36 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14247,7 +14409,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 199.39 225.298 90)
 			(effects
 				(font
@@ -14267,6 +14429,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 199.39 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 199.39 223.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14316,7 +14487,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 367.9952 283.21 0)
 			(effects
 				(font
@@ -14335,6 +14506,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 367.03 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C15195"
 			(at 367.03 279.4 0)
 			(effects
 				(font
@@ -14385,7 +14565,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 377.19 276.098 90)
 			(effects
 				(font
@@ -14404,6 +14584,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 377.19 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C25804"
 			(at 377.19 274.32 0)
 			(effects
 				(font
@@ -14446,7 +14635,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1.13k"
+		(property "Value" "1.2k"
 			(at 449.58 140.9699 0)
 			(effects
 				(font
@@ -14455,7 +14644,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
 			(at 445.262 139.7 90)
 			(effects
 				(font
@@ -14474,6 +14663,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 447.04 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C17379"
 			(at 447.04 139.7 0)
 			(effects
 				(font
@@ -14524,7 +14722,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 267.6652 259.08 0)
 			(effects
 				(font
@@ -14543,6 +14741,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 266.7 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1525"
 			(at 266.7 255.27 0)
 			(effects
 				(font
@@ -14592,7 +14799,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 186.69 281.178 90)
 			(effects
 				(font
@@ -14612,6 +14819,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 186.69 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 186.69 279.4 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14864,6 +15080,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C7498154"
+			(at 293.37 129.54 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "5"
 			(uuid "41ca85bb-dfe8-4b4c-873e-0ba3c1805cd6")
 		)
@@ -14883,100 +15108,6 @@
 			(project ""
 				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
 					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_02x05_Counter_Clockwise")
-		(at 427.99 274.32 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7aad2059-e7ab-4ecd-9e94-9bf404930f1d")
-		(property "Reference" "J6"
-			(at 435.61 271.7799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "IO Power Bus"
-			(at 435.61 274.3199 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 427.99 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 427.99 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, double row, 02x05, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 427.99 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "98682730-a674-4ba3-b2b6-363da3a548ad")
-		)
-		(pin "3"
-			(uuid "5ad3f325-e8ee-4116-86b8-544ec67e8f4a")
-		)
-		(pin "10"
-			(uuid "1d7e901b-fd29-4b48-8329-7679dcf2fbcd")
-		)
-		(pin "2"
-			(uuid "8cfdc9de-aa03-41b8-af2c-2627321cc361")
-		)
-		(pin "4"
-			(uuid "e05fc340-2a58-411c-8c7e-bb11adc79a47")
-		)
-		(pin "5"
-			(uuid "879ee15a-22f3-4430-b6c7-14ff1d0adf18")
-		)
-		(pin "9"
-			(uuid "1533596a-9b28-4838-8930-56e2d484d833")
-		)
-		(pin "8"
-			(uuid "e11d05da-97ad-4b0a-8aaa-df315f4f9de5")
-		)
-		(pin "7"
-			(uuid "abf790bb-6db1-4fdf-9617-6ff9e7ff631a")
-		)
-		(pin "6"
-			(uuid "0a46554f-c9fb-4185-9ca4-4a6295f18132")
-		)
-		(instances
-			(project ""
-				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
-					(reference "J6")
 					(unit 1)
 				)
 			)
@@ -15009,7 +15140,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 380.492 266.7 90)
 			(effects
 				(font
@@ -15028,6 +15159,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 382.27 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C25804"
 			(at 382.27 266.7 0)
 			(effects
 				(font
@@ -15109,6 +15249,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C7509570"
+			(at 450.85 220.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "e4b11ad3-cc59-4fb5-8665-364bdb7c6c4a")
 		)
@@ -15177,6 +15326,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "~"
+			(at 440.69 177.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "a03d1e5d-c49c-4e38-8ebd-58b57179d9ad")
 		)
@@ -15220,7 +15378,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 445.262 132.08 90)
 			(effects
 				(font
@@ -15247,6 +15405,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 447.04 132.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "f9058950-cb59-47ef-8564-bce2a5c22dc8")
 		)
@@ -15257,88 +15424,6 @@
 			(project "central-board"
 				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
 					(reference "R7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_02x03_Counter_Clockwise")
-		(at 454.66 274.32 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8b6dce0f-e383-474b-9924-91258ef4c568")
-		(property "Reference" "J7"
-			(at 459.74 271.7799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "IO I2C Bus"
-			(at 459.74 274.3199 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 454.66 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 454.66 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, double row, 02x03, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 454.66 274.32 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "5"
-			(uuid "fa1e6136-0a0d-45f5-bb60-db225c0c0772")
-		)
-		(pin "4"
-			(uuid "06bcf149-3ae9-4b37-992e-6f24c04d73f1")
-		)
-		(pin "1"
-			(uuid "75a85d99-32a4-4a3a-bf09-f4ccc193f08f")
-		)
-		(pin "2"
-			(uuid "99e84430-4280-4d8e-89f9-db5663899a5d")
-		)
-		(pin "3"
-			(uuid "d3e51cc1-7521-4867-93ee-190285c9832f")
-		)
-		(pin "6"
-			(uuid "56e1f781-b143-49dd-a571-a4fd35090347")
-		)
-		(instances
-			(project ""
-				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
-					(reference "J7")
 					(unit 1)
 				)
 			)
@@ -15437,6 +15522,15 @@
 					(size 1.27 1.27)
 				)
 				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "~"
+			(at 287.02 205.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 				(hide yes)
 			)
 		)
@@ -15539,6 +15633,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 405.13 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C9864"
 			(at 405.13 129.54 0)
 			(effects
 				(font
@@ -15743,7 +15846,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 			(at 167.64 269.24 0)
 			(effects
 				(font
@@ -15762,6 +15865,15 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 167.64 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" ""
 			(at 167.64 269.24 0)
 			(effects
 				(font
@@ -15878,7 +15990,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 254.9652 259.08 0)
 			(effects
 				(font
@@ -15897,6 +16009,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 254 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 254 255.27 0)
 			(effects
 				(font
@@ -16107,6 +16228,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C22452"
+			(at 434.34 132.08 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "e1aa4769-da90-4c63-a31f-de72591d6e1c")
 		)
@@ -16150,7 +16280,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 366.7252 179.07 0)
 			(effects
 				(font
@@ -16169,6 +16299,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 365.76 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 365.76 175.26 0)
 			(effects
 				(font
@@ -16343,7 +16482,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "3.24k"
+		(property "Value" "3.3k"
 			(at 449.58 191.7699 0)
 			(effects
 				(font
@@ -16352,7 +16491,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 445.262 190.5 90)
 			(effects
 				(font
@@ -16371,6 +16510,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 447.04 190.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22978"
 			(at 447.04 190.5 0)
 			(effects
 				(font
@@ -16422,7 +16570,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 263.8552 134.62 0)
 			(effects
 				(font
@@ -16441,6 +16589,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 262.89 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1525"
 			(at 262.89 130.81 0)
 			(effects
 				(font
@@ -16490,7 +16647,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 257.81 225.298 90)
 			(effects
 				(font
@@ -16510,6 +16667,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 257.81 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22808"
+			(at 257.81 223.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16560,7 +16726,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
 			(at 295.402 261.62 90)
 			(effects
 				(font
@@ -16579,6 +16745,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 297.18 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C17437"
 			(at 297.18 261.62 0)
 			(effects
 				(font
@@ -16660,6 +16835,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C20917"
+			(at 179.07 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "6e137260-9507-4225-83f4-1eef7dc99ca4")
 		)
@@ -16705,7 +16889,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 357.8352 283.21 0)
 			(effects
 				(font
@@ -16724,6 +16908,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 356.87 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C15195"
 			(at 356.87 279.4 0)
 			(effects
 				(font
@@ -16775,7 +16968,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 351.4852 128.27 0)
 			(effects
 				(font
@@ -16794,6 +16987,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 350.52 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 350.52 124.46 0)
 			(effects
 				(font
@@ -16975,7 +17177,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 140.97 225.298 90)
 			(effects
 				(font
@@ -16995,6 +17197,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 140.97 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 140.97 223.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17130,6 +17341,15 @@
 			)
 		)
 		(property "Description" "Polarized capacitor"
+			(at 462.28 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C308917"
 			(at 462.28 135.89 0)
 			(effects
 				(font
@@ -17277,6 +17497,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C20917"
+			(at 149.86 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "8416e1a6-ba46-4334-910d-962095578d70")
 		)
@@ -17393,6 +17622,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C5356643"
+			(at 245.11 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "10"
 			(uuid "b8a96818-556c-40d2-8de7-e843da4a5aca")
 		)
@@ -17476,7 +17714,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 148.59 281.178 90)
 			(effects
 				(font
@@ -17496,6 +17734,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 148.59 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 148.59 279.4 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17546,7 +17793,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 			(at 129.54 269.24 0)
 			(effects
 				(font
@@ -17565,6 +17812,15 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 129.54 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" ""
 			(at 129.54 269.24 0)
 			(effects
 				(font
@@ -17613,7 +17869,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 430.53 176.8348 0)
 			(effects
 				(font
@@ -17633,6 +17889,15 @@
 		)
 		(property "Description" "Unpolarized capacitor"
 			(at 426.72 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C15195"
+			(at 426.72 177.8 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17683,7 +17948,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 445.262 182.88 90)
 			(effects
 				(font
@@ -17710,6 +17975,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 447.04 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "561a6e8a-fd41-4610-b643-d179ab7c715f")
 		)
@@ -17720,6 +17994,100 @@
 			(project ""
 				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
 					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_02x05_Odd_Even")
+		(at 427.99 274.32 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d0c548f6-1865-4217-8ccd-547bf4316bd4")
+		(property "Reference" "J9"
+			(at 435.61 271.7799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "IO Power Bus"
+			(at 435.61 274.3199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_2x05_P2.54mm_Vertical"
+			(at 427.99 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 427.99 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 427.99 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "70be7b5a-a734-429c-9e14-ab84a32f9eee")
+		)
+		(pin "10"
+			(uuid "0194f813-c4b4-4851-9435-ce68461d6bad")
+		)
+		(pin "8"
+			(uuid "06d16aa1-952d-474a-90ba-2780c64ef75d")
+		)
+		(pin "6"
+			(uuid "3700e11a-b9b5-4375-86c0-6a92f0d2ea50")
+		)
+		(pin "4"
+			(uuid "6315daac-a90b-47aa-8902-2b8986b1a989")
+		)
+		(pin "5"
+			(uuid "8721e4f5-7727-4c37-89ac-869ff3010d92")
+		)
+		(pin "7"
+			(uuid "d4aaf76f-815c-4dd1-bb3b-404c1247b10c")
+		)
+		(pin "9"
+			(uuid "c22a1953-d18a-4b71-9a71-d3cf0cef4187")
+		)
+		(pin "2"
+			(uuid "25d676d5-8165-4f96-88f8-08b50489d16b")
+		)
+		(pin "3"
+			(uuid "c0899c3d-ca68-4cb6-9b11-3b581b00b27c")
+		)
+		(instances
+			(project ""
+				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
+					(reference "J9")
 					(unit 1)
 				)
 			)
@@ -17752,7 +18120,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 388.112 266.7 90)
 			(effects
 				(font
@@ -17771,6 +18139,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 389.89 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C25804"
 			(at 389.89 266.7 0)
 			(effects
 				(font
@@ -17822,7 +18199,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 374.3452 128.27 0)
 			(effects
 				(font
@@ -17841,6 +18218,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 373.38 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 373.38 124.46 0)
 			(effects
 				(font
@@ -17892,7 +18278,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 397.51 274.32 0)
 			(effects
 				(font
@@ -17911,6 +18297,15 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 397.51 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" ""
 			(at 397.51 274.32 0)
 			(effects
 				(font
@@ -17956,7 +18351,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "330uF"
+		(property "Value" "330u"
 			(at 466.09 187.0709 0)
 			(effects
 				(font
@@ -17984,6 +18379,15 @@
 			)
 		)
 		(property "Description" "Polarized capacitor"
+			(at 462.28 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2158135"
 			(at 462.28 186.69 0)
 			(effects
 				(font
@@ -18035,7 +18439,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 362.9152 128.27 0)
 			(effects
 				(font
@@ -18054,6 +18458,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 361.95 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 361.95 124.46 0)
 			(effects
 				(font
@@ -18171,7 +18584,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 378.1552 179.07 0)
 			(effects
 				(font
@@ -18190,6 +18603,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 377.19 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C1779"
 			(at 377.19 175.26 0)
 			(effects
 				(font
@@ -18402,6 +18824,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C7509570"
+			(at 104.14 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "ab99ed63-dc98-4b3c-9a77-1072f9491e9a")
 		)
@@ -18412,6 +18843,88 @@
 			(project "central-board"
 				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
 					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_02x03_Odd_Even")
+		(at 477.52 274.32 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f03d3786-cea1-4525-bd0f-faa8f2f17762")
+		(property "Reference" "J7"
+			(at 482.6 271.7799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "GPIO Bus"
+			(at 482.6 274.3199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical"
+			(at 477.52 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 477.52 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 477.52 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "b28dc3a5-bf67-4c2d-99f3-b87de4630654")
+		)
+		(pin "4"
+			(uuid "8cf8c0ef-514e-43a9-ae29-904105498a1c")
+		)
+		(pin "6"
+			(uuid "5562755d-cc58-4f8b-a204-988674e2a660")
+		)
+		(pin "3"
+			(uuid "c0b7a50a-54a1-4438-81d0-9241f681a897")
+		)
+		(pin "1"
+			(uuid "2288c88b-a310-4045-8081-5a2f30f6c2df")
+		)
+		(pin "5"
+			(uuid "9856faaf-e814-4ae1-9b7a-6f4d851820f9")
+		)
+		(instances
+			(project "central-board"
+				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
+					(reference "J7")
 					(unit 1)
 				)
 			)
@@ -18445,7 +18958,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 			(at 205.74 269.24 0)
 			(effects
 				(font
@@ -18464,6 +18977,15 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 205.74 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" ""
 			(at 205.74 269.24 0)
 			(effects
 				(font
@@ -18545,6 +19067,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C20917"
+			(at 208.28 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "8fb61ebc-1ec5-4985-aa3b-4f401bd48f1b")
 		)
@@ -18589,7 +19120,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 110.49 281.178 90)
 			(effects
 				(font
@@ -18609,6 +19140,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 110.49 279.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C22775"
+			(at 110.49 279.4 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18791,7 +19331,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 276.5552 134.62 0)
 			(effects
 				(font
@@ -18810,6 +19350,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 275.59 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C19702"
 			(at 275.59 130.81 0)
 			(effects
 				(font
