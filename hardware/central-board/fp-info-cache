@@ -1,4 +1,4 @@
-27143933629978560
+27152785897313721
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -60312,6 +60312,13 @@ diode SOD964 SOD-964
 2
 2
 Diode_SMD
+SOD-123_L2.6-W1.6-LS3.5-RD
+
+
+0
+2
+2
+Diode_SMD
 ST_D_SMC
 STMicroelectronics SMC (JEDEC DO-214-D, variant AB), https://www.st.com/resource/en/datasheet/sm15t36a.pdf#page=7
 Diode DO-214AB
@@ -71427,6 +71434,20 @@ ESOP-8_L4.9-W3.9-P1.27-LS6.0-TL-EP
 0
 9
 9
+Library
+IND-SMD_L11.5-W10.0
+
+
+0
+2
+2
+Library
+IND-SMD_L12.0-W12.0
+
+
+0
+2
+2
 Library
 IND_NR6028T4R7M
 
@@ -107450,6 +107471,13 @@ TPS5430DDAR
 17
 17
 footprints
+IND_BOURNS_SRR1260
+
+SRR1260-150M 
+0
+2
+2
+footprints
 JST_B2B-PH-K-S
 
 
@@ -107498,6 +107526,13 @@ USB-C-SMD_TYPE-C-6PIN-2MD-073
 0
 16
 14
+footprints
+Untitled
+
+
+0
+0
+0
 footprints
 WIRELM-SMD_16P-L16.0-W16.0-P2.00_LORA-CC68-915MHZ-TCXO
 

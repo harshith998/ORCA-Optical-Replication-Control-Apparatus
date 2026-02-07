@@ -7302,12 +7302,6 @@
 		(uuid "908d4863-d5de-4f2e-80ee-85f1d2f5e296")
 	)
 	(junction
-		(at 434.34 135.89)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "979688a0-71dc-4082-95a4-5378abe5696a")
-	)
-	(junction
 		(at 422.91 198.12)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7486,12 +7480,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f65b974b-7c1a-4d75-a939-5023b4ba86f8")
-	)
-	(junction
-		(at 434.34 186.69)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f69ef72a-1bd0-4e4d-9f5b-c723cef43c0e")
 	)
 	(junction
 		(at 425.45 265.43)
@@ -7795,16 +7783,6 @@
 	)
 	(wire
 		(pts
-			(xy 434.34 179.07) (xy 434.34 177.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "15bacb2b-428d-42fe-b199-1e6fd80a74eb")
-	)
-	(wire
-		(pts
 			(xy 210.82 210.82) (xy 181.61 210.82)
 		)
 		(stroke
@@ -7965,7 +7943,7 @@
 	)
 	(wire
 		(pts
-			(xy 422.91 186.69) (xy 434.34 186.69)
+			(xy 422.91 186.69) (xy 447.04 186.69)
 		)
 		(stroke
 			(width 0)
@@ -8375,7 +8353,7 @@
 	)
 	(wire
 		(pts
-			(xy 434.34 135.89) (xy 434.34 147.32)
+			(xy 434.34 134.62) (xy 434.34 147.32)
 		)
 		(stroke
 			(width 0)
@@ -8975,7 +8953,7 @@
 	)
 	(wire
 		(pts
-			(xy 422.91 135.89) (xy 434.34 135.89)
+			(xy 422.91 135.89) (xy 447.04 135.89)
 		)
 		(stroke
 			(width 0)
@@ -9095,7 +9073,7 @@
 	)
 	(wire
 		(pts
-			(xy 434.34 186.69) (xy 434.34 198.12)
+			(xy 434.34 185.42) (xy 434.34 198.12)
 		)
 		(stroke
 			(width 0)
@@ -9252,16 +9230,6 @@
 			(type default)
 		)
 		(uuid "9a93672e-11ef-4420-9c9f-e7be93ef15ea")
-	)
-	(wire
-		(pts
-			(xy 434.34 128.27) (xy 434.34 127)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9ae07601-5a17-4abd-abeb-a0f5b1d7a83e")
 	)
 	(wire
 		(pts
@@ -9522,16 +9490,6 @@
 			(type default)
 		)
 		(uuid "b0bcee7a-8049-4686-8d6c-7582ae7e78ba")
-	)
-	(wire
-		(pts
-			(xy 434.34 135.89) (xy 447.04 135.89)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b11150da-dc2d-4e59-aad0-615a8b3c3f0f")
 	)
 	(wire
 		(pts
@@ -9912,16 +9870,6 @@
 			(type default)
 		)
 		(uuid "c9289905-6246-4db8-8ef7-1e07fb83b44d")
-	)
-	(wire
-		(pts
-			(xy 434.34 186.69) (xy 447.04 186.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c92954f7-6cc5-41ea-a21c-59a951d746a0")
 	)
 	(wire
 		(pts
@@ -12196,6 +12144,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "~"
+			(at 454.66 274.32 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "fd0fd5fd-6d6b-4dc5-9b91-7f0ba28598bc")
 		)
@@ -12745,7 +12702,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 377.19 273.558 90)
 			(effects
 				(font
@@ -12772,7 +12729,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 377.19 271.78 0)
 			(effects
 				(font
@@ -12798,7 +12755,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky")
-		(at 434.34 182.88 270)
+		(at 434.34 181.61 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12807,7 +12764,7 @@
 		(fields_autoplaced yes)
 		(uuid "2814f368-b011-49f8-851b-912a9e2bdf5f")
 		(property "Reference" "D1"
-			(at 436.88 181.2924 90)
+			(at 436.88 180.0224 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12815,8 +12772,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SS54"
-			(at 436.88 183.8324 90)
+		(property "Value" "~"
+			(at 436.88 182.5624 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12824,8 +12781,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 434.34 182.88 0)
+		(property "Footprint" "Diode_SMD:SOD-123_L2.6-W1.6-LS3.5-RD"
+			(at 434.34 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12833,8 +12790,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://jlcpcb.com/partdetail/MDD_Microdiode_Semiconductor-SS54/C22452"
-			(at 434.34 182.88 0)
+		(property "Datasheet" ""
+			(at 434.34 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12843,7 +12800,7 @@
 			)
 		)
 		(property "Description" "Schottky diode"
-			(at 434.34 182.88 0)
+			(at 434.34 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12851,8 +12808,8 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C22452"
-			(at 434.34 182.88 90)
+		(property "LCSC" "C489144"
+			(at 434.34 181.61 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13729,7 +13686,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Library:IND-SMD_L11.5-W10.0"
 			(at 440.69 127 0)
 			(effects
 				(font
@@ -13756,7 +13713,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "~"
+		(property "LCSC" "C842886"
 			(at 440.69 127 90)
 			(effects
 				(font
@@ -14162,6 +14119,83 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:L")
+		(at 440.69 177.8 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "530371fc-5d73-4d98-bc3f-f68a95c2fbdb")
+		(property "Reference" "L1"
+			(at 440.69 172.72 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22u"
+			(at 440.69 175.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Library:IND-SMD_L11.5-W10.0"
+			(at 440.69 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 440.69 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Inductor"
+			(at 440.69 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C842886"
+			(at 440.69 177.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "25be2aa4-a7c4-4c3c-aeb7-ea04298c4e1d")
+		)
+		(pin "2"
+			(uuid "80d2c242-a23f-4f94-abd7-032601bee7d1")
+		)
+		(instances
+			(project "central-board"
+				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
+					(reference "L1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 412.75 222.25 0)
 		(unit 1)
@@ -14189,7 +14223,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 413.7152 226.06 0)
 			(effects
 				(font
@@ -14216,7 +14250,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C23733"
 			(at 412.75 222.25 0)
 			(effects
 				(font
@@ -14565,7 +14599,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 377.19 276.098 90)
 			(effects
 				(font
@@ -14592,7 +14626,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 377.19 274.32 0)
 			(effects
 				(font
@@ -14644,7 +14678,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 445.262 139.7 90)
 			(effects
 				(font
@@ -14671,7 +14705,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C17379"
+		(property "LCSC" "C22765"
 			(at 447.04 139.7 0)
 			(effects
 				(font
@@ -15008,7 +15042,7 @@
 				)
 			)
 		)
-		(property "Footprint" "123-02-01:SMA-TH_SMA-KWE_C7498154"
+		(property "Footprint" "footprints:SMA-TH_SMA-KWE_C7498154"
 			(at 293.37 129.54 0)
 			(effects
 				(font
@@ -15140,7 +15174,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 380.492 266.7 90)
 			(effects
 				(font
@@ -15167,7 +15201,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 382.27 266.7 0)
 			(effects
 				(font
@@ -15274,83 +15308,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:L")
-		(at 440.69 177.8 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "802abce5-734c-42ae-a8c7-c0d0730e0231")
-		(property "Reference" "L1"
-			(at 440.69 172.72 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "15u"
-			(at 440.69 175.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 440.69 177.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 440.69 177.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Inductor"
-			(at 440.69 177.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC" "~"
-			(at 440.69 177.8 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a03d1e5d-c49c-4e38-8ebd-58b57179d9ad")
-		)
-		(pin "2"
-			(uuid "b3db0cb5-e5d5-4872-aeb1-b3137dddfa04")
-		)
-		(instances
-			(project ""
-				(path "/9c3534ca-d5b4-48b7-bfc3-bcc5b38635ff"
-					(reference "L1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 447.04 132.08 0)
 		(unit 1)
@@ -15378,7 +15335,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 445.262 132.08 90)
 			(effects
 				(font
@@ -15405,7 +15362,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 447.04 132.08 0)
 			(effects
 				(font
@@ -15873,7 +15830,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "~"
 			(at 167.64 269.24 0)
 			(effects
 				(font
@@ -15990,7 +15947,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 254.9652 259.08 0)
 			(effects
 				(font
@@ -16017,7 +15974,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C23733"
 			(at 254 255.27 0)
 			(effects
 				(font
@@ -16175,7 +16132,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky")
-		(at 434.34 132.08 270)
+		(at 434.34 130.81 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -16184,7 +16141,7 @@
 		(fields_autoplaced yes)
 		(uuid "9ec5f40e-35f5-4fc8-a9ae-59f2ce16ec7d")
 		(property "Reference" "D2"
-			(at 436.88 130.4924 90)
+			(at 436.88 129.2224 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16192,8 +16149,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SS54"
-			(at 436.88 133.0324 90)
+		(property "Value" "~"
+			(at 436.88 131.7624 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16201,8 +16158,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 434.34 132.08 0)
+		(property "Footprint" "Diode_SMD:SOD-123_L2.6-W1.6-LS3.5-RD"
+			(at 434.34 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16210,8 +16167,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://jlcpcb.com/partdetail/MDD_Microdiode_Semiconductor-SS54/C22452"
-			(at 434.34 132.08 0)
+		(property "Datasheet" ""
+			(at 434.34 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16220,7 +16177,7 @@
 			)
 		)
 		(property "Description" "Schottky diode"
-			(at 434.34 132.08 0)
+			(at 434.34 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16228,8 +16185,8 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C22452"
-			(at 434.34 132.08 90)
+		(property "LCSC" "C489144"
+			(at 434.34 130.81 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16280,7 +16237,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 366.7252 179.07 0)
 			(effects
 				(font
@@ -16307,7 +16264,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C29823"
 			(at 365.76 175.26 0)
 			(effects
 				(font
@@ -16491,7 +16448,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 445.262 190.5 90)
 			(effects
 				(font
@@ -16518,7 +16475,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C22978"
+		(property "LCSC" "C25890"
 			(at 447.04 190.5 0)
 			(effects
 				(font
@@ -16726,7 +16683,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 295.402 261.62 90)
 			(effects
 				(font
@@ -16753,7 +16710,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C17437"
+		(property "LCSC" "C25079"
 			(at 297.18 261.62 0)
 			(effects
 				(font
@@ -16968,7 +16925,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 351.4852 128.27 0)
 			(effects
 				(font
@@ -16995,7 +16952,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C29823"
 			(at 350.52 124.46 0)
 			(effects
 				(font
@@ -17820,7 +17777,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "~"
 			(at 129.54 269.24 0)
 			(effects
 				(font
@@ -17948,7 +17905,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 445.262 182.88 90)
 			(effects
 				(font
@@ -17975,7 +17932,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 447.04 182.88 0)
 			(effects
 				(font
@@ -18054,6 +18011,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "~"
+			(at 427.99 274.32 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "70be7b5a-a734-429c-9e14-ab84a32f9eee")
 		)
@@ -18120,7 +18086,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 388.112 266.7 90)
 			(effects
 				(font
@@ -18147,7 +18113,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25804"
+		(property "LCSC" "C25744"
 			(at 389.89 266.7 0)
 			(effects
 				(font
@@ -18199,7 +18165,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 374.3452 128.27 0)
 			(effects
 				(font
@@ -18226,7 +18192,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C29823"
 			(at 373.38 124.46 0)
 			(effects
 				(font
@@ -18305,7 +18271,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "~"
 			(at 397.51 274.32 0)
 			(effects
 				(font
@@ -18439,7 +18405,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 362.9152 128.27 0)
 			(effects
 				(font
@@ -18466,7 +18432,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C29823"
 			(at 361.95 124.46 0)
 			(effects
 				(font
@@ -18584,7 +18550,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 378.1552 179.07 0)
 			(effects
 				(font
@@ -18611,7 +18577,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C1779"
+		(property "LCSC" "C29823"
 			(at 377.19 175.26 0)
 			(effects
 				(font
@@ -18903,6 +18869,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "~"
+			(at 477.52 274.32 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "b28dc3a5-bf67-4c2d-99f3-b87de4630654")
 		)
@@ -18985,7 +18960,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "~"
 			(at 205.74 269.24 0)
 			(effects
 				(font
@@ -19331,7 +19306,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 276.5552 134.62 0)
 			(effects
 				(font
@@ -19358,7 +19333,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C19702"
+		(property "LCSC" "C15525"
 			(at 275.59 130.81 0)
 			(effects
 				(font
