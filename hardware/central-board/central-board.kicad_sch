@@ -12717,7 +12717,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-7343-15_Kemet-W"
+		(property "Footprint" "Library2:CAP-SMD_L3.5-W2.8-R-RD"
 			(at 474.6752 139.7 0)
 			(effects
 				(font
@@ -13498,7 +13498,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-7343-15_Kemet-W"
+		(property "Footprint" "Library2:CAP-SMD_L3.5-W2.8-R-RD"
 			(at 486.1052 139.7 0)
 			(effects
 				(font
@@ -16795,7 +16795,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-7343-15_Kemet-W"
+		(property "Footprint" "Library2:CAP-SMD_L3.5-W2.8-R-RD"
 			(at 463.2452 139.7 0)
 			(effects
 				(font
