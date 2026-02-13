@@ -1015,186 +1015,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "5678:PESD3V3L1UA_C7588061"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "5678:SOD-323_L1.7-W1.3-LS2.5-RD"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://atta.szlcsc.com/upload/public/pdf/source/20231109/EB6AB41AEA720470EF66D364D954E961.pdf"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer Part" "PESD3V3L1UA"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer" "UMW(友台半导体)"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Supplier Part" "C7588061"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Supplier" "LCSC"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "LCSC Part Name" "PESD3V3L1UA"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "PESD3V3L1UA_C7588061_1_0"
-				(polyline
-					(pts
-						(xy -2.032 2.032) (xy -1.27 1.524) (xy -1.27 1.524) (xy -1.27 -1.524) (xy -1.27 -1.524) (xy -0.508 -2.032)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 0) (xy -2.54 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 1.778) (xy -1.27 0) (xy -1.27 0) (xy 1.27 -1.778) (xy 1.27 -1.778) (xy 1.27 1.778)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 0) (xy 1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(pin unspecified line
-					(at -5.08 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at 5.08 0 180)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "B2B-PH-K-S:B2B-PH-K-S"
 			(pin_names
 				(offset 1.016)
@@ -4600,7 +4420,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Transistor_FET:2N7002"
+		(symbol "Transistor_BJT:MMBT3904"
 			(pin_names
 				(offset 0)
 				(hide yes)
@@ -4617,7 +4437,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "2N7002"
+			(property "Value" "MMBT3904"
 				(at 5.08 0 0)
 				(effects
 					(font
@@ -4637,8 +4457,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
-				(at 5.08 -3.81 0)
+			(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/pzt3904-d.pdf"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -4647,7 +4467,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "0.115A Id, 60V Vds, N-Channel MOSFET, SOT-23"
+			(property "Description" "0.2A Ic, 40V Vce, Small Signal NPN Transistor, SOT-23"
 				(at 0 0 0)
 				(effects
 					(font
@@ -4656,7 +4476,25 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "N-Channel Switching MOSFET"
+			(property "Sim.Device" "NPN"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Sim.Pins" "1=B 2=E 3=C"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "NPN Transistor"
 				(at 0 0 0)
 				(effects
 					(font
@@ -4674,22 +4512,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "2N7002_0_1"
+			(symbol "MMBT3904_0_1"
 				(polyline
 					(pts
-						(xy 0.254 1.905) (xy 0.254 -1.905)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.254 0) (xy -2.54 0)
+						(xy -2.54 0) (xy 0.635 0)
 					)
 					(stroke
 						(width 0)
@@ -4701,81 +4527,10 @@
 				)
 				(polyline
 					(pts
-						(xy 0.762 2.286) (xy 0.762 1.27)
+						(xy 0.635 1.905) (xy 0.635 -1.905)
 					)
 					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.762 0.508) (xy 0.762 -0.508)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.762 -1.27) (xy 0.762 -2.286)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.762 -1.778) (xy 3.302 -1.778) (xy 3.302 1.778) (xy 0.762 1.778)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.016 0) (xy 2.032 0.381) (xy 2.032 -0.381) (xy 1.016 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(circle
-					(center 1.651 0)
-					(radius 2.794)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 2.54) (xy 2.54 1.778)
-					)
-					(stroke
-						(width 0)
+						(width 0.508)
 						(type default)
 					)
 					(fill
@@ -4783,57 +4538,10 @@
 					)
 				)
 				(circle
-					(center 2.54 1.778)
-					(radius 0.254)
+					(center 1.27 0)
+					(radius 2.8194)
 					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(circle
-					(center 2.54 -1.778)
-					(radius 0.254)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 -2.54) (xy 2.54 0) (xy 0.762 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.921 0.381) (xy 3.683 0.381)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 3.302 0.381) (xy 2.921 -0.254) (xy 3.683 -0.254) (xy 3.302 0.381)
-					)
-					(stroke
-						(width 0)
+						(width 0.254)
 						(type default)
 					)
 					(fill
@@ -4841,11 +4549,47 @@
 					)
 				)
 			)
-			(symbol "2N7002_1_1"
+			(symbol "MMBT3904_1_1"
+				(polyline
+					(pts
+						(xy 0.635 0.635) (xy 2.54 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 -0.635) (xy 2.54 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.778) (xy 1.778 -1.27) (xy 2.286 -2.286) (xy 1.27 -1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
 				(pin input line
 					(at -5.08 0 0)
 					(length 2.54)
-					(name "G"
+					(name "B"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -4863,7 +4607,7 @@
 				(pin passive line
 					(at 2.54 5.08 270)
 					(length 2.54)
-					(name "D"
+					(name "C"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -4881,7 +4625,7 @@
 				(pin passive line
 					(at 2.54 -5.08 90)
 					(length 2.54)
-					(name "S"
+					(name "E"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5599,12 +5343,6 @@
 		(uuid "2888acd6-f80e-44af-bc54-ccdd7493e77a")
 	)
 	(junction
-		(at 304.8 119.38)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "28b5b109-2d37-445c-92a8-f0072f4228af")
-	)
-	(junction
 		(at 330.2 208.28)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5615,12 +5353,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "33ce60ff-bad8-4537-bb72-1bb0b84cbfd7")
-	)
-	(junction
-		(at 294.64 111.76)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "3b56d9c0-7529-44e0-9b5f-4233d83b5dce")
 	)
 	(junction
 		(at 317.5 111.76)
@@ -5719,16 +5451,16 @@
 		(uuid "803e40f9-5cea-458b-8898-b78e71d2e12c")
 	)
 	(junction
+		(at 293.37 111.76)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "81a38ea8-f9ab-4963-84dc-1e3f308b5dc4")
+	)
+	(junction
 		(at 340.36 208.28)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "88d199b7-4d30-49f3-b19b-8bffa98b8e15")
-	)
-	(junction
-		(at 274.32 90.17)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "88d82e35-aae7-4f87-a05f-f1a7ef930006")
 	)
 	(junction
 		(at 93.98 69.85)
@@ -5821,6 +5553,12 @@
 		(uuid "a9093795-f062-468b-897b-0df2455b8c71")
 	)
 	(junction
+		(at 303.53 119.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "aa515c6c-754b-4e75-b8e7-753ab7629686")
+	)
+	(junction
 		(at 193.04 205.74)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5867,12 +5605,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "b9a52aec-d4d0-407e-9f28-37b5f8159c51")
-	)
-	(junction
-		(at 274.32 100.33)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "bb1f43fc-0aca-4e94-b1ec-c527554ad9d3")
 	)
 	(junction
 		(at 59.69 69.85)
@@ -6508,6 +6240,16 @@
 	)
 	(wire
 		(pts
+			(xy 283.21 111.76) (xy 281.94 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "476a3098-68b0-41ce-95ab-683f0c5ef500")
+	)
+	(wire
+		(pts
 			(xy 130.81 78.74) (xy 125.73 78.74)
 		)
 		(stroke
@@ -6555,6 +6297,16 @@
 			(type default)
 		)
 		(uuid "4f93ffc9-3e89-421f-8edb-fcd63e04c3b0")
+	)
+	(wire
+		(pts
+			(xy 123.19 153.67) (xy 118.11 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "512d885c-4313-4fd5-be0e-914a3514ff27")
 	)
 	(wire
 		(pts
@@ -6848,7 +6600,7 @@
 	)
 	(wire
 		(pts
-			(xy 304.8 121.92) (xy 304.8 119.38)
+			(xy 303.53 121.92) (xy 303.53 119.38)
 		)
 		(stroke
 			(width 0)
@@ -6998,7 +6750,7 @@
 	)
 	(wire
 		(pts
-			(xy 304.8 106.68) (xy 304.8 104.14)
+			(xy 303.53 106.68) (xy 303.53 104.14)
 		)
 		(stroke
 			(width 0)
@@ -7045,16 +6797,6 @@
 			(type default)
 		)
 		(uuid "80a93d4f-7aa8-4249-b1e1-f05e2fbfd110")
-	)
-	(wire
-		(pts
-			(xy 294.64 111.76) (xy 297.18 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "81b27fa6-e7ba-43b9-8325-74b21ed250ef")
 	)
 	(wire
 		(pts
@@ -7268,7 +7010,7 @@
 	)
 	(wire
 		(pts
-			(xy 304.8 104.14) (xy 320.04 104.14)
+			(xy 303.53 104.14) (xy 320.04 104.14)
 		)
 		(stroke
 			(width 0)
@@ -7315,6 +7057,16 @@
 			(type default)
 		)
 		(uuid "a6d97c6b-07ae-420e-885d-3d3540335ee5")
+	)
+	(wire
+		(pts
+			(xy 293.37 111.76) (xy 295.91 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aa0615a8-02b4-4c53-bd97-01108a0a495a")
 	)
 	(wire
 		(pts
@@ -7365,6 +7117,16 @@
 			(type default)
 		)
 		(uuid "b1453d32-74c8-462e-aada-e4359bf14d87")
+	)
+	(wire
+		(pts
+			(xy 290.83 111.76) (xy 293.37 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b1e6bd56-73d3-43ab-bb6d-4c97d7b3aae5")
 	)
 	(wire
 		(pts
@@ -7455,16 +7217,6 @@
 			(type default)
 		)
 		(uuid "b86f5e70-d871-402b-9852-b67d781f6b77")
-	)
-	(wire
-		(pts
-			(xy 123.19 153.67) (xy 118.11 153.67)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b93fac61-382a-4c9d-a28c-b94a9f1ae65a")
 	)
 	(wire
 		(pts
@@ -7698,7 +7450,7 @@
 	)
 	(wire
 		(pts
-			(xy 294.64 119.38) (xy 304.8 119.38)
+			(xy 293.37 119.38) (xy 303.53 119.38)
 		)
 		(stroke
 			(width 0)
@@ -7865,16 +7617,6 @@
 			(type default)
 		)
 		(uuid "df5010bf-4820-4ee5-8175-406ba5b7a261")
-	)
-	(wire
-		(pts
-			(xy 292.1 111.76) (xy 294.64 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e3332497-60c8-4135-b831-e3a2f003a9e2")
 	)
 	(wire
 		(pts
@@ -8068,7 +7810,7 @@
 	)
 	(wire
 		(pts
-			(xy 304.8 116.84) (xy 304.8 119.38)
+			(xy 303.53 116.84) (xy 303.53 119.38)
 		)
 		(stroke
 			(width 0)
@@ -8100,7 +7842,7 @@
 	)
 	(global_label "GPS_RESET"
 		(shape input)
-		(at 292.1 111.76 180)
+		(at 281.94 111.76 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8110,7 +7852,7 @@
 		)
 		(uuid "126d12c5-8db5-4c4b-94ea-b42104e90483")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 278.6526 111.76 0)
+			(at 268.4926 111.76 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8254,22 +7996,22 @@
 	)
 	(global_label "BUSY"
 		(shape input)
-		(at 123.19 153.67 0)
+		(at 77.47 173.99 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "23848618-0c6a-41dc-906c-b3573c901489")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 131.0738 153.67 0)
+			(at 69.5862 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8496,22 +8238,22 @@
 	)
 	(global_label "RS_EN"
 		(shape output)
-		(at 77.47 173.99 180)
+		(at 123.19 153.67 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "727ac01a-c0a7-4629-80ee-aa6d6299ac46")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 68.5582 173.99 0)
+			(at 132.1018 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -9444,6 +9186,109 @@
 			(project ""
 				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Transistor_BJT:MMBT3904")
+		(at 300.99 111.76 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2a825d46-979e-49e3-86e4-c612f9c64c03")
+		(property "Reference" "Q1"
+			(at 306.07 110.4899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MMBT3904"
+			(at 306.07 113.0299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 306.07 113.665 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/pzt3904-d.pdf"
+			(at 300.99 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "0.2A Ic, 40V Vce, Small Signal NPN Transistor, SOT-23"
+			(at 300.99 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "NPN"
+			(at 300.99 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=B 2=E 3=C"
+			(at 300.99 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C20526"
+			(at 300.99 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e49585f1-402d-4ddc-87cd-f84c2f8e457a")
+		)
+		(pin "3"
+			(uuid "5d147375-642f-4da9-8790-97d01cd53484")
+		)
+		(pin "1"
+			(uuid "88c67912-c488-4fe4-ba95-dcc7c2ad96e6")
+		)
+		(instances
+			(project ""
+				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
+					(reference "Q1")
 					(unit 1)
 				)
 			)
@@ -11692,90 +11537,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7002")
-		(at 302.26 111.76 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "bc3b7620-db43-4800-85b3-eeed911c5249")
-		(property "Reference" "Q1"
-			(at 307.34 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "2N7002"
-			(at 307.34 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
-			(at 307.34 113.665 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
-			(at 307.34 115.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" "0.115A Id, 60V Vds, N-Channel MOSFET, SOT-23"
-			(at 302.26 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC" "C8545"
-			(at 302.26 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "b186af8b-c52e-4b89-a0b6-e49215b97055")
-		)
-		(pin "2"
-			(uuid "4ce22bfc-7ad8-417b-9730-b475789e138c")
-		)
-		(pin "1"
-			(uuid "742f26b0-78de-4181-b013-01ae82e29a41")
-		)
-		(instances
-			(project ""
-				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
-					(reference "Q1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "ProLib_pcs_2026-01-30:LORA1262-915TCXO")
 		(at 294.64 194.31 0)
 		(unit 1)
@@ -12012,130 +11773,6 @@
 			(project ""
 				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
 					(reference "C3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "5678:PESD3V3L1UA_C7588061")
-		(at 274.32 95.25 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "c42a865c-100f-410a-b739-717b17c0076a")
-		(property "Reference" "D1"
-			(at 278.13 93.9799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 278.13 96.5199 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Diode_SMD:D_SOD-323F"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://atta.szlcsc.com/upload/public/pdf/source/20231109/EB6AB41AEA720470EF66D364D954E961.pdf"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer Part" "PESD3V3L1UA"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "UMW(友台半导体)"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier Part" "C7588061"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier" "LCSC"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC Part Name" "PESD3V3L1UA"
-			(at 274.32 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC" "C7588061"
-			(at 274.32 95.25 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "ce9ec834-b5f7-4100-b530-35217faa3390")
-		)
-		(pin "1"
-			(uuid "fd0a54f6-9e19-418a-9d80-1645b2eaa418")
-		)
-		(instances
-			(project ""
-				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
-					(reference "D1")
 					(unit 1)
 				)
 			)
@@ -12837,34 +12474,32 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 294.64 115.57 0)
+		(at 287.02 111.76 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "ed11720c-0fcd-4ecd-b4a7-9955f05aa605")
-		(property "Reference" "R6"
-			(at 297.18 114.2999 0)
+		(uuid "e358ebb7-2b04-4092-b990-1f3716c9dca1")
+		(property "Reference" "R7"
+			(at 287.02 105.41 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Value" "100k"
-			(at 297.18 116.8399 0)
+		(property "Value" "4.7k"
+			(at 287.02 107.95 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 292.862 115.57 90)
+			(at 287.02 113.538 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12873,7 +12508,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 294.64 115.57 0)
+			(at 287.02 111.76 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12882,7 +12517,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 294.64 115.57 0)
+			(at 287.02 111.76 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12890,8 +12525,87 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25741"
-			(at 294.64 115.57 0)
+		(property "LCSC" "C25900"
+			(at 287.02 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "615b487b-2b46-44c5-916a-4f4f56fea411")
+		)
+		(pin "1"
+			(uuid "f9565703-2189-41e0-8c36-8b713e9fc85b")
+		)
+		(instances
+			(project "satellite-board"
+				(path "/8ce565f0-183a-4bfb-874b-c5da5baf885e"
+					(reference "R7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 293.37 115.57 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ed11720c-0fcd-4ecd-b4a7-9955f05aa605")
+		(property "Reference" "R6"
+			(at 295.91 114.2999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "47k"
+			(at 295.91 116.8399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 291.592 115.57 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 293.37 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 293.37 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C25792"
+			(at 293.37 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12982,7 +12696,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 304.8 121.92 0)
+		(at 303.53 121.92 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12990,7 +12704,7 @@
 		(dnp no)
 		(uuid "f351d037-9d55-4f77-8cf7-a2bc62e64a56")
 		(property "Reference" "#PWR024"
-			(at 304.8 128.27 0)
+			(at 303.53 128.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12999,7 +12713,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 304.8 125.73 0)
+			(at 303.53 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13007,7 +12721,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 304.8 121.92 0)
+			(at 303.53 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13016,7 +12730,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 304.8 121.92 0)
+			(at 303.53 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13025,7 +12739,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 304.8 121.92 0)
+			(at 303.53 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
