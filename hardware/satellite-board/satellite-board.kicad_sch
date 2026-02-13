@@ -5920,6 +5920,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 156.21) (xy 118.11 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0d6921b5-8228-4d4f-b15b-d7c52eb70192")
+	)
+	(wire
+		(pts
 			(xy 317.5 129.54) (xy 334.01 129.54)
 		)
 		(stroke
@@ -6257,16 +6267,6 @@
 			(type default)
 		)
 		(uuid "484d1893-b820-4382-b3d4-6bb5c28bdc6d")
-	)
-	(wire
-		(pts
-			(xy 123.19 158.75) (xy 118.11 158.75)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "49e0da21-1f8a-4613-8407-21e7e99c8b8e")
 	)
 	(wire
 		(pts
@@ -7340,6 +7340,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 158.75) (xy 118.11 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c261a7be-16ad-4bd2-98b8-dbf3a02470b9")
+	)
+	(wire
+		(pts
 			(xy 334.01 129.54) (xy 350.52 129.54)
 		)
 		(stroke
@@ -7547,16 +7557,6 @@
 			(type default)
 		)
 		(uuid "d72a7a8b-fdaa-4cb5-a706-10c3dc9adb09")
-	)
-	(wire
-		(pts
-			(xy 123.19 156.21) (xy 118.11 156.21)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d757b35b-7e24-469e-ba18-3a2bd02b1bd9")
 	)
 	(wire
 		(pts
@@ -7908,22 +7908,22 @@
 	)
 	(global_label "DIO1"
 		(shape input)
-		(at 123.19 156.21 0)
+		(at 77.47 168.91 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "181358a1-b2be-43ec-bfdc-1d48c668c043")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 130.59 156.21 0)
+			(at 70.07 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8084,22 +8084,22 @@
 	)
 	(global_label "LED_YLW"
 		(shape output)
-		(at 77.47 168.91 180)
+		(at 123.19 156.21 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "4592bedb-2764-49d5-9864-f4282b549a90")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 66.502 168.91 0)
+			(at 134.158 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8480,22 +8480,22 @@
 	)
 	(global_label "RJ45_SNS"
 		(shape input)
-		(at 123.19 158.75 0)
+		(at 77.47 166.37 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "e58e130c-e708-454d-a874-34660cfb6363")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 135.5489 158.75 0)
+			(at 65.1111 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8590,22 +8590,22 @@
 	)
 	(global_label "LED_GRN"
 		(shape output)
-		(at 77.47 166.37 180)
+		(at 123.19 158.75 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "f25e1f6c-69d5-491a-b74d-9dc7fa5ee975")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 66.1996 166.37 0)
+			(at 134.4604 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
