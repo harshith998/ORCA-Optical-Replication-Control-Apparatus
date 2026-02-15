@@ -6140,6 +6140,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 161.29) (xy 118.11 161.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2e010134-0841-4ab2-b5f8-03b13b85e521")
+	)
+	(wire
+		(pts
 			(xy 193.04 177.8) (xy 193.04 205.74)
 		)
 		(stroke
@@ -6527,16 +6537,6 @@
 			(type default)
 		)
 		(uuid "68b62cb0-c653-477d-877f-124b9a814193")
-	)
-	(wire
-		(pts
-			(xy 118.11 161.29) (xy 123.19 161.29)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "69d06b8c-3bef-432b-82d5-436f320abfac")
 	)
 	(wire
 		(pts
@@ -7908,22 +7908,22 @@
 	)
 	(global_label "DIO1"
 		(shape input)
-		(at 77.47 168.91 180)
+		(at 123.19 161.29 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "181358a1-b2be-43ec-bfdc-1d48c668c043")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 70.07 168.91 0)
+			(at 130.59 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8062,7 +8062,7 @@
 	)
 	(global_label "CS_1"
 		(shape output)
-		(at 77.47 161.29 180)
+		(at 77.47 168.91 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8072,7 +8072,7 @@
 		)
 		(uuid "407e26f0-3be0-40e5-9ef3-cade72a783a0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 69.8282 161.29 0)
+			(at 69.8282 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8304,22 +8304,22 @@
 	)
 	(global_label "GPS_RESET"
 		(shape output)
-		(at 123.19 161.29 0)
+		(at 77.47 161.29 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "96e243ee-db49-497b-bb8f-f7df5c14a43b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 136.6374 161.29 0)
+			(at 64.0226 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8749,7 +8749,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" "TYPE-C 16PIN 2MD(073)"
 			(at 208.915 172.72 0)
 			(effects
 				(font
@@ -10136,7 +10136,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" "SMA-KWE"
 			(at 347.98 177.8 90)
 			(effects
 				(font
@@ -10765,7 +10765,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" "LC86GLAMD"
 			(at 334.01 76.2 0)
 			(effects
 				(font
@@ -11861,7 +11861,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" "XY-SM04B-SRSS-TB"
 			(at 135.89 71.12 0)
 			(effects
 				(font
@@ -11942,7 +11942,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "~"
+		(property "LCSC" "C51940130"
 			(at 135.89 80.01 0)
 			(effects
 				(font
