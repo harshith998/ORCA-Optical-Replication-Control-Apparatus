@@ -1,4 +1,4 @@
-Designator,Val,Package,Mid X,Mid Y,Rotation,Layer
+Designator,Comment,Package,Mid X,Mid Y,Rotation,Layer
 C1,100n,C_0402_1005Metric,62.6,37.48,-90,top
 C2,10u,C_0402_1005Metric,63.8,37.48,-90,top
 C3,100n,C_0402_1005Metric,48.72,25.11,180,top
