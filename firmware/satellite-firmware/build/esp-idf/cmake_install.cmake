@@ -727,6 +727,11 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/cmake_install.cmake")
 endif()
 
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/cmake_install.cmake")
+endif()
+
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)

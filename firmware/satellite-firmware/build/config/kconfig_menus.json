@@ -39375,6 +39375,170 @@
                 "type": "menu"
             },
             {
+                "children": [
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_UART_PORT",
+                                "name": "GPS_UART_PORT",
+                                "range": [
+                                    0,
+                                    2
+                                ],
+                                "title": "UART Port Number (0=UART0, 1=UART1, 2=UART2)",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_UART_BAUD_RATE",
+                                "name": "GPS_UART_BAUD_RATE",
+                                "range": null,
+                                "title": "Baud Rate",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_UART_TX_PIN",
+                                "name": "GPS_UART_TX_PIN",
+                                "range": null,
+                                "title": "TX GPIO",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_UART_RX_PIN",
+                                "name": "GPS_UART_RX_PIN",
+                                "range": null,
+                                "title": "RX GPIO",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_UART_BUF_SIZE",
+                                "name": "GPS_UART_BUF_SIZE",
+                                "range": null,
+                                "title": "UART RX Buffer Size (bytes)",
+                                "type": "int"
+                            }
+                        ],
+                        "depends_on": null,
+                        "id": "component-config-lc86glamd-gps-module-configuration-uart-configuration-Users-michaeldanley-Documents-GitHub-ORCA-Optical-Replication-Control-Apparatus-firmware-satellite-firmware-components-libnmea-esp32-Kconfig-3",
+                        "title": "UART Configuration",
+                        "type": "menu"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_PIN_RESET",
+                                "name": "GPS_PIN_RESET",
+                                "range": [
+                                    -1,
+                                    48
+                                ],
+                                "title": "RESET GPIO (-1 to disable)",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_PIN_1PPS",
+                                "name": "GPS_PIN_1PPS",
+                                "range": [
+                                    -1,
+                                    48
+                                ],
+                                "title": "1PPS GPIO (-1 to disable)",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_PIN_WAKEUP",
+                                "name": "GPS_PIN_WAKEUP",
+                                "range": [
+                                    -1,
+                                    48
+                                ],
+                                "title": "WAKEUP GPIO (-1 to disable)",
+                                "type": "int"
+                            }
+                        ],
+                        "depends_on": null,
+                        "id": "component-config-lc86glamd-gps-module-configuration-pin-configuration-Users-michaeldanley-Documents-GitHub-ORCA-Optical-Replication-Control-Apparatus-firmware-satellite-firmware-components-libnmea-esp32-Kconfig-26",
+                        "title": "Pin Configuration",
+                        "type": "menu"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_FIX_TIMEOUT_MS",
+                                "name": "GPS_FIX_TIMEOUT_MS",
+                                "range": null,
+                                "title": "Fix Timeout (ms)",
+                                "type": "int"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_ENABLE_GLONASS",
+                                "name": "GPS_ENABLE_GLONASS",
+                                "range": null,
+                                "title": "Enable GLONASS",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_ENABLE_GALILEO",
+                                "name": "GPS_ENABLE_GALILEO",
+                                "range": null,
+                                "title": "Enable Galileo",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": null,
+                                "id": "GPS_ENABLE_BDS",
+                                "name": "GPS_ENABLE_BDS",
+                                "range": null,
+                                "title": "Enable BeiDou",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "id": "component-config-lc86glamd-gps-module-configuration-gnss-configuration-Users-michaeldanley-Documents-GitHub-ORCA-Optical-Replication-Control-Apparatus-firmware-satellite-firmware-components-libnmea-esp32-Kconfig-43",
+                        "title": "GNSS Configuration",
+                        "type": "menu"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-lc86glamd-gps-module-configuration-Users-michaeldanley-Documents-GitHub-ORCA-Optical-Replication-Control-Apparatus-firmware-satellite-firmware-components-libnmea-esp32-Kconfig-1",
+                "title": "LC86GLAMD GPS Module Configuration",
+                "type": "menu"
+            },
+            {
                 "children": [],
                 "depends_on": "\"${IDF_BUILD_V2}\"",
                 "id": "component-config-configuration-for-components-not-included-in-the-build-Users-michaeldanley-esp-esp-idf-Kconfig-765",

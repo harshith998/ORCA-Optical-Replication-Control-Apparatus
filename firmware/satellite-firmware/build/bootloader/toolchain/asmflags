@@ -1,0 +1,2 @@
+"-specs=/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/bootloader/specs/picolibc.specs"
+-march=rv32imac_zicsr_zifencei_zaamo_zalrsc

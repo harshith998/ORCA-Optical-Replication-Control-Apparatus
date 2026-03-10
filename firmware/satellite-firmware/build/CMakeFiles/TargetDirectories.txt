@@ -1117,3 +1117,10 @@
 /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/CMakeFiles/install.dir
 /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/CMakeFiles/install/local.dir
 /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/CMakeFiles/install/strip.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/__idf_libnmea-esp32.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/edit_cache.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/rebuild_cache.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/list_install_components.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/install.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/install/local.dir
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/CMakeFiles/install/strip.dir

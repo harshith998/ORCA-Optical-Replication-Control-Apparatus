@@ -1,0 +1,8 @@
+Command: ninja all
+[1/4] cd /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build && /Users/michaeldanley/.espressif/python_env/idf6.1_py3.13_env/bin/python /Users/michaeldanley/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/partition_table/partition-table.bin /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/satellite-firmware.bin
+satellite-firmware.bin binary size 0x264a0 bytes. Smallest app partition is 0x100000 bytes. 0xd9b60 bytes (85%) free.
+[2/4] Performing build step for 'bootloader'
+[1/1] cd /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/bootloader && /Users/michaeldanley/.espressif/python_env/idf6.1_py3.13_env/bin/python /Users/michaeldanley/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/bootloader/bootloader.bin
+Bootloader binary size 0x5820 bytes. 0x27e0 bytes (31%) free.
+[3/4] No install step for 'bootloader'
+[4/4] Completed 'bootloader'

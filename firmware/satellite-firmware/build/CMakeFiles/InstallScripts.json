@@ -160,7 +160,8 @@
 		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/rt/cmake_install.cmake",
 		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/spiffs/cmake_install.cmake",
 		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/ulp/cmake_install.cmake",
-		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/cmake_install.cmake"
+		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/cmake_install.cmake",
+		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/libnmea-esp32/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

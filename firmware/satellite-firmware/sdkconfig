@@ -3776,6 +3776,50 @@ CONFIG_WL_SECTOR_SIZE_4096=y
 # default:
 CONFIG_WL_SECTOR_SIZE=4096
 # end of Wear Levelling
+
+#
+# LC86GLAMD GPS Module Configuration
+#
+
+#
+# UART Configuration
+#
+# default:
+CONFIG_GPS_UART_PORT=1
+# default:
+CONFIG_GPS_UART_BAUD_RATE=9600
+# default:
+CONFIG_GPS_UART_TX_PIN=20
+# default:
+CONFIG_GPS_UART_RX_PIN=21
+# default:
+CONFIG_GPS_UART_BUF_SIZE=1024
+# end of UART Configuration
+
+#
+# Pin Configuration
+#
+# default:
+CONFIG_GPS_PIN_RESET=-1
+# default:
+CONFIG_GPS_PIN_1PPS=-1
+# default:
+CONFIG_GPS_PIN_WAKEUP=-1
+# end of Pin Configuration
+
+#
+# GNSS Configuration
+#
+# default:
+CONFIG_GPS_FIX_TIMEOUT_MS=60000
+# default:
+CONFIG_GPS_ENABLE_GLONASS=y
+# default:
+CONFIG_GPS_ENABLE_GALILEO=y
+# default:
+CONFIG_GPS_ENABLE_BDS=y
+# end of GNSS Configuration
+# end of LC86GLAMD GPS Module Configuration
 # end of Component config
 
 # default:
