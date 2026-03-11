@@ -11,6 +11,7 @@ from typing import Generator
 
 from database import db
 from config import MAX_PWM_VALUE
+from usb_logger import usb_logger
 
 app = Flask(__name__)
 
@@ -168,6 +169,12 @@ def api_stream():
             'X-Accel-Buffering': 'no'
         }
     )
+
+
+@app.route('/api/usb')
+def api_usb():
+    """Get USB logger status."""
+    return jsonify(usb_logger.get_status())
 
 
 @app.route('/')

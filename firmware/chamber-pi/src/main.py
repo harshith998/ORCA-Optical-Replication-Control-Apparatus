@@ -16,6 +16,7 @@ from io_controller import IOController
 from lcd_display import LCDDisplay
 from database import db
 from web_server import app, update_current_state, run_server
+from usb_logger import usb_logger
 
 
 class DisplayMode(IntEnum):
@@ -147,6 +148,10 @@ def loop():
         bounds_min=io.live_min,
         bounds_max=io.live_max
     )
+
+    # Log to USB if connected
+    usb_logger.log_reading(raw_lux, clamped_lux, actual_pwm, actual_mode,
+                           io.live_min, io.live_max)
 
     # Update web server state for SSE
     update_current_state(
