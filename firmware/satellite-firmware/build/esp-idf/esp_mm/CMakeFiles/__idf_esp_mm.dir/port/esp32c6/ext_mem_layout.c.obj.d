@@ -1,0 +1,36 @@
+esp-idf/esp_mm/CMakeFiles/__idf_esp_mm.dir/port/esp32c6/ext_mem_layout.c.obj: \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/esp_mm/port/esp32c6/ext_mem_layout.c \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/stdlib.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/machine/ieeefp.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/_ansi.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/newlib.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/_newlib_version.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/config.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/features.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/lib/gcc/riscv32-esp-elf/14.2.0/include/stddef.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/newlib/platform_include/sys/reent.h \
+ /Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/config/sdkconfig.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/reent.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/_ansi.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/_types.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/machine/_types.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/machine/_default_types.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/newlib/platform_include/sys/lock.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/lock.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/newlib/platform_include/assert.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/lib/gcc/riscv32-esp-elf/14.2.0/include/stdint.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/stdint.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/_intsup.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/_stdint.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/assert.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/cdefs.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/machine/stdlib.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/alloca.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/sys/_locale.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/soc/esp32c6/include/soc/ext_mem_defs.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/esp_common/include/esp_bit_defs.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/esp_mm/include/../ext_mem_layout.h \
+ /Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/lib/gcc/riscv32-esp-elf/14.2.0/include/stdbool.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/soc/esp32c6/include/soc/soc_caps.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/hal/include/hal/cache_types.h \
+ /Users/michaeldanley/espressif/v5.5/esp-idf/components/hal/include/hal/mmu_types.h

@@ -1,0 +1,2 @@
+/Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-ar qc libas7343.a CMakeFiles/__idf_as7343.dir/as7343.c.obj
+/Users/michaeldanley/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-ranlib libas7343.a

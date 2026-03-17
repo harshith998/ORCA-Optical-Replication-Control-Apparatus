@@ -1,0 +1,5 @@
+Command: make -j 12 all
+make[3]: warning: jobserver unavailable: using -j1.  Add `+' to parent make rule.
+/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/components/as7343/as7343.c:182:18: warning: 'as7343_wait_avalid' defined but not used [-Wunused-function]
+  182 | static esp_err_t as7343_wait_avalid(as7343_device_t *dev)
+      |                  ^~~~~~~~~~~~~~~~~~

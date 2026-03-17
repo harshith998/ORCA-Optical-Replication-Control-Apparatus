@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "as7343.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        driver
+        freertos
+        log
+        esp_timer
+)
