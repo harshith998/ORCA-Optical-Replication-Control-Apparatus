@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/michaeldanley/Documents/GitHub/ORCA-Optical-Replication-Control-Apparatus/firmware/satellite-firmware/build/esp-idf/main/lp_core_main/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
