@@ -81,14 +81,14 @@ void app_main(void)
     // ESP_ERROR_CHECK(as7343_init(bus, &cfg, &sensor));
 
     // Checks if boot is due to LP core or full restart
-    uint32_t causes = esp_sleep_get_wakeup_cause();
-    if (causes & BIT(ESP_SLEEP_WAKEUP_ULP)) {
+    esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+    if (cause == ESP_SLEEP_WAKEUP_ULP) {
         printf("LP core woke up the main CPU\n");
 
         // TODO: LP core wakes up the main CPU
 
     } else {
-        printf("Not an LP core wakeup. Causes = %lx\n", causes);
+        printf("Not an LP core wakeup\n");
         printf("Initializing...\n");
 
         // TODO: Full restart wakes up the main CPU

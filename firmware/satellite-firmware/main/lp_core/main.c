@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "ulp_lp_core_i2c.h"
 #include "ulp_lp_core_utils.h"
 
 int main (void)
