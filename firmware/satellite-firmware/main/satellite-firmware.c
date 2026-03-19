@@ -10,6 +10,8 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 
+#include "gps.h"
+
 // I2C AS7343 pin configuration
 #define I2C_SCL_GPIO 19
 #define I2C_SDA_GPIO 18
@@ -18,7 +20,8 @@
 // Sampling & transmit timing configuration
 #define TRANSMIT_CYCLE_MS 60000ULL
 #define SAMPLES_PER_TRANSMIT 4
-#define SAMPLING_CYCLE_MS (uint64_t) (TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
+#define GPS_LOCK_TIMEOUT_MS 60000ULL
+#define SAMPLING_CYCLE_MS (uint64_t)(TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
 
 // RTC retained-state validation
 #define RTC_STATE_MAGIC 0xA53443D1UL
@@ -42,8 +45,8 @@ typedef struct
 // Transmit data struct
 typedef struct
 {
-    uint32_t sample_count;  // Average sample number
-    uint16_t avg_f1;        
+    uint32_t sample_count; // Average sample number
+    uint16_t avg_f1;
     uint16_t avg_f2;
     uint16_t avg_fz;
     uint16_t avg_f3;
@@ -56,7 +59,7 @@ typedef struct
     uint16_t avg_f8;
     uint16_t avg_nir;
     uint16_t avg_clear;
-    gps_fix_t gps;          // GPS data
+    gps_fix_t gps; // GPS data
 } report_payload_t;
 
 /* ---------- RTC-retained accumulator ---------- */
@@ -245,7 +248,6 @@ static esp_err_t read_sensor_and_accumulate(void)
 
 /* ---------- GPS / LoRa placeholders ---------- */
 
-// TODO
 static esp_err_t get_gps_fix(gps_fix_t *fix)
 {
     if (fix == NULL)
@@ -255,18 +257,38 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
 
     memset(fix, 0, sizeof(*fix));
 
-    /*
-     * TODO:
-     *   - power GPS on
-     *   - wait for fix with timeout
-     *   - fill fix->valid / latitude_deg / longitude_deg / hdop_x100
-     *   - power GPS off
-     */
+    // Initialize GPS
+    gps_init();
+    gps_data_t data;
 
-    fix->valid = false;
-    fix->latitude_deg = 0.0;
-    fix->longitude_deg = 0.0;
-    fix->unix_time = 0;
+    setenv("TZ", "UTC0", 1); // GPS always outputs UTC
+    tzset();
+
+    int64_t start = esp_timer_get_time();
+    do
+    {
+        gps_update();
+        gps_get_data(&data);
+        if ((esp_timer_get_time() - start) >= (int64_t)GPS_LOCK_TIMEOUT_MS * 1000)
+        {
+            fix->valid = false;
+            fix->latitude_deg = 0.0;
+            fix->longitude_deg = 0.0;
+            fix->unix_time = 0;
+            return ESP_OK;
+        }
+    } while (!data.valid || !data.datetime_valid);
+
+    time_t unix_time = mktime(&data.datetime);
+
+    printf("Lat:       %.6f\n", data.latitude);
+    printf("Lon:       %.6f\n", data.longitude);
+    printf("Unix Time: %lld\n", (long long)unix_time);
+
+    fix->valid = true;
+    fix->latitude_deg = data.latitude;
+    fix->longitude_deg = data.longitude;
+    fix->unix_time = unix_time;
 
     return ESP_OK;
 }
@@ -278,7 +300,6 @@ static esp_err_t lora_send_report(const report_payload_t *report)
     {
         return ESP_ERR_INVALID_ARG;
     }
-    
 
     /*
      * TODO:
@@ -375,6 +396,7 @@ static void schedule_next_wakeup_and_sleep(void)
 
 void app_main(void)
 {
+
     // Initialize RTC memory is needed
     rtc_state_init_if_needed();
 
