@@ -2,7 +2,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <stdbool.h>
-
 #include "driver/i2c_master.h"
 #include "as7343.h"
 #include "esp_err.h"
@@ -10,8 +9,14 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "EspHal.h"
-
 #include "gps.h"
+
+/**
+ * The satellite module utilizes deep sleep cycles to minimize power draw while sampling data
+ * TRANSMIT_CYCLE_MS sets how often the satellite module transmits a data packet
+ * SAMPLES_PER_TRANSMIT sets how many spectral samples (evenly spaced) are averaged into each daata packet
+ * On a transmit cycle, the satellite also polls the gps for data including position and time
+ */
 
 // I2C AS7343 pin configuration
 static constexpr gpio_num_t I2C_SCL_GPIO = GPIO_NUM_19;
@@ -19,11 +24,9 @@ static constexpr gpio_num_t I2C_SDA_GPIO = GPIO_NUM_18;
 #define I2C_PORT I2C_NUM_0
 
 // Sampling & transmit timing configuration
-// #define TRANSMIT_CYCLE_MS 60000ULL
-#define TRANSMIT_CYCLE_MS 5000ULL
-#define SAMPLES_PER_TRANSMIT 1
-// #define GPS_LOCK_TIMEOUT_MS 60000ULL
-#define GPS_LOCK_TIMEOUT_MS 1000ULL
+#define TRANSMIT_CYCLE_MS 10000ULL
+#define SAMPLES_PER_TRANSMIT 2
+#define GPS_LOCK_TIMEOUT_MS 5000ULL
 #define SAMPLING_CYCLE_MS (uint64_t)(TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
 
 // RTC retained-state validation
@@ -297,7 +300,7 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
             fix->unix_time = 0;
             return ESP_OK;
 
-            // TODO: Put GPS to warm-sleep
+            // TODO: Put GPS to warm-sleep between cycles via UART TX
         }
     } while (!data.valid || !data.datetime_valid);
 
@@ -315,7 +318,7 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
     return ESP_OK;
 }
 
-// TODO
+// Send LoRa packet
 static esp_err_t lora_send_report(const report_payload_t *report)
 {
     if (report == NULL)
@@ -495,6 +498,8 @@ extern "C" void app_main(void)
     schedule_next_wakeup_and_sleep();
 }
 
+// TODO: Implement default instantiation (below) to get rid of warnings
+
 /**
  * 
 size_t off = 0;
@@ -508,3 +513,7 @@ memcpy(&lon, buf+off, 8); off+=8;
 memcpy(&ts,  buf+off, 4); off+=4;
  * 
  */
+
+ // TODO
+
+ // All RS-485 code via ethernet
