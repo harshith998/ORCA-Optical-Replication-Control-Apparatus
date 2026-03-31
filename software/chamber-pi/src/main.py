@@ -196,6 +196,9 @@ def run_web_server():
 
 
 def main():
+    
+    print("Starting Chamber Controller...")
+    
     """Entry point."""
     setup()
 
