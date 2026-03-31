@@ -1,0 +1,16 @@
+# Raspberry Pi Chamber Controller Dependencies
+
+# GPIO control (only works on Raspberry Pi)
+RPi.GPIO>=0.7.0
+
+# SPI for MCP3008 ADC (potentiometer)
+spidev>=3.5
+
+# I2C for LCD display
+smbus2>=0.4.0
+
+# Serial communication
+pyserial>=3.5
+
+# Web server
+Flask>=2.0.0
