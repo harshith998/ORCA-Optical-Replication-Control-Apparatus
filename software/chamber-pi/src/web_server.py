@@ -7,7 +7,7 @@ import time
 import threading
 import queue
 from flask import Flask, jsonify, request, Response, render_template_string
-from typing import Generator, List
+from typing import Generator
 
 from database import db
 from config import MAX_PWM_VALUE
@@ -16,7 +16,7 @@ from usb_logger import usb_logger
 app = Flask(__name__)
 
 # SSE subscribers
-sse_subscribers: List[queue.Queue] = []
+sse_subscribers: list[queue.Queue] = []
 sse_lock = threading.Lock()
 
 # Current state cache (updated by main loop)
