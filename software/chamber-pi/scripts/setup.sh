@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # ─────────────────────────────────────────────────────────────
-#  setup.sh — Install update.sh + start.sh, setup Python venv,
-#             and run update.
+#  setup.sh — Install update + start globally, setup Python venv
 #  Run once on a fresh Pi to bootstrap your repo workflow.
 #  Usage: bash setup.sh
 # ─────────────────────────────────────────────────────────────
@@ -53,16 +52,25 @@ for ENTRY in "update.sh:update" "start.sh:start"; do
     sudo chmod +x "$DEST"
     echo "[SUCCESS] Installed: $DEST"
 done
-
 echo "[INFO] You can now run 'update' and 'start' from anywhere."
 
-# ── 4. Run update to clone the repo first ─────────────────────
+# ── 4. Clone the repo (git pull/clone only, no venv yet) ──────
 echo ""
-echo "[INFO] Cloning repository..."
+echo "[INFO] Cloning/updating repository..."
 echo "──────────────────────────────────────"
-/usr/local/bin/update
 
-# ── 5. Install Python venv dependencies ───────────────────────
+REPO_URL="git@github.com:harshith998/ORCA-Optical-Replication-Control-Apparatus.git"
+if [ -d "$REPO_DIR/.git" ]; then
+    cd "$REPO_DIR" && git pull
+else
+    git clone "$REPO_URL" "$REPO_DIR"
+fi
+if [ $? -ne 0 ]; then
+    echo "[ERROR] git operation failed."
+    exit 1
+fi
+
+# ── 5. Install Python build dependencies ──────────────────────
 echo ""
 echo "[INFO] Installing Python build dependencies..."
 sudo apt install -y python3-venv python3-pip build-essential
@@ -88,18 +96,11 @@ else
     echo "[INFO] Virtual environment already exists, skipping creation."
 fi
 
-# ── 7. Activate and install requirements ──────────────────────
-echo "[INFO] Activating virtual environment..."
-source "$VENV_DIR/bin/activate" || { echo "[ERROR] Failed to activate venv."; exit 1; }
-
-echo "[INFO] Installing requirements..."
-pip install -r requirements.txt
-if [ $? -eq 0 ]; then
-    echo "[SUCCESS] Requirements installed."
-else
-    echo "[ERROR] pip install failed."
-    exit 1
-fi
+# ── 7. Run update to activate venv and install requirements ───
+echo ""
+echo "[INFO] Running update to install requirements..."
+echo "──────────────────────────────────────"
+/usr/local/bin/update
 
 echo ""
 echo "──────────────────────────────────────"

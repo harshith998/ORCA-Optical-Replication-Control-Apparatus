@@ -21,6 +21,9 @@ cd "$CHAMBER_DIR" || { echo "[ERROR] Cannot enter $CHAMBER_DIR"; exit 1; }
 echo "[INFO] Activating virtual environment..."
 source "$VENV_DIR/bin/activate" || { echo "[ERROR] Failed to activate venv. Has setup.sh been run?"; exit 1; }
 
+# cd src
+cd src || { echo "[ERROR] Cannot enter src directory"; exit 1; }
+
 # ── 3. Run main.py ─────────────────────────────────────────────
 echo "[INFO] Running main.py..."
 echo "──────────────────────────────────────"
