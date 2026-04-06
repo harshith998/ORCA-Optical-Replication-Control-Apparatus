@@ -2,7 +2,8 @@
 
 # ---------- GPIO Pin Definitions ----------
 # BCM numbering
-SWITCH1_PIN = 14      # Input switch 1 (mode: analog/lux)
+SWITCH1_PIN = 23      # Input switch 1 (mode: analog/lux)
+# NOTE: GPIO14 conflicts with /dev/serial0 on Raspberry Pi 3B, so use GPIO23 instead
 SWITCH2_PIN = 12      # Input switch 2 (PWM on/off)
 PWM_PIN = 18          # PWM output (GPIO18 supports hardware PWM)
 
