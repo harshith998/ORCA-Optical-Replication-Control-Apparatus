@@ -2,7 +2,7 @@
 
 # ─────────────────────────────────────────────────────────────
 #  update.sh — Pull latest changes or clone if not present,
-#              then activate venv and install requirements.
+#              re-install global scripts, then sync venv deps.
 #  Place this file at: /usr/local/bin/update  (done by setup.sh)
 #  Usage: update
 # ─────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@
 REPO_URL="git@github.com:harshith998/ORCA-Optical-Replication-Control-Apparatus.git"
 REPO_DIR="$HOME/ORCA-Optical-Replication-Control-Apparatus"
 CHAMBER_DIR="$REPO_DIR/software/chamber-pi"
+SCRIPTS_DIR="$CHAMBER_DIR/scripts"
 VENV_DIR="$CHAMBER_DIR/.venv"
 
 echo "──────────────────────────────────────"
@@ -42,10 +43,24 @@ else
     fi
 fi
 
-# ── 2. Enter chamber-pi ────────────────────────────────────────
+# ── 2. Re-install global scripts from repo ────────────────────
+echo ""
+echo "[INFO] Updating global scripts from repo..."
+for ENTRY in "update.sh:update" "start.sh:start"; do
+    SRC="$SCRIPTS_DIR/${ENTRY%%:*}"
+    DEST="/usr/local/bin/${ENTRY##*:}"
+    if [ -f "$SRC" ]; then
+        sudo cp "$SRC" "$DEST" && sudo chmod +x "$DEST"
+        echo "[SUCCESS] Updated: $DEST"
+    else
+        echo "[WARN] Script not found in repo, skipping: $SRC"
+    fi
+done
+
+# ── 3. Enter chamber-pi ────────────────────────────────────────
 cd "$CHAMBER_DIR" || { echo "[ERROR] Cannot enter $CHAMBER_DIR"; exit 1; }
 
-# ── 3. Activate venv and install requirements ──────────────────
+# ── 4. Activate venv and install requirements ──────────────────
 echo ""
 echo "[INFO] Activating virtual environment..."
 source "$VENV_DIR/bin/activate" || { echo "[ERROR] Failed to activate venv. Has setup.sh been run?"; exit 1; }
