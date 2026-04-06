@@ -40,61 +40,38 @@ class LCDDisplay:
         self.rows = rows
         self.backlight = LCD_BACKLIGHT
         self.bus = None
-        self.available = False
 
     def begin(self):
         """Initialize the LCD display."""
-        try:
-            self.bus = smbus2.SMBus(1)  # RPi uses I2C bus 1
-            self.available = True
-        except FileNotFoundError:
-            print("WARNING: I2C bus /dev/i2c-1 not found. LCD disabled.")
-            self.bus = None
-            self.available = False
-            return
-        except OSError as e:
-            print(f"WARNING: Unable to open LCD I2C bus: {e}. LCD disabled.")
-            self.bus = None
-            self.available = False
-            return
-
+        self.bus = smbus2.SMBus(1)  # RPi uses I2C bus 1
         time.sleep(0.05)
 
-        try:
-            # Initialize in 4-bit mode
-            self._write4bits(0x03 << 4)
-            time.sleep(0.005)
-            self._write4bits(0x03 << 4)
-            time.sleep(0.005)
-            self._write4bits(0x03 << 4)
-            time.sleep(0.001)
-            self._write4bits(0x02 << 4)
+        # Initialize in 4-bit mode
+        self._write4bits(0x03 << 4)
+        time.sleep(0.005)
+        self._write4bits(0x03 << 4)
+        time.sleep(0.005)
+        self._write4bits(0x03 << 4)
+        time.sleep(0.001)
+        self._write4bits(0x02 << 4)
 
-            # Set function: 4-bit, 2 lines, 5x8 dots
-            self._command(LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS)
-            # Display on, cursor off, blink off
-            self._command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF)
-            # Clear display
-            self.clear()
-            # Entry mode: left to right
-            self._command(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
-            time.sleep(0.001)
-        except OSError as e:
-            print(f"WARNING: LCD initialization failed: {e}. LCD disabled.")
-            self.cleanup()
-            self.available = False
+        # Set function: 4-bit, 2 lines, 5x8 dots
+        self._command(LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS)
+        # Display on, cursor off, blink off
+        self._command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF)
+        # Clear display
+        self.clear()
+        # Entry mode: left to right
+        self._command(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
+        time.sleep(0.001)
 
     def clear(self):
         """Clear the display."""
-        if not self.available:
-            return
         self._command(LCD_CLEARDISPLAY)
         time.sleep(0.002)
 
     def set_cursor(self, col, row):
         """Set cursor position."""
-        if not self.available:
-            return
         row_offsets = [0x00, 0x40, 0x14, 0x54]
         if row >= self.rows:
             row = self.rows - 1
@@ -102,16 +79,12 @@ class LCDDisplay:
 
     def print(self, text):
         """Print text at current cursor position."""
-        if not self.available:
-            return
         for char in str(text):
             self._write(ord(char))
 
     def set_backlight(self, state):
         """Turn backlight on/off."""
         self.backlight = LCD_BACKLIGHT if state else LCD_NOBACKLIGHT
-        if not self.available:
-            return
         self._expander_write(0)
 
     def _command(self, cmd):
@@ -131,30 +104,15 @@ class LCDDisplay:
 
     def _write4bits(self, data):
         """Write 4 bits with enable pulse."""
-        if not self.available or self.bus is None:
-            return
         self._expander_write(data)
         self._pulse_enable(data)
 
-    def _disable_lcd(self, message):
-        """Disable the LCD after an I2C communication failure."""
-        if self.available:
-            print(f"WARNING: {message}. LCD disabled.")
-        self.cleanup()
-
     def _expander_write(self, data):
         """Write to I2C expander."""
-        if not self.available or self.bus is None:
-            return
-        try:
-            self.bus.write_byte(self.address, data | self.backlight)
-        except OSError as e:
-            self._disable_lcd(f"LCD I2C write failed at address 0x{self.address:02X}: {e}")
+        self.bus.write_byte(self.address, data | self.backlight)
 
     def _pulse_enable(self, data):
         """Pulse the enable pin."""
-        if not self.available or self.bus is None:
-            return
         self._expander_write(data | EN)
         time.sleep(0.000001)
         self._expander_write(data & ~EN)
@@ -163,9 +121,4 @@ class LCDDisplay:
     def cleanup(self):
         """Cleanup I2C bus."""
         if self.bus:
-            try:
-                self.bus.close()
-            except Exception:
-                pass
-        self.bus = None
-        self.available = False
+            self.bus.close()

@@ -30,8 +30,6 @@ class IOController:
         self.spi = None
         self.serial = None
         self.pwm = None
-        self.spi_available = False
-        self.serial_available = False
 
     def begin(self):
         """Initialize all hardware peripherals."""
@@ -48,25 +46,11 @@ class IOController:
 
         # SPI setup for MCP3008 ADC
         self.spi = spidev.SpiDev()
-        try:
-            self.spi.open(SPI_PORT, SPI_DEVICE)
-            self.spi.max_speed_hz = 1000000
-            self.spi_available = True
-        except FileNotFoundError:
-            print("WARNING: SPI device not found. Analog input disabled.")
-            self.spi_available = False
-        except OSError as e:
-            print(f"WARNING: Unable to open SPI device: {e}. Analog input disabled.")
-            self.spi_available = False
+        self.spi.open(SPI_PORT, SPI_DEVICE)
+        self.spi.max_speed_hz = 1000000
 
         # UART setup
-        try:
-            self.serial = serial.Serial(UART_PORT, UART_BAUD, timeout=0.1)
-            self.serial_available = True
-        except Exception as e:
-            print(f"WARNING: Unable to open UART {UART_PORT}: {e}. Lux serial input disabled.")
-            self.serial = None
-            self.serial_available = False
+        self.serial = serial.Serial(UART_PORT, UART_BAUD, timeout=0.1)
 
         print("==================")
         print("   System Ready   ")
@@ -85,32 +69,20 @@ class IOController:
 
     def _read_analog(self):
         """Read potentiometer via MCP3008 ADC."""
-        if not self.spi_available or self.spi is None:
-            self.pot_value = 0.0
-            return
-
-        try:
-            adc = self.spi.xfer2([1, (8 + POT_CHANNEL) << 4, 0])
-            raw = ((adc[1] & 3) << 8) + adc[2]
-            self.pot_value = raw / 1023.0
-        except Exception as e:
-            print(f"WARNING: SPI read failed: {e}")
-            self.pot_value = 0.0
+        # MCP3008 SPI read
+        adc = self.spi.xfer2([1, (8 + POT_CHANNEL) << 4, 0])
+        raw = ((adc[1] & 3) << 8) + adc[2]  # 10-bit value (0-1023)
+        self.pot_value = raw / 1023.0  # Normalize to 0-1
 
     def _read_uart(self):
         """Read lux value from UART."""
-        if not self.serial_available or self.serial is None:
-            return
-
-        try:
-            if self.serial.in_waiting > 0:
+        if self.serial.in_waiting > 0:
+            try:
                 line = self.serial.readline().decode('utf-8').strip()
                 if line:
                     self.lux_value = int(float(line))
-        except (ValueError, UnicodeDecodeError):
-            pass
-        except Exception as e:
-            print(f"WARNING: UART read failed: {e}")
+            except (ValueError, UnicodeDecodeError):
+                pass  # Ignore invalid data
 
     def set_pwm(self, value):
         """Set PWM duty cycle (0-1023 maps to 0-100%)."""
@@ -145,16 +117,20 @@ class IOController:
 
     def get_clamped_lux(self, raw_lux):
         """Get lux clamped to 1-minute bounds."""
+        # Add raw value to buffer
         self.lux_buffer[self.buffer_index] = raw_lux
         self.buffer_index = (self.buffer_index + 1) % LUX_BUFFER_SIZE
         if self.buffer_count < LUX_BUFFER_SIZE:
             self.buffer_count += 1
 
+        # Update min/max bounds
         self._update_bounds()
 
+        # First minute: no clamping
         if self.buffer_count < LUX_BUFFER_SIZE:
             return raw_lux
 
+        # Clamp to bounds
         if raw_lux < self.live_min:
             return self.live_min
         if raw_lux > self.live_max:
@@ -173,14 +149,8 @@ class IOController:
         """Cleanup GPIO and peripherals."""
         if self.pwm:
             self.pwm.stop()
-        if self.spi and self.spi_available:
-            try:
-                self.spi.close()
-            except Exception:
-                pass
+        if self.spi:
+            self.spi.close()
         if self.serial:
-            try:
-                self.serial.close()
-            except Exception:
-                pass
+            self.serial.close()
         GPIO.cleanup()
