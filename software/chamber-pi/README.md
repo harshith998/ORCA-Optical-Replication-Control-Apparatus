@@ -24,4 +24,20 @@ ssh -T git@github.com
 # For GitLab
 ssh -T git@gitlab.com
 
+
+NEW INSTRUCTIONS
+
 git clone git@github.com:username/repository-name.git
+
+bash ORCA-Optical-Replication-Control-Apparatus/software/chamber-pi/scripts/setup.sh
+
+
+sudo apt install -y python3-venv python3-pip build-essential
+
+# Create the environment
+python3 -m venv .venv
+
+# Activate it
+source .venv/bin/activate
+
+pip install -r requirements.txt
