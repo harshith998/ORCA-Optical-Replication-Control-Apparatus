@@ -44,7 +44,7 @@ pip install -r requirements.txt
 
 update / start commands
 
-call sudo raspi-config to update SPI under interfaces
+call sudo raspi-config to update SPI / I2C under interfaces
 
 
 
