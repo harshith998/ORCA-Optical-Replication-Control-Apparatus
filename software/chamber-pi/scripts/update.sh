@@ -7,7 +7,7 @@
 # ─────────────────────────────────────────────────────────────
 
 REPO_URL="git@github.com:harshith998/ORCA-Optical-Replication-Control-Apparatus.git"
-REPO_DIR="/root/ORCA-Optical-Replication-Control-Apparatus"
+REPO_DIR="$HOME/ORCA-Optical-Replication-Control-Apparatus"
 
 echo "──────────────────────────────────────"
 echo " Git Update Script"
