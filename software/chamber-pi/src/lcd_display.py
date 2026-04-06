@@ -1,6 +1,8 @@
-import smbus2
 import time
-from config import LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS
+
+import smbus2
+
+from config import I2C_BUS, LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS
 
 # LCD commands
 LCD_CLEARDISPLAY = 0x01
@@ -28,9 +30,9 @@ LCD_BACKLIGHT = 0x08
 LCD_NOBACKLIGHT = 0x00
 
 # Control bits
-EN = 0b00000100  # Enable bit
-RW = 0b00000010  # Read/Write bit
-RS = 0b00000001  # Register select bit
+EN = 0b00000100
+RW = 0b00000010
+RS = 0b00000001
 
 
 class LCDDisplay:
@@ -40,85 +42,118 @@ class LCDDisplay:
         self.rows = rows
         self.backlight = LCD_BACKLIGHT
         self.bus = None
+        self.available = False
+        self.status = 'Not initialized'
 
     def begin(self):
-        """Initialize the LCD display."""
-        self.bus = smbus2.SMBus(1)  # RPi uses I2C bus 1
+        """Initialize the LCD display if it is present on the I2C bus."""
+        try:
+            self.bus = smbus2.SMBus(I2C_BUS)
+        except FileNotFoundError:
+            self.bus = None
+            self.available = False
+            self.status = f"Missing - /dev/i2c-{I2C_BUS} not found. Enable I2C if you plan to use it"
+            print(f" LCD: {self.status}")
+            return False
+        except Exception as exc:
+            self.bus = None
+            self.available = False
+            self.status = f"Unavailable - could not open I2C bus {I2C_BUS}: {exc}"
+            print(f" LCD: {self.status}")
+            return False
+
         time.sleep(0.05)
 
-        # Initialize in 4-bit mode
-        self._write4bits(0x03 << 4)
-        time.sleep(0.005)
-        self._write4bits(0x03 << 4)
-        time.sleep(0.005)
-        self._write4bits(0x03 << 4)
-        time.sleep(0.001)
-        self._write4bits(0x02 << 4)
+        try:
+            self._write4bits(0x03 << 4)
+            time.sleep(0.005)
+            self._write4bits(0x03 << 4)
+            time.sleep(0.005)
+            self._write4bits(0x03 << 4)
+            time.sleep(0.001)
+            self._write4bits(0x02 << 4)
 
-        # Set function: 4-bit, 2 lines, 5x8 dots
-        self._command(LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS)
-        # Display on, cursor off, blink off
-        self._command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF)
-        # Clear display
-        self.clear()
-        # Entry mode: left to right
-        self._command(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
-        time.sleep(0.001)
+            self._command(LCD_FUNCTIONSET | LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS)
+            self._command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF)
+            self.clear()
+            self._command(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
+            time.sleep(0.001)
+
+            self.available = True
+            self.status = f"OK - LCD responded at I2C address 0x{self.address:02X} on bus {I2C_BUS}"
+        except Exception as exc:
+            self.available = False
+            self.status = (
+                f"Missing or not responding - no usable LCD at 0x{self.address:02X} on I2C bus {I2C_BUS}: {exc}"
+            )
+            try:
+                self.bus.close()
+            except Exception:
+                pass
+            self.bus = None
+
+        print(f" LCD: {self.status}")
+        return self.available
 
     def clear(self):
-        """Clear the display."""
+        if not self.available:
+            return
         self._command(LCD_CLEARDISPLAY)
         time.sleep(0.002)
 
     def set_cursor(self, col, row):
-        """Set cursor position."""
+        if not self.available:
+            return
         row_offsets = [0x00, 0x40, 0x14, 0x54]
         if row >= self.rows:
             row = self.rows - 1
         self._command(LCD_SETDDRAMADDR | (col + row_offsets[row]))
 
     def print(self, text):
-        """Print text at current cursor position."""
+        if not self.available:
+            return
         for char in str(text):
             self._write(ord(char))
 
     def set_backlight(self, state):
-        """Turn backlight on/off."""
+        if not self.available:
+            return
         self.backlight = LCD_BACKLIGHT if state else LCD_NOBACKLIGHT
         self._expander_write(0)
 
+    def get_init_report(self):
+        return self.status
+
     def _command(self, cmd):
-        """Send command to LCD."""
         self._send(cmd, 0)
 
     def _write(self, value):
-        """Write data to LCD."""
         self._send(value, RS)
 
     def _send(self, data, mode):
-        """Send byte to LCD (4-bit mode)."""
         high = data & 0xF0
         low = (data << 4) & 0xF0
         self._write4bits(high | mode)
         self._write4bits(low | mode)
 
     def _write4bits(self, data):
-        """Write 4 bits with enable pulse."""
         self._expander_write(data)
         self._pulse_enable(data)
 
     def _expander_write(self, data):
-        """Write to I2C expander."""
+        if self.bus is None:
+            raise RuntimeError('I2C bus is not open')
         self.bus.write_byte(self.address, data | self.backlight)
 
     def _pulse_enable(self, data):
-        """Pulse the enable pin."""
         self._expander_write(data | EN)
         time.sleep(0.000001)
         self._expander_write(data & ~EN)
         time.sleep(0.00005)
 
     def cleanup(self):
-        """Cleanup I2C bus."""
         if self.bus:
-            self.bus.close()
+            try:
+                self.bus.close()
+            except Exception:
+                pass
