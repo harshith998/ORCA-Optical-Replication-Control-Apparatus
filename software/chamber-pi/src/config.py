@@ -45,7 +45,7 @@ UART_PORT = "/dev/serial0"
 UART_BAUD = 115200
 
 # ---------- PWM Settings ----------
-PWM_FREQ = 5000       # 5 kHz PWM
+PWM_FREQ = 500        # 500 Hz PWM (software PWM reliable range on Linux)
 MAX_PWM_VALUE = 1023  # 10-bit equivalent (0-1023)
 
 # ---------- Timing Settings ----------

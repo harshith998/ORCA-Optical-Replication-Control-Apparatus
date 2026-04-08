@@ -1,5 +1,3 @@
-import os
-import time
 import serial
 import spidev
 import RPi.GPIO as GPIO
@@ -31,8 +29,7 @@ class IOController:
         # Hardware handles
         self.spi = None
         self.serial = None
-        self._pwm_period_ns = int(1_000_000_000 / PWM_FREQ)
-        self._pwm_base = None  # sysfs path e.g. /sys/class/pwm/pwmchip0/pwm0
+        self.pwm = None
 
         # Init / diagnostics
         self.status = {
@@ -56,7 +53,7 @@ class IOController:
             GPIO.setwarnings(False)
             GPIO.setup(SWITCH1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(SWITCH2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            # PWM_PIN (BCM12) is intentionally omitted here — pigpio owns it for hardware PWM
+            GPIO.setup(PWM_PIN, GPIO.OUT)
             self.status['gpio'] = (
                 f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN})"
             )
@@ -64,24 +61,17 @@ class IOController:
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
-        # PWM setup (kernel sysfs hardware PWM — requires dtoverlay=pwm,pin=12,func=4 in config.txt)
-        try:
-            chip = '/sys/class/pwm/pwmchip0'
-            channel = 0
-            pwm_base = f'{chip}/pwm{channel}'
-            if not os.path.exists(pwm_base):
-                with open(f'{chip}/export', 'w') as f:
-                    f.write(str(channel))
-                time.sleep(0.1)
-            self._sysfs_write(pwm_base, 'period', self._pwm_period_ns)
-            self._sysfs_write(pwm_base, 'duty_cycle', 0)
-            self._sysfs_write(pwm_base, 'enable', 1)
-            self._pwm_base = pwm_base
-            self.status['pwm'] = f"OK - Hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (sysfs)"
-            self.hardware_ready['pwm'] = True
-        except Exception as exc:
-            self._pwm_base = None
-            self.status['pwm'] = f"Unavailable - PWM init failed: {exc}"
+        # PWM setup
+        if self.hardware_ready['gpio']:
+            try:
+                self.pwm = GPIO.PWM(PWM_PIN, PWM_FREQ)
+                self.pwm.start(0)
+                self.status['pwm'] = f"OK - PWM started on BCM{PWM_PIN} at {PWM_FREQ} Hz"
+                self.hardware_ready['pwm'] = True
+            except Exception as exc:
+                self.status['pwm'] = f"Unavailable - PWM init failed: {exc}"
+        else:
+            self.status['pwm'] = 'Skipped - GPIO not available'
 
         # SPI setup
         try:
@@ -161,18 +151,13 @@ class IOController:
         except (ValueError, UnicodeDecodeError, OSError, serial.SerialException):
             pass
 
-    @staticmethod
-    def _sysfs_write(base, attr, value):
-        with open(f'{base}/{attr}', 'w') as f:
-            f.write(str(value))
-
     def set_pwm(self, value):
-        """Set PWM duty cycle (0-1023 maps to 0-period_ns for sysfs hardware PWM)."""
-        if not self.hardware_ready['pwm'] or self._pwm_base is None:
+        """Set PWM duty cycle (0-1023 maps to 0-100%)."""
+        if not self.hardware_ready['pwm'] or self.pwm is None:
             return
-        duty_ns = int((value / MAX_PWM_VALUE) * self._pwm_period_ns)
-        duty_ns = max(0, min(self._pwm_period_ns, duty_ns))
-        self._sysfs_write(self._pwm_base, 'duty_cycle', duty_ns)
+        duty = (value / MAX_PWM_VALUE) * 100.0
+        duty = max(0.0, min(100.0, duty))
+        self.pwm.ChangeDutyCycle(duty)
 
     def get_switch1(self):
         return self.sw1
@@ -230,10 +215,9 @@ class IOController:
 
     def cleanup(self):
         """Cleanup GPIO and peripherals."""
-        if self._pwm_base:
+        if self.pwm:
             try:
-                self._sysfs_write(self._pwm_base, 'duty_cycle', 0)
-                self._sysfs_write(self._pwm_base, 'enable', 0)
+                self.pwm.stop()
             except Exception:
                 pass
         if self.spi:
