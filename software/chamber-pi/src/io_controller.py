@@ -1,6 +1,7 @@
 import serial
 import spidev
 import RPi.GPIO as GPIO
+import pigpio
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
@@ -29,7 +30,7 @@ class IOController:
         # Hardware handles
         self.spi = None
         self.serial = None
-        self.pwm = None
+        self.pi = None  # pigpio instance
 
         # Init / diagnostics
         self.status = {
@@ -61,17 +62,17 @@ class IOController:
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
-        # PWM setup
-        if self.hardware_ready['gpio']:
-            try:
-                self.pwm = GPIO.PWM(PWM_PIN, PWM_FREQ)
-                self.pwm.start(0)
-                self.status['pwm'] = f"OK - PWM started on BCM{PWM_PIN} at {PWM_FREQ} Hz"
-                self.hardware_ready['pwm'] = True
-            except Exception as exc:
-                self.status['pwm'] = f"Unavailable - PWM init failed: {exc}"
-        else:
-            self.status['pwm'] = 'Skipped - GPIO not available'
+        # PWM setup (hardware PWM via pigpio daemon)
+        try:
+            self.pi = pigpio.pi()
+            if not self.pi.connected:
+                raise RuntimeError("pigpiod daemon not running - start with: sudo pigpiod")
+            self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
+            self.status['pwm'] = f"OK - Hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (pigpio)"
+            self.hardware_ready['pwm'] = True
+        except Exception as exc:
+            self.pi = None
+            self.status['pwm'] = f"Unavailable - PWM init failed: {exc}"
 
         # SPI setup
         try:
@@ -152,12 +153,12 @@ class IOController:
             pass
 
     def set_pwm(self, value):
-        """Set PWM duty cycle (0-1023 maps to 0-100%)."""
-        if not self.hardware_ready['pwm'] or self.pwm is None:
+        """Set PWM duty cycle (0-1023 maps to 0-1000000 for pigpio hardware PWM)."""
+        if not self.hardware_ready['pwm'] or self.pi is None:
             return
-        duty = (value / MAX_PWM_VALUE) * 100.0
-        duty = max(0.0, min(100.0, duty))
-        self.pwm.ChangeDutyCycle(duty)
+        duty = int((value / MAX_PWM_VALUE) * 1_000_000)
+        duty = max(0, min(1_000_000, duty))
+        self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, duty)
 
     def get_switch1(self):
         return self.sw1
@@ -215,9 +216,10 @@ class IOController:
 
     def cleanup(self):
         """Cleanup GPIO and peripherals."""
-        if self.pwm:
+        if self.pi:
             try:
-                self.pwm.stop()
+                self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
+                self.pi.stop()
             except Exception:
                 pass
         if self.spi:

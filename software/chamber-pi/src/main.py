@@ -160,7 +160,8 @@ def loop():
         sw2=sw2
     )
 
-    print(io.to_string())
+    duty_pct = (actual_pwm / MAX_PWM_VALUE) * 100.0
+    print(f"{io.to_string()} | [PWM] {actual_pwm}/{MAX_PWM_VALUE} ({duty_pct:.1f}%) mode={actual_mode}")
 
 
 def main_loop():
