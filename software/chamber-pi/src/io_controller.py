@@ -54,7 +54,7 @@ class IOController:
             GPIO.setwarnings(False)
             GPIO.setup(SWITCH1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(SWITCH2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(PWM_PIN, GPIO.OUT)
+            # PWM_PIN (BCM12) is intentionally omitted here — pigpio owns it for hardware PWM
             self.status['gpio'] = (
                 f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN})"
             )
