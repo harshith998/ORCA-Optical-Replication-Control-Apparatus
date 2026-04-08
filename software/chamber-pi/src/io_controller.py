@@ -155,7 +155,7 @@ class IOController:
         """Set PWM duty cycle (0-1023 maps to 0-100%)."""
         if not self.hardware_ready['pwm'] or self.pwm is None:
             return
-        duty = (value / MAX_PWM_VALUE) * 100.0
+        duty = 100.0 - (value / MAX_PWM_VALUE) * 100.0
         duty = max(0.0, min(100.0, duty))
         self.pwm.ChangeDutyCycle(duty)
 
