@@ -1,7 +1,8 @@
+import os
+import time
 import serial
 import spidev
 import RPi.GPIO as GPIO
-import pigpio
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
@@ -30,7 +31,8 @@ class IOController:
         # Hardware handles
         self.spi = None
         self.serial = None
-        self.pi = None  # pigpio instance
+        self._pwm_period_ns = int(1_000_000_000 / PWM_FREQ)
+        self._pwm_base = None  # sysfs path e.g. /sys/class/pwm/pwmchip0/pwm0
 
         # Init / diagnostics
         self.status = {
@@ -62,16 +64,23 @@ class IOController:
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
-        # PWM setup (hardware PWM via pigpio daemon)
+        # PWM setup (kernel sysfs hardware PWM — requires dtoverlay=pwm,pin=12,func=4 in config.txt)
         try:
-            self.pi = pigpio.pi()
-            if not self.pi.connected:
-                raise RuntimeError("pigpiod daemon not running - start with: sudo pigpiod")
-            self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
-            self.status['pwm'] = f"OK - Hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (pigpio)"
+            chip = '/sys/class/pwm/pwmchip0'
+            channel = 0
+            pwm_base = f'{chip}/pwm{channel}'
+            if not os.path.exists(pwm_base):
+                with open(f'{chip}/export', 'w') as f:
+                    f.write(str(channel))
+                time.sleep(0.1)
+            self._sysfs_write(pwm_base, 'period', self._pwm_period_ns)
+            self._sysfs_write(pwm_base, 'duty_cycle', 0)
+            self._sysfs_write(pwm_base, 'enable', 1)
+            self._pwm_base = pwm_base
+            self.status['pwm'] = f"OK - Hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (sysfs)"
             self.hardware_ready['pwm'] = True
         except Exception as exc:
-            self.pi = None
+            self._pwm_base = None
             self.status['pwm'] = f"Unavailable - PWM init failed: {exc}"
 
         # SPI setup
@@ -152,13 +161,18 @@ class IOController:
         except (ValueError, UnicodeDecodeError, OSError, serial.SerialException):
             pass
 
+    @staticmethod
+    def _sysfs_write(base, attr, value):
+        with open(f'{base}/{attr}', 'w') as f:
+            f.write(str(value))
+
     def set_pwm(self, value):
-        """Set PWM duty cycle (0-1023 maps to 0-1000000 for pigpio hardware PWM)."""
-        if not self.hardware_ready['pwm'] or self.pi is None:
+        """Set PWM duty cycle (0-1023 maps to 0-period_ns for sysfs hardware PWM)."""
+        if not self.hardware_ready['pwm'] or self._pwm_base is None:
             return
-        duty = int((value / MAX_PWM_VALUE) * 1_000_000)
-        duty = max(0, min(1_000_000, duty))
-        self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, duty)
+        duty_ns = int((value / MAX_PWM_VALUE) * self._pwm_period_ns)
+        duty_ns = max(0, min(self._pwm_period_ns, duty_ns))
+        self._sysfs_write(self._pwm_base, 'duty_cycle', duty_ns)
 
     def get_switch1(self):
         return self.sw1
@@ -216,10 +230,10 @@ class IOController:
 
     def cleanup(self):
         """Cleanup GPIO and peripherals."""
-        if self.pi:
+        if self._pwm_base:
             try:
-                self.pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
-                self.pi.stop()
+                self._sysfs_write(self._pwm_base, 'duty_cycle', 0)
+                self._sysfs_write(self._pwm_base, 'enable', 0)
             except Exception:
                 pass
         if self.spi:

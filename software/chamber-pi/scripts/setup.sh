@@ -102,27 +102,6 @@ echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"
 /usr/local/bin/update
 
-# ── 8. Install pigpio from source and enable daemon ───────────
-echo ""
-echo "[INFO] Installing pigpio from source (required for hardware PWM)..."
-PIGPIO_DIR="/tmp/pigpio"
-if [ ! -f "/usr/local/bin/pigpiod" ]; then
-    git clone https://github.com/joan2937/pigpio "$PIGPIO_DIR"
-    cd "$PIGPIO_DIR" && make && sudo make install
-    if [ $? -ne 0 ]; then
-        echo "[WARN] pigpio build failed. Run 'sudo pigpiod' manually before starting the app."
-    fi
-    cd "$CHAMBER_DIR"
-else
-    echo "[INFO] pigpiod already installed, skipping build."
-fi
-sudo systemctl enable pigpiod
-sudo systemctl start pigpiod
-if systemctl is-active --quiet pigpiod; then
-    echo "[SUCCESS] pigpiod is running."
-else
-    echo "[WARN] pigpiod failed to start. Run 'sudo pigpiod' manually before starting the app."
-fi
 
 echo ""
 echo "──────────────────────────────────────"
