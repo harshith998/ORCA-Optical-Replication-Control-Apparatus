@@ -1,14 +1,15 @@
-import serial
 import spidev
 import RPi.GPIO as GPIO
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
     SPI_PORT, SPI_DEVICE, POT_CHANNEL,
-    UART_PORT, UART_BAUD,
+    LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
+    LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
     LUX_BUFFER_SIZE
 )
+from lora_receiver import LoRaReceiver, decode_packet
 
 
 class IOController:
@@ -28,21 +29,24 @@ class IOController:
 
         # Hardware handles
         self.spi = None
-        self.serial = None
+        self.lora = None
         self.pwm = None
+
+        # Last decoded LoRa packet (full spectral + GPS data)
+        self.last_packet = None
 
         # Init / diagnostics
         self.status = {
             'gpio': 'Not initialized',
             'pwm': 'Not initialized',
             'spi': 'Not initialized',
-            'uart': 'Not initialized',
+            'lora': 'Not initialized',
         }
         self.hardware_ready = {
             'gpio': False,
             'pwm': False,
             'spi': False,
-            'uart': False,
+            'lora': False,
         }
 
     def begin(self):
@@ -91,31 +95,42 @@ class IOController:
             self.spi = None
             self.status['spi'] = f"Unavailable - SPI open failed: {exc}"
 
-        # UART setup
+        # LoRa setup (SX1262 on spidev0.1 / CE1)
         try:
-            self.serial = serial.Serial(UART_PORT, UART_BAUD, timeout=0.1)
-            self.status['uart'] = (
-                f"OK - UART port {UART_PORT} opened at {UART_BAUD} baud; external sender not verified"
+            self.lora = LoRaReceiver(
+                spi_port=SPI_PORT,
+                spi_device=LORA_SPI_DEVICE,
+                reset_pin=LORA_NRESET_PIN,
+                busy_pin=LORA_BUSY_PIN,
+                dio1_pin=LORA_DIO1_PIN,
             )
-            self.hardware_ready['uart'] = True
-        except FileNotFoundError:
-            self.serial = None
-            self.status['uart'] = f"Missing - UART device {UART_PORT} not found"
+            self.lora.begin(
+                freq_mhz=LORA_FREQ_MHZ,
+                bw_khz=LORA_BW_KHZ,
+                sf=LORA_SF,
+                cr=LORA_CR,
+                sync_word=LORA_SYNC_WORD,
+            )
+            self.status['lora'] = (
+                f"OK - SX1262 receiving at {LORA_FREQ_MHZ} MHz "
+                f"BW{LORA_BW_KHZ} SF{LORA_SF} CR4/{LORA_CR} sync=0x{LORA_SYNC_WORD:02X}"
+            )
+            self.hardware_ready['lora'] = True
         except Exception as exc:
-            self.serial = None
-            self.status['uart'] = f"Unavailable - UART open failed: {exc}"
+            self.lora = None
+            self.status['lora'] = f"Unavailable - LoRa init failed: {exc}"
 
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'spi', 'uart'):
+        for name in ('gpio', 'pwm', 'spi', 'lora'):
             print(f"{name.upper():>4}: {self.status[name]}")
 
     def update(self):
         """Update all input states."""
         self._read_switches()
         self._read_analog()
-        self._read_uart()
+        self._read_lora()
 
     def _read_switches(self):
         """Read switch states (pull-up: HIGH = released)."""
@@ -139,16 +154,20 @@ class IOController:
             # No verified SPI ADC present. Stay operational.
             self.pot_value = 0.0
 
-    def _read_uart(self):
-        """Read lux value from UART when available."""
-        if not self.hardware_ready['uart'] or self.serial is None:
+    def _read_lora(self):
+        """Poll SX1262 for a received packet and decode it."""
+        if not self.hardware_ready['lora'] or self.lora is None:
             return
         try:
-            if self.serial.in_waiting > 0:
-                line = self.serial.readline().decode('utf-8').strip()
-                if line:
-                    self.lux_value = int(float(line))
-        except (ValueError, UnicodeDecodeError, OSError, serial.SerialException):
+            raw = self.lora.poll()
+            if raw is None:
+                return
+            packet = decode_packet(raw)
+            if packet is None:
+                return
+            self.last_packet = packet
+            self.lux_value = packet['channels']['clear']
+        except Exception:
             pass
 
     def set_pwm(self, value):
@@ -225,9 +244,9 @@ class IOController:
                 self.spi.close()
             except Exception:
                 pass
-        if self.serial:
+        if self.lora:
             try:
-                self.serial.close()
+                self.lora.close()
             except Exception:
                 pass
         try:

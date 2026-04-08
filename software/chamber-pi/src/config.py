@@ -40,9 +40,13 @@ LORA_CS_PIN = 7
 LORA_BUSY_PIN = 20
 LORA_DIO1_PIN = 21
 
-# ---------- UART Settings ----------
-UART_PORT = "/dev/serial0"
-UART_BAUD = 115200
+# ---------- LoRa RF Configuration (must match satellite firmware) ----------
+LORA_SPI_DEVICE  = 1       # spidev0.1 — CE1 (GPIO 7 = LORA_CS_PIN)
+LORA_FREQ_MHZ    = 915.0
+LORA_BW_KHZ      = 250.0
+LORA_SF          = 9
+LORA_CR          = 7       # RadioLib notation: 7 → CR4/7
+LORA_SYNC_WORD   = 0x12
 
 # ---------- PWM Settings ----------
 PWM_FREQ = 500        # 500 Hz PWM (software PWM reliable range on Linux)

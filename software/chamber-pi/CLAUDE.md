@@ -52,7 +52,7 @@ The application has a single entry point (`src/main.py`) that:
 Each 100ms tick:
 - Reads switch states (GPIO), potentiometer (SPI/MCP3008), and lux (UART from ESP32)
 - Determines active control mode (priority: web manual > automatic lux > potentiometer)
-- Outputs PWM value (0–1023, 5 kHz) to LED driver
+- Outputs PWM value (0–1023, 500 Hz) to LED driver
 - Updates LCD, logs to SQLite, broadcasts via SSE
 
 ### Key Design Patterns
@@ -77,10 +77,39 @@ Each 100ms tick:
 - **UART** (`/dev/serial0`, 115200 baud): Receives ASCII lux values from ESP32 sensor module (`"1234\n"` format)
 - **SPI** (`/dev/spidev0.0`): MCP3008 ADC reads potentiometer on channel 0
 - **I2C** (bus 1): LCD display at address `0x27`
-- **GPIO PWM** (BCM 12): LED driver output at 5 kHz
+- **GPIO PWM** (BCM 12): LED driver output at 500 Hz (RPi.GPIO software PWM); signal is inverted by Q3 in the MOSFET driver circuit — 0% duty = LEDs full on, 100% duty = LEDs off. `set_pwm()` handles this inversion.
 
 All pin assignments are in `src/config.py`. Change hardware wiring there first.
 
 ### Firmware Context
 
-The `firmware/` directory contains ESP32 firmware. The active firmware is `firmware/satellite-firmware/` (AS7343 spectral sensor + GPS + LoRa). The `chamber-esp32/` and `module-esp32/` directories are deprecated.
+The `firmware/` directory contains ESP32 firmware. `firmware/satellite-firmware/` is the active transmitter; `chamber-esp32/` and `module-esp32/` are deprecated.
+
+#### Satellite Firmware (transmitter)
+
+The satellite runs on an ESP32 and uses **deep sleep** between cycles to minimize power draw. On each wakeup it takes a spectral sample, accumulates it in RTC-retained memory, and on every Nth wakeup transmits an averaged packet via LoRa and queries the GPS.
+
+**Timing** (configured at top of `main.cpp`):
+- `TRANSMIT_CYCLE_MS = 10000` — full transmit cycle (10 s)
+- `SAMPLES_PER_TRANSMIT = 2` — samples averaged per packet
+- `SAMPLING_CYCLE_MS = TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT` — sleep duration between wakeups
+
+**Sensor**: AS7343 14-channel spectral sensor over I2C (SCL=GPIO19, SDA=GPIO18). Channels transmitted: F1–F8, FZ, FY, FXL, NIR, Clear (13 values).
+
+**LoRa radio**: SX1262 over SPI (SCK=GPIO6, MISO=GPIO2, MOSI=GPIO7, CS=GPIO11, DIO1=GPIO20, RST=GPIO0, BUSY=GPIO3).
+- 915 MHz, 250 kHz bandwidth, SF9, CR7, sync word `0x12`
+
+**Binary packet format** (51 bytes, little-endian):
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | 4 | `sample_count` (uint32) |
+| 4 | 26 | 13 × uint16 spectral channels (F1 F2 FZ F3 F4 F5 FY F6 FXL F7 F8 NIR Clear) |
+| 30 | 1 | `gps.valid` (uint8) |
+| 31 | 8 | `latitude_deg` (double) |
+| 39 | 8 | `longitude_deg` (double) |
+| 47 | 4 | `unix_time` (uint32, UTC) |
+
+**GPS**: polled only on transmit cycles, 5 s lock timeout (`GPS_LOCK_TIMEOUT_MS`). If lock fails, `gps.valid = 0` and coordinates are zeroed.
+
+**Outstanding TODOs in firmware**: GPS warm-sleep between cycles; RS-485/Ethernet integration on the receiver side.
