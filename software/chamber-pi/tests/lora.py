@@ -12,23 +12,18 @@ if not LoRa.begin(0, 1, 8, 20, -1):
 LoRa.setFrequency(915000000)
 LoRa.setRxGain(LoRa.RX_GAIN_BOOSTED)
 
-sf = 9
-bw = 250000
-cr = 7
-LoRa.setLoRaModulation(sf, bw, cr)
+LoRa.setLoRaModulation(9, 250000, 7)
 LoRa.setLoRaPacket(LoRa.HEADER_EXPLICIT, 12, 255, True)
 LoRa.setSyncWord(0x1424)
 
-print("Listening for packets (915 MHz, BW250, SF9, CR7, sync=0x1424)...\n")
+print("Listening (915 MHz BW250 SF9 CR7 sync=0x1424)...\n")
 LoRa.request(LoRa.RX_CONTINUOUS)
 
 while True:
-    if LoRa.available():
-        # Drain the buffer
-        length = 0
-        while LoRa.available():
-            LoRa.read()
-            length += 1
+    length = LoRa.available()
+    if length > 0:
+        # Read exactly 'length' bytes so we never block on an empty read()
+        payload = bytes(LoRa.read() for _ in range(length))
 
         rssi = LoRa.packetRssi()
         snr  = LoRa.snr()
@@ -38,4 +33,7 @@ while True:
         if status == LoRa.STATUS_CRC_ERR:    print("  !! CRC error")
         if status == LoRa.STATUS_HEADER_ERR: print("  !! Header error")
 
+        time.sleep(0.05)          # let chip settle before re-arming
         LoRa.request(LoRa.RX_CONTINUOUS)
+
+    time.sleep(0.01)              # 10 ms poll interval
