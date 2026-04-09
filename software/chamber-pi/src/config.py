@@ -20,6 +20,7 @@ GPIO20_PIN = 6
 GPIO18_PIN = 13
 GPIO19_PIN = 19
 GPIO26_PIN = 26
+SOLENOID_PIN = 26     # Solenoid valve relay output (HIGH = energized = valve open)
 
 # ---------- I2C Settings ----------
 # Generic I2C bus for optional external devices such as an LCD backpack.
