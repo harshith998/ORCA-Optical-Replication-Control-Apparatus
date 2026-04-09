@@ -76,13 +76,15 @@ def get_chip_mode():
     return mode, CHIP_MODES.get(mode, f'unknown({mode})')
 
 def get_irq():
-    r = cmd(CMD_GET_IRQ_STATUS, [0x00, 0x00])
-    return (r[1] << 8) | r[2]
+    # Response layout: [status(during opcode), NOP, IRQ[15:8], IRQ[7:0]]
+    r = cmd(CMD_GET_IRQ_STATUS, [0x00, 0x00, 0x00])
+    return (r[2] << 8) | r[3]
 
 def get_packet_status():
-    r = cmd(CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00])
-    rssi = -r[1] / 2.0
-    snr  = struct.unpack('b', bytes([r[2]]))[0] / 4.0
+    # Response layout: [status(during opcode), NOP, RssiPkt, SnrPkt, SignalRssiPkt]
+    r = cmd(CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00, 0x00])
+    rssi = -r[2] / 2.0
+    snr  = struct.unpack('b', bytes([r[3]]))[0] / 4.0
     return rssi, snr
 
 # ---------------------------------------------------------------------------
@@ -179,12 +181,17 @@ try:
                 pkt_count += 1
                 print(f"{now:8.1f}  {'RX (CRC ERR)':<12}  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
             elif irq_flags & IRQ_RX_DONE:
-                r       = cmd(CMD_GET_RX_BUF_STATUS, [0x00, 0x00])
-                pkt_len = r[1]
+                # Response: [status(during opcode), NOP, PayloadLen, BufOffset]
+                r       = cmd(CMD_GET_RX_BUF_STATUS, [0x00, 0x00, 0x00])
+                pkt_len = r[2]
                 pkt_count += 1
                 print(f"{now:8.1f}  {'RX DONE':<12}  len={pkt_len}  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
             else:
-                print(f"{now:8.1f}  {'DIO1 SPURIOUS':<12}  IRQ=0x{irq_flags:04X}")
+                irq_names = {0:'TxDone',1:'RxDone',2:'PreambleDet',3:'SyncValid',
+                             4:'HeaderValid',5:'HeaderErr',6:'CrcErr',7:'CadDone',
+                             8:'CadDet',9:'Timeout'}
+                bits = ' '.join(v for k,v in irq_names.items() if irq_flags & (1<<k))
+                print(f"{now:8.1f}  {'DIO1 SPURIOUS':<12}  IRQ=0x{irq_flags:04X}  [{bits or 'none'}]")
 
             cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # re-arm
 
