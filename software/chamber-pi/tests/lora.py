@@ -20,21 +20,22 @@ SPI_DEV   = 1   # CE1
 # ---------------------------------------------------------------------------
 # SX1262 opcodes
 # ---------------------------------------------------------------------------
-CMD_SET_STANDBY       = 0x80
-CMD_SET_PACKET_TYPE   = 0x8A
-CMD_SET_RF_FREQUENCY  = 0x86
-CMD_SET_MODULATION    = 0x8B
-CMD_SET_PACKET_PARAMS = 0x8C
-CMD_SET_BUFFER_BASE   = 0x8F
-CMD_SET_DIO_IRQ       = 0x08
-CMD_SET_RX            = 0x82
-CMD_GET_IRQ_STATUS    = 0x12
-CMD_CLEAR_IRQ         = 0x02
-CMD_GET_RX_BUF_STATUS = 0x13
-CMD_READ_BUFFER       = 0x1E
-CMD_WRITE_REGISTER    = 0x0D
-CMD_GET_PACKET_STATUS = 0x14
-CMD_GET_STATUS        = 0xC0
+CMD_SET_STANDBY           = 0x80
+CMD_SET_PACKET_TYPE       = 0x8A
+CMD_SET_RF_FREQUENCY      = 0x86
+CMD_SET_MODULATION        = 0x8B
+CMD_SET_PACKET_PARAMS     = 0x8C
+CMD_SET_BUFFER_BASE       = 0x8F
+CMD_SET_DIO_IRQ           = 0x08
+CMD_SET_DIO2_RF_SWITCH    = 0x9D   # tell chip DIO2 drives the RF switch
+CMD_SET_RX                = 0x82
+CMD_GET_IRQ_STATUS        = 0x12
+CMD_CLEAR_IRQ             = 0x02
+CMD_GET_RX_BUF_STATUS     = 0x13
+CMD_READ_BUFFER           = 0x1E
+CMD_WRITE_REGISTER        = 0x0D
+CMD_GET_PACKET_STATUS     = 0x14
+CMD_GET_STATUS            = 0xC0
 
 CHIP_MODES = {2: 'STDBY_RC', 3: 'STDBY_XOSC', 4: 'TX', 5: 'RX', 6: 'CAD'}
 
@@ -42,7 +43,6 @@ IRQ_RX_DONE = 0x0002
 IRQ_CRC_ERR = 0x0040
 
 REG_SYNC_MSB = 0x0740
-REG_SYNC_LSB = 0x0741
 
 # ---------------------------------------------------------------------------
 # SPI helpers
@@ -58,11 +58,20 @@ def wait_busy(timeout=1.0):
 
 def cmd(opcode, params=None):
     wait_busy()
-    return spi.xfer2([opcode] + (params or []))
+    r = spi.xfer2([opcode] + (params or []))
+    wait_busy()   # wait for chip to finish processing the command
+    return r
 
 def write_reg(addr, data):
     wait_busy()
     spi.xfer2([CMD_WRITE_REGISTER, (addr >> 8) & 0xFF, addr & 0xFF] + data)
+    wait_busy()
+
+def chip_mode():
+    wait_busy()
+    r = spi.xfer2([CMD_GET_STATUS, 0x00])
+    wait_busy()
+    return (r[1] >> 4) & 0x07
 
 def get_irq():
     r = cmd(CMD_GET_IRQ_STATUS, [0x00, 0x00])
@@ -72,11 +81,13 @@ def clear_irq(mask):
     cmd(CMD_CLEAR_IRQ, [(mask >> 8) & 0xFF, mask & 0xFF])
 
 def get_packet_status():
-    """Returns (rssi_dBm, snr_dB) for the last received LoRa packet."""
     r = cmd(CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00])
     rssi = -r[1] / 2.0
     snr  = struct.unpack('b', bytes([r[2]]))[0] / 4.0
     return rssi, snr
+
+def enter_rx():
+    cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # continuous RX
 
 # ---------------------------------------------------------------------------
 # Hardware init
@@ -103,6 +114,9 @@ wait_busy()
 # ---------------------------------------------------------------------------
 cmd(CMD_SET_STANDBY,     [0x00])   # STDBY_RC
 cmd(CMD_SET_PACKET_TYPE, [0x01])   # LoRa mode
+
+# Tell the chip that DIO2 controls the RF switch (needed on most SX1262 modules)
+cmd(CMD_SET_DIO2_RF_SWITCH, [0x01])
 
 fword = round(915e6 * (1 << 25) / 32e6)
 cmd(CMD_SET_RF_FREQUENCY, [
@@ -132,22 +146,28 @@ cmd(CMD_SET_DIO_IRQ, [
 ])
 
 cmd(CMD_SET_BUFFER_BASE, [0x00, 0x00])
-cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # continuous RX
+enter_rx()
 
-print("Listening — 915 MHz  BW250  SF9  CR4/7  sync=0x12")
+# Confirm chip actually entered RX before starting the loop
+mode = chip_mode()
+mode_str = CHIP_MODES.get(mode, f'unknown({mode})')
+print(f"Init complete — chip mode after SetRx: {mode_str}")
+if mode != 5:
+    print("WARNING: chip is NOT in RX mode — check SPI wiring / CE pin")
+
+print(f"\nListening — 915 MHz  BW250  SF9  CR4/7  sync=0x12")
 print(f"{'PKT':>4}  {'LEN':>4}  {'RSSI':>10}  {'SNR':>8}")
 
 pkt_count = 0
 last_heartbeat = time.time()
-HEARTBEAT_INTERVAL = 5.0  # seconds
+HEARTBEAT_INTERVAL = 5.0
 
 try:
     while True:
         now = time.time()
         if now - last_heartbeat >= HEARTBEAT_INTERVAL:
-            r         = cmd(CMD_GET_STATUS, [0x00])
-            chip_mode = (r[1] >> 4) & 0x07
-            mode_str  = CHIP_MODES.get(chip_mode, f'unknown({chip_mode})')
+            mode     = chip_mode()
+            mode_str = CHIP_MODES.get(mode, f'unknown({mode})')
             print(f"  [heartbeat] chip mode={mode_str}  pkts so far={pkt_count}")
             last_heartbeat = now
 
@@ -166,8 +186,7 @@ try:
             else:
                 print(f"DIO1 spurious  IRQ=0x{irq_flags:04X}")
 
-            # Re-arm continuous RX
-            cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])
+            enter_rx()
 
         time.sleep(0.005)
 
