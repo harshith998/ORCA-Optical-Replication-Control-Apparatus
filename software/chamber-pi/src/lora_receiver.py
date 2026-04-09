@@ -22,10 +22,15 @@ _CMD_GET_RX_BUF_STATUS = 0x13
 _CMD_READ_BUFFER       = 0x1E
 _CMD_WRITE_REGISTER    = 0x0D
 
+_CMD_GET_PACKET_STATUS = 0x14
+_CMD_GET_STATUS        = 0xC0
+
 _IRQ_RX_DONE = 0x0002
 _IRQ_CRC_ERR = 0x0040
 
 _REG_SYNC_MSB = 0x0740
+
+_CHIP_MODES = {2: 'STDBY_RC', 3: 'STDBY_XOSC', 4: 'TX', 5: 'RX', 6: 'CAD'}
 
 # ---------------------------------------------------------------------------
 # Packet decoder
@@ -157,6 +162,11 @@ class LoRaReceiver:
         self._cmd(_CMD_SET_BUFFER_BASE, [0x00, 0x00])
         self._cmd(_CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # continuous RX
 
+        # Confirm chip entered RX
+        r    = self._spi.xfer2([_CMD_GET_STATUS, 0x00])
+        mode = (r[1] >> 4) & 0x07
+        print(f"[LoRa] Init complete — chip mode: {_CHIP_MODES.get(mode, f'unknown({mode})')}")
+
     def poll(self) -> bytes:
         """
         Non-blocking packet check. Returns raw payload bytes on RxDone,
@@ -170,9 +180,16 @@ class LoRaReceiver:
         irq_flags = (r[2] << 8) | r[3]
         self._cmd(_CMD_CLEAR_IRQ, [(self._irq_mask >> 8) & 0xFF, self._irq_mask & 0xFF])
 
+        # Get RSSI/SNR before clearing IRQ
+        # Response: [status(during opcode), NOP, RssiPkt, SnrPkt, SignalRssiPkt]
+        ps   = self._cmd(_CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00, 0x00])
+        rssi = -ps[2] / 2.0
+        snr  = struct.unpack('b', bytes([ps[3]]))[0] / 4.0
+
         if irq_flags & _IRQ_CRC_ERR:
+            print(f"[LoRa] CRC ERR  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
             self._cmd(_CMD_SET_RX, [0xFF, 0xFF, 0xFF])
-            return b''   # signal error without crashing caller
+            return b''
 
         if not (irq_flags & _IRQ_RX_DONE):
             self._cmd(_CMD_SET_RX, [0xFF, 0xFF, 0xFF])
@@ -190,6 +207,8 @@ class LoRaReceiver:
         # ReadBuffer: [cmd, offset, NOP(status), data × pkt_len]
         raw     = self._cmd(_CMD_READ_BUFFER, [buf_offset] + [0x00] * (pkt_len + 1))
         payload = bytes(raw[3: 3 + pkt_len])
+
+        print(f"[LoRa] RX DONE  len={pkt_len:3d}  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
 
         self._cmd(_CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # re-arm
         return payload
