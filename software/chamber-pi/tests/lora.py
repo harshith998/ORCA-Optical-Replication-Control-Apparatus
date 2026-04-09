@@ -1,67 +1,197 @@
-import os, sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(currentdir)))
-from LoRaRF import SX126x
+"""
+SX1262 diagnostic test — direct spidev, no LoRaRF.
+Heartbeat prints chip mode every second so you can confirm the module
+is alive and in RX mode without needing to receive a packet.
+"""
+import struct
 import time
+import spidev
+import RPi.GPIO as GPIO
 
-LoRa = SX126x()
-print("Begin LoRa radio")
-# Pass -1 for irq pin to disable interrupt-based edge detection
-if not LoRa.begin(0, 1, 8, 20, -1) :
-    raise Exception("Something wrong, can't begin LoRa radio")
+# ---------------------------------------------------------------------------
+# Pin assignments (BCM)
+# ---------------------------------------------------------------------------
+RESET_PIN = 8
+BUSY_PIN  = 20
+DIO1_PIN  = 21
+SPI_PORT  = 0
+SPI_DEV   = 1   # CE1 = BCM7
 
-# Configure LoRa to use TCXO with DIO3 as control
-print("Set RF module to use TCXO as clock reference")
-LoRa.setDio3TcxoCtrl(LoRa.DIO3_OUTPUT_1_8, LoRa.TCXO_DELAY_10)
+# ---------------------------------------------------------------------------
+# SX1262 opcodes
+# ---------------------------------------------------------------------------
+CMD_SET_STANDBY       = 0x80
+CMD_SET_PACKET_TYPE   = 0x8A
+CMD_SET_RF_FREQUENCY  = 0x86
+CMD_SET_MODULATION    = 0x8B
+CMD_SET_PACKET_PARAMS = 0x8C
+CMD_SET_BUFFER_BASE   = 0x8F
+CMD_SET_DIO_IRQ       = 0x08
+CMD_SET_DIO2_RF_SW    = 0x9D
+CMD_SET_DIO3_TCXO     = 0x97
+CMD_SET_RX            = 0x82
+CMD_GET_IRQ_STATUS    = 0x12
+CMD_CLEAR_IRQ         = 0x02
+CMD_GET_RX_BUF_STATUS = 0x13
+CMD_READ_BUFFER       = 0x1E
+CMD_WRITE_REGISTER    = 0x0D
+CMD_GET_PACKET_STATUS = 0x14
+CMD_GET_STATUS        = 0xC0
 
-# Set frequency to 915 Mhz
-print("Set frequency to 915 Mhz")
-LoRa.setFrequency(915000000)
+CHIP_MODES = {2: 'STDBY_RC', 3: 'STDBY_XOSC', 4: 'TX', 5: 'RX', 6: 'CAD'}
 
-# Set RX gain
-print("Set RX gain to power saving gain")
-LoRa.setRxGain(LoRa.RX_GAIN_POWER_SAVING)
+IRQ_RX_DONE = 0x0002
+IRQ_CRC_ERR = 0x0040
 
-# Configure modulation parameters
-print("Set modulation parameters:\n\tSpreading factor = 7\n\tBandwidth = 125 kHz\n\tCoding rate = 4/5")
-sf = 7
-bw = 125000
-cr = 5
-LoRa.setLoRaModulation(sf, bw, cr)
+REG_SYNC_MSB = 0x0740
 
-# Configure packet parameters
-print("Set packet parameters:\n\tExplicit header type\n\tPreamble length = 12\n\tPayload Length = 15\n\tCRC on")
-headerType = LoRa.HEADER_EXPLICIT
-preambleLength = 12
-payloadLength = 15
-crcType = True
-LoRa.setLoRaPacket(headerType, preambleLength, payloadLength, crcType)
+# ---------------------------------------------------------------------------
+# SPI helpers
+# ---------------------------------------------------------------------------
+spi = spidev.SpiDev()
 
-# Set sync word for public network
-print("Set syncronize word to 0x3444")
-LoRa.setSyncWord(0x3444)
+def wait_busy(timeout=2.0):
+    deadline = time.time() + timeout
+    while GPIO.input(BUSY_PIN):
+        if time.time() > deadline:
+            raise TimeoutError("SX1262 BUSY stuck HIGH")
+        time.sleep(0.001)
 
-print("\n-- LoRa Receiver --\n")
+def cmd(opcode, params=None):
+    wait_busy()
+    r = spi.xfer2([opcode] + (params or []))
+    wait_busy()
+    return r
 
-# Receive message continuously
-while True :
-    LoRa.request()
+def write_reg(addr, data):
+    wait_busy()
+    spi.xfer2([CMD_WRITE_REGISTER, (addr >> 8) & 0xFF, addr & 0xFF] + data)
+    wait_busy()
 
-    # Poll BUSY pin manually instead of relying on IRQ edge detection
-    timeout = time.time() + 10  # 10 second timeout
-    while time.time() < timeout:
-        if not LoRa.wait(100):  # wait with short timeout
-            break
-        time.sleep(0.01)
+def get_chip_mode():
+    wait_busy()
+    r = spi.xfer2([CMD_GET_STATUS, 0x00])
+    wait_busy()
+    mode = (r[1] >> 4) & 0x07
+    return mode, CHIP_MODES.get(mode, f'unknown({mode})')
 
-    message = ""
-    while LoRa.available() > 1 :
-        message += chr(LoRa.read())
-    counter = LoRa.read()
+def get_irq():
+    r = cmd(CMD_GET_IRQ_STATUS, [0x00, 0x00])
+    return (r[1] << 8) | r[2]
 
-    print(f"{message}  {counter}")
-    print("Packet status: RSSI = {0:0.2f} dBm | SNR = {1:0.2f} dB".format(LoRa.packetRssi(), LoRa.snr()))
+def get_packet_status():
+    r = cmd(CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00])
+    rssi = -r[1] / 2.0
+    snr  = struct.unpack('b', bytes([r[2]]))[0] / 4.0
+    return rssi, snr
 
-    status = LoRa.status()
-    if status == LoRa.STATUS_CRC_ERR : print("CRC error")
-    elif status == LoRa.STATUS_HEADER_ERR : print("Packet header error")
+# ---------------------------------------------------------------------------
+# Hardware init
+# ---------------------------------------------------------------------------
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(RESET_PIN, GPIO.OUT, initial=GPIO.HIGH)
+GPIO.setup(BUSY_PIN,  GPIO.IN)
+GPIO.setup(DIO1_PIN,  GPIO.IN)
+
+spi.open(SPI_PORT, SPI_DEV)
+spi.max_speed_hz = 1_000_000
+spi.mode = 0
+
+print("Resetting SX1262...")
+GPIO.output(RESET_PIN, GPIO.LOW)
+time.sleep(0.002)
+GPIO.output(RESET_PIN, GPIO.HIGH)
+time.sleep(0.010)
+wait_busy()
+
+_, mode_str = get_chip_mode()
+print(f"Post-reset chip mode: {mode_str}")
+
+# ---------------------------------------------------------------------------
+# Radio config
+# ---------------------------------------------------------------------------
+cmd(CMD_SET_STANDBY,     [0x00])   # STDBY_RC
+cmd(CMD_SET_PACKET_TYPE, [0x01])   # LoRa
+
+# TCXO: DIO3 at 1.8 V, 10 ms startup delay (10000 us / 15.625 us = 640 = 0x000280)
+cmd(CMD_SET_DIO3_TCXO, [0x02, 0x00, 0x02, 0x80])
+
+# DIO2 as RF switch control
+cmd(CMD_SET_DIO2_RF_SW, [0x01])
+
+# Frequency: 915 MHz
+fword = round(915e6 * (1 << 25) / 32e6)
+cmd(CMD_SET_RF_FREQUENCY, [
+    (fword >> 24) & 0xFF,
+    (fword >> 16) & 0xFF,
+    (fword >>  8) & 0xFF,
+     fword        & 0xFF,
+])
+
+# SF=9, BW=250 kHz (0x05), CR4/7 (cr_reg=3), LDRO=0
+cmd(CMD_SET_MODULATION, [9, 0x05, 3, 0x00])
+
+# Preamble=8, explicit header, max payload=255, CRC on, IQ normal
+cmd(CMD_SET_PACKET_PARAMS, [0x00, 0x08, 0x00, 0xFF, 0x01, 0x00])
+
+# Sync word 0x12 → MSB=(0x12&0xF0)|0x04=0x14, LSB=((0x12&0x0F)<<4)|0x04=0x24
+write_reg(REG_SYNC_MSB, [0x14, 0x24])
+
+# IRQ: RxDone + CrcErr → DIO1
+irq_mask = IRQ_RX_DONE | IRQ_CRC_ERR
+cmd(CMD_SET_DIO_IRQ, [
+    (irq_mask >> 8) & 0xFF, irq_mask & 0xFF,
+    (irq_mask >> 8) & 0xFF, irq_mask & 0xFF,
+    0x00, 0x00,
+    0x00, 0x00,
+])
+
+cmd(CMD_SET_BUFFER_BASE, [0x00, 0x00])
+cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # continuous RX
+
+_, mode_str = get_chip_mode()
+print(f"Post-SetRx chip mode: {mode_str}")
+print(f"\n{'TIME':>8}  {'MODE':<12}  NOTE")
+print("-" * 40)
+
+pkt_count    = 0
+last_beat    = time.time()
+BEAT_INTERVAL = 1.0
+
+try:
+    while True:
+        now = time.time()
+
+        # --- Heartbeat ---
+        if now - last_beat >= BEAT_INTERVAL:
+            _, mode_str = get_chip_mode()
+            print(f"{now:8.1f}  {mode_str:<12}  pkts={pkt_count}")
+            last_beat = now
+
+        # --- Packet check ---
+        if GPIO.input(DIO1_PIN):
+            irq_flags = get_irq()
+            rssi, snr = get_packet_status()
+            cmd(CMD_CLEAR_IRQ, [(irq_mask >> 8) & 0xFF, irq_mask & 0xFF])
+
+            if irq_flags & IRQ_CRC_ERR:
+                pkt_count += 1
+                print(f"{now:8.1f}  {'RX (CRC ERR)':<12}  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
+            elif irq_flags & IRQ_RX_DONE:
+                r       = cmd(CMD_GET_RX_BUF_STATUS, [0x00, 0x00])
+                pkt_len = r[1]
+                pkt_count += 1
+                print(f"{now:8.1f}  {'RX DONE':<12}  len={pkt_len}  RSSI={rssi:.1f} dBm  SNR={snr:.1f} dB")
+            else:
+                print(f"{now:8.1f}  {'DIO1 SPURIOUS':<12}  IRQ=0x{irq_flags:04X}")
+
+            cmd(CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # re-arm
+
+        time.sleep(0.005)
+
+except KeyboardInterrupt:
+    print(f"\nDone. {pkt_count} packets received.")
+finally:
+    spi.close()
+    GPIO.cleanup()
