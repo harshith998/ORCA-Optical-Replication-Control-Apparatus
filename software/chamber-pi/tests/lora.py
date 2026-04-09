@@ -34,6 +34,9 @@ CMD_GET_RX_BUF_STATUS = 0x13
 CMD_READ_BUFFER       = 0x1E
 CMD_WRITE_REGISTER    = 0x0D
 CMD_GET_PACKET_STATUS = 0x14
+CMD_GET_STATUS        = 0xC0
+
+CHIP_MODES = {2: 'STDBY_RC', 3: 'STDBY_XOSC', 4: 'TX', 5: 'RX', 6: 'CAD'}
 
 IRQ_RX_DONE = 0x0002
 IRQ_CRC_ERR = 0x0040
@@ -135,9 +138,19 @@ print("Listening — 915 MHz  BW250  SF9  CR4/7  sync=0x12")
 print(f"{'PKT':>4}  {'LEN':>4}  {'RSSI':>10}  {'SNR':>8}")
 
 pkt_count = 0
+last_heartbeat = time.time()
+HEARTBEAT_INTERVAL = 5.0  # seconds
 
 try:
     while True:
+        now = time.time()
+        if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+            r         = cmd(CMD_GET_STATUS, [0x00])
+            chip_mode = (r[1] >> 4) & 0x07
+            mode_str  = CHIP_MODES.get(chip_mode, f'unknown({chip_mode})')
+            print(f"  [heartbeat] chip mode={mode_str}  pkts so far={pkt_count}")
+            last_heartbeat = now
+
         if GPIO.input(DIO1_PIN):
             irq_flags = get_irq()
             rssi, snr = get_packet_status()
