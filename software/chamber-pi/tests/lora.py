@@ -36,6 +36,7 @@ CMD_READ_BUFFER           = 0x1E
 CMD_WRITE_REGISTER        = 0x0D
 CMD_GET_PACKET_STATUS     = 0x14
 CMD_GET_STATUS            = 0xC0
+CMD_READ_REGISTER         = 0x1D
 
 CHIP_MODES = {2: 'STDBY_RC', 3: 'STDBY_XOSC', 4: 'TX', 5: 'RX', 6: 'CAD'}
 
@@ -79,6 +80,13 @@ def get_irq():
 
 def clear_irq(mask):
     cmd(CMD_CLEAR_IRQ, [(mask >> 8) & 0xFF, mask & 0xFF])
+
+def read_reg(addr):
+    """Read one byte from a chip register. Returns the byte value."""
+    wait_busy()
+    r = spi.xfer2([CMD_READ_REGISTER, (addr >> 8) & 0xFF, addr & 0xFF, 0x00, 0x00])
+    wait_busy()
+    return r[4]
 
 def get_packet_status():
     r = cmd(CMD_GET_PACKET_STATUS, [0x00, 0x00, 0x00])
@@ -146,6 +154,24 @@ cmd(CMD_SET_DIO_IRQ, [
 ])
 
 cmd(CMD_SET_BUFFER_BASE, [0x00, 0x00])
+
+# ---------------------------------------------------------------------------
+# SPI sanity check: read back the sync word we just wrote
+# Default power-on value is 0x34 (public LoRa); we wrote 0x14.
+# If we read 0x14 back → SPI writes are working.
+# If we read 0x34 → writes are not reaching the chip (wrong CE / broken SPI).
+# If we read 0x00 or 0xFF → MISO is floating, SPI is not connected at all.
+# ---------------------------------------------------------------------------
+sync_readback = read_reg(REG_SYNC_MSB)
+print(f"SPI check — sync word MSB readback: 0x{sync_readback:02X}  "
+      f"(wrote 0x14, power-on default 0x34)")
+if sync_readback == 0x14:
+    print("  -> SPI OK: chip is receiving and executing commands")
+elif sync_readback == 0x34:
+    print("  -> SPI PARTIAL: chip responds but writes not landing — wrong CE pin?")
+else:
+    print(f"  -> SPI FAIL: unexpected value — MISO floating or wrong device on bus")
+
 enter_rx()
 
 # Confirm chip actually entered RX before starting the loop
