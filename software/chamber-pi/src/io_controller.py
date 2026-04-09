@@ -36,6 +36,12 @@ class IOController:
         # Last decoded LoRa packet (full spectral + GPS data)
         self.last_packet = None
 
+        # All 13 spectral channels from the last packet (keyed by channel name)
+        self.spectral_channels = {}
+
+        # Last GPS fix from the last packet
+        self.last_gps = {'valid': False, 'latitude': 0.0, 'longitude': 0.0, 'unix_time': 0}
+
         # Init / diagnostics
         self.status = {
             'gpio': 'Not initialized',
@@ -174,7 +180,9 @@ class IOController:
                 print(f"[LoRa] Decode failed (expected {decode_packet.__module__} PACKET_SIZE bytes)")
                 return
             self.last_packet = packet
+            self.spectral_channels = packet['channels']
             self.lux_value = packet['channels']['clear']
+            self.last_gps = packet['gps']
             print(f"[LoRa] Decoded: sample={packet['sample_count']} clear={packet['channels']['clear']} gps_valid={packet['gps']['valid']}")
         except Exception as exc:
             print(f"[LoRa] Exception in _read_lora: {exc}")
@@ -204,6 +212,12 @@ class IOController:
 
     def get_lux_value(self):
         return self.lux_value
+
+    def get_spectral_channels(self) -> dict:
+        return dict(self.spectral_channels)
+
+    def get_last_gps(self) -> dict:
+        return dict(self.last_gps)
 
     def get_init_report(self):
         return dict(self.status)

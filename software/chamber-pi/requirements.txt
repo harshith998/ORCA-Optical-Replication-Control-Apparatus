@@ -14,3 +14,6 @@ LoRaRF>=1.4.0
 
 # Web server
 Flask>=2.0.0
+
+# Solar position for sanity checking (pure Python, no C extensions)
+pysolar>=0.10
