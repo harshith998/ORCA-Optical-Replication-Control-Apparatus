@@ -10,7 +10,7 @@ from config import (
     LUX_BUFFER_SIZE,
     SOLENOID_PIN
 )
-from lora_receiver import LoRaReceiver, decode_packet
+from lora_receiver import LoRaReceiver, decode_packet, PACKET_SIZE
 
 
 class IOController:
@@ -180,7 +180,7 @@ class IOController:
             print(f"[LoRa] Packet received: {len(raw)} bytes | hex: {raw.hex()}")
             packet = decode_packet(raw)
             if packet is None:
-                print(f"[LoRa] Decode failed (expected {decode_packet.__module__} PACKET_SIZE bytes)")
+                print(f"[LoRa] Decode failed: got {len(raw)} bytes, expected {PACKET_SIZE}")
                 return
             self.last_packet = packet
             self.spectral_channels = packet['channels']
