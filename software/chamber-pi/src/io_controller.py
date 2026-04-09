@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
-    LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
+    LORA_SPI_PORT, LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
     LUX_BUFFER_SIZE,
@@ -86,7 +86,7 @@ class IOController:
         # LoRa setup (SX1262 on spidev0.1 / CE1)
         try:
             self.lora = LoRaReceiver(
-                spi_port=SPI_PORT,
+                spi_port=LORA_SPI_PORT,
                 spi_device=LORA_SPI_DEVICE,
                 reset_pin=LORA_NRESET_PIN,
                 busy_pin=LORA_BUSY_PIN,

@@ -38,6 +38,7 @@ LORA_BUSY_PIN = 20
 LORA_DIO1_PIN = 21
 
 # ---------- LoRa RF Configuration (must match satellite firmware) ----------
+LORA_SPI_PORT    = 0       # SPI bus 0
 LORA_SPI_DEVICE  = 1       # spidev0.1 — CE1 (GPIO 7 = LORA_CS_PIN)
 LORA_FREQ_MHZ    = 915.0
 LORA_BW_KHZ      = 250.0
