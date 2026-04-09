@@ -174,6 +174,9 @@ class IOController:
             raw = self.lora.poll()
             if raw is None:
                 return
+            if raw == b'':
+                print("[LoRa] CRC error — packet discarded")
+                return
             print(f"[LoRa] Packet received: {len(raw)} bytes | hex: {raw.hex()}")
             packet = decode_packet(raw)
             if packet is None:
