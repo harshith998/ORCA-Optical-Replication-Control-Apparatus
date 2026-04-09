@@ -10,10 +10,6 @@ print("Begin LoRa radio")
 if not LoRa.begin(0, 1, 8, 20, -1) :
     raise Exception("Something wrong, can't begin LoRa radio")
 
-# Configure LoRa to use TCXO with DIO3 as control
-print("Set RF module to use TCXO as clock reference")
-LoRa.setDio3TcxoCtrl(LoRa.DIO3_OUTPUT_1_8, LoRa.TCXO_DELAY_10)
-
 # Set frequency to 915 Mhz
 print("Set frequency to 915 Mhz")
 LoRa.setFrequency(915000000)
