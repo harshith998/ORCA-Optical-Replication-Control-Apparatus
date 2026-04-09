@@ -165,7 +165,7 @@ class LoRaReceiver:
         self._cmd(_CMD_SET_RX, [0xFF, 0xFF, 0xFF])   # continuous RX
 
         # Confirm chip entered RX
-        r    = self._spi.xfer2([_CMD_GET_STATUS, 0x00])
+        r    = self._cmd(_CMD_GET_STATUS, [0x00])
         mode = (r[1] >> 4) & 0x07
         print(f"[LoRa] Init complete — chip mode: {_CHIP_MODES.get(mode, f'unknown({mode})')}")
 
@@ -176,7 +176,7 @@ class LoRaReceiver:
         """
         now = time.time()
         if now - self._last_beat >= 1.0:
-            r        = self._spi.xfer2([_CMD_GET_STATUS, 0x00])
+            r        = self._cmd(_CMD_GET_STATUS, [0x00])
             mode     = (r[1] >> 4) & 0x07
             mode_str = _CHIP_MODES.get(mode, f'unknown({mode})')
             print(f"[LoRa] {now:.1f}  mode={mode_str:<12}  pkts={self._pkt_count}")
