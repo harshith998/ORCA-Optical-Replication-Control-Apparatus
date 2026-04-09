@@ -162,13 +162,16 @@ class IOController:
             raw = self.lora.poll()
             if raw is None:
                 return
+            print(f"[LoRa] Packet received: {len(raw)} bytes | hex: {raw.hex()}")
             packet = decode_packet(raw)
             if packet is None:
+                print(f"[LoRa] Decode failed (expected {decode_packet.__module__} PACKET_SIZE bytes)")
                 return
             self.last_packet = packet
             self.lux_value = packet['channels']['clear']
-        except Exception:
-            pass
+            print(f"[LoRa] Decoded: sample={packet['sample_count']} clear={packet['channels']['clear']} gps_valid={packet['gps']['valid']}")
+        except Exception as exc:
+            print(f"[LoRa] Exception in _read_lora: {exc}")
 
     def set_pwm(self, value):
         """Set PWM duty cycle (0-1023 maps to 0-100%)."""

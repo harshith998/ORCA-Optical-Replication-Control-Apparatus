@@ -24,8 +24,8 @@ static constexpr gpio_num_t I2C_SDA_GPIO = GPIO_NUM_18;
 #define I2C_PORT I2C_NUM_0
 
 // Sampling & transmit timing configuration
-#define TRANSMIT_CYCLE_MS 10000ULL
-#define SAMPLES_PER_TRANSMIT 2
+#define TRANSMIT_CYCLE_MS 1000ULL
+#define SAMPLES_PER_TRANSMIT 1
 #define GPS_LOCK_TIMEOUT_MS 5000ULL
 #define SAMPLING_CYCLE_MS (uint64_t)(TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
 

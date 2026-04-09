@@ -161,6 +161,9 @@ class LoRaReceiver:
 
         irq = self._get_irq()
         self._clear_irq(irq)
+        print(f"[LoRa] DIO1 high — IRQ flags: 0x{irq:04X}"
+              f"{' CRC_ERR' if irq & _IRQ_CRC_ERR else ''}"
+              f"{' RX_DONE' if irq & _IRQ_RX_DONE else ''}")
 
         if irq & _IRQ_CRC_ERR:
             return None
