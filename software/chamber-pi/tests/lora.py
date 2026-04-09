@@ -7,7 +7,7 @@ import time
 # Begin LoRa radio: SPI bus 0, CE1 (spidev0.1), reset=BCM8, busy=BCM20, irq/DIO1=BCM21
 LoRa = SX126x()
 print("Begin LoRa radio")
-if not LoRa.begin(0, 1, 8, 20, 21) :
+if not LoRa.begin(0, 1, 8, 20, -1) :
     raise Exception("Something wrong, can't begin LoRa radio")
 
 # Configure LoRa to use TCXO with DIO3 as control
