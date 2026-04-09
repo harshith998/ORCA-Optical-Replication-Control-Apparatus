@@ -971,6 +971,11 @@ DASHBOARD_HTML = """
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 updateUI(data);
+                const now = Date.now();
+                if (now - _lastChartRefresh > 10000) {
+                    _lastChartRefresh = now;
+                    loadHistory(_currentHours);
+                }
             };
 
             eventSource.onerror = () => {
@@ -1050,6 +1055,7 @@ DASHBOARD_HTML = """
         }
 
         let _currentHours = 6;
+        let _lastChartRefresh = 0;
 
         function loadHistory(hours) {
             _currentHours = hours;
