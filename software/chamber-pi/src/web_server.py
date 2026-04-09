@@ -92,6 +92,7 @@ current_state = {
     'sw2': False,
     'web_manual_enabled': False,
     'web_manual_pwm': 0,
+    'sanity_flag': False,
     'timestamp': time.time()
 }
 state_lock = threading.Lock()
@@ -99,7 +100,8 @@ state_lock = threading.Lock()
 
 def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          mode: str, bounds_min: int, bounds_max: int,
-                         pot_value: float, sw1: bool, sw2: bool):
+                         pot_value: float, sw1: bool, sw2: bool,
+                         sanity_flag: bool = False):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         # Update in-place to preserve references
@@ -112,6 +114,7 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['pot_value'] = pot_value
         current_state['sw1'] = sw1
         current_state['sw2'] = sw2
+        current_state['sanity_flag'] = sanity_flag
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
@@ -257,6 +260,14 @@ def api_water():
     db.set_water_control_state(mode, manual_open, auto_interval_s, auto_duration_s)
     return jsonify({'success': True, 'mode': mode, 'manual_open': manual_open,
                     'auto_interval_s': auto_interval_s, 'auto_duration_s': auto_duration_s})
+
+
+@app.route('/api/spectrum')
+def api_spectrum():
+    """Get spectral history for all 13 channels."""
+    hours = request.args.get('hours', 6, type=float)
+    limit = request.args.get('limit', 500, type=int)
+    return jsonify(db.get_spectral_history(hours=hours, limit=limit))
 
 
 @app.route('/')
@@ -804,12 +815,33 @@ DASHBOARD_HTML = """
         <div class="chart-container">
             <div class="chart-header">
                 <span class="chart-title">Light Intensity History</span>
-                <div class="time-selector">
-                    <button class="time-btn" onclick="loadHistory(1)">1H</button>
-                    <button class="time-btn active" onclick="loadHistory(6)">6H</button>
-                    <button class="time-btn" onclick="loadHistory(24)">24H</button>
-                    <button class="time-btn" onclick="loadHistory(168)">7D</button>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <select id="channelSelect" onchange="onChannelChange()"
+                        style="padding:6px 10px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; color:var(--text-primary); font-size:13px; cursor:pointer;">
+                        <option value="clear" selected>Clear (default)</option>
+                        <option value="f1">F1 ~405nm</option>
+                        <option value="f2">F2 ~425nm</option>
+                        <option value="fz">FZ ~450nm</option>
+                        <option value="f3">F3 ~475nm</option>
+                        <option value="f4">F4 ~515nm</option>
+                        <option value="f5">F5 ~555nm</option>
+                        <option value="fy">FY ~590nm</option>
+                        <option value="f6">F6 ~630nm</option>
+                        <option value="fxl">FXL ~680nm</option>
+                        <option value="f7">F7 ~710nm</option>
+                        <option value="f8">F8 ~760nm</option>
+                        <option value="nir">NIR ~860nm</option>
+                    </select>
+                    <div class="time-selector">
+                        <button class="time-btn" onclick="loadHistory(1)">1H</button>
+                        <button class="time-btn active" onclick="loadHistory(6)">6H</button>
+                        <button class="time-btn" onclick="loadHistory(24)">24H</button>
+                        <button class="time-btn" onclick="loadHistory(168)">7D</button>
+                    </div>
                 </div>
+            </div>
+            <div id="sanityWarning" style="display:none; margin-bottom:12px; padding:10px 16px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:8px; color:var(--warning); font-size:13px;">
+                &#9888; Sanity flag: received light reading is significantly outside the expected solar range for current GPS position and time.
             </div>
             <div class="chart-wrapper">
                 <canvas id="luxChart"></canvas>
@@ -962,6 +994,10 @@ DASHBOARD_HTML = """
         }
 
         function updateUI(data) {
+            // Sanity flag
+            document.getElementById('sanityWarning').style.display =
+                data.sanity_flag ? 'block' : 'none';
+
             // Update lux values
             document.getElementById('luxValue').textContent = data.raw_lux;
             document.getElementById('clampedValue').textContent = data.clamped_lux;
@@ -1027,7 +1063,10 @@ DASHBOARD_HTML = """
             }
         }
 
+        let _currentHours = 6;
+
         function loadHistory(hours) {
+            _currentHours = hours;
             // Update active button
             document.querySelectorAll('.time-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -1036,20 +1075,46 @@ DASHBOARD_HTML = """
                 }
             });
 
-            fetch(`/api/history?hours=${hours}&limit=500`)
-                .then(res => res.json())
-                .then(data => {
-                    const labels = data.map(d => {
-                        const date = new Date(d.timestamp * 1000);
-                        return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-                    });
+            const channel = document.getElementById('channelSelect').value;
 
-                    luxChart.data.labels = labels;
-                    luxChart.data.datasets[0].data = data.map(d => d.raw_lux);
-                    luxChart.data.datasets[1].data = data.map(d => d.clamped_lux);
-                    luxChart.update();
-                });
+            if (channel === 'clear') {
+                // Use existing lux_history endpoint
+                fetch(`/api/history?hours=${hours}&limit=500`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const labels = data.map(d => {
+                            const date = new Date(d.timestamp * 1000);
+                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                        });
+                        luxChart.data.labels = labels;
+                        luxChart.data.datasets[0].label = 'Raw Lux (clear)';
+                        luxChart.data.datasets[0].data = data.map(d => d.raw_lux);
+                        luxChart.data.datasets[1].label = 'Clamped Lux';
+                        luxChart.data.datasets[1].data = data.map(d => d.clamped_lux);
+                        luxChart.data.datasets[1].hidden = false;
+                        luxChart.update();
+                    });
+            } else {
+                // Use spectral_history endpoint
+                fetch(`/api/spectrum?hours=${hours}&limit=500`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const labels = data.map(d => {
+                            const date = new Date(d.timestamp * 1000);
+                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                        });
+                        const channelLabel = document.getElementById('channelSelect').selectedOptions[0].text;
+                        luxChart.data.labels = labels;
+                        luxChart.data.datasets[0].label = channelLabel;
+                        luxChart.data.datasets[0].data = data.map(d => d[channel] ?? 0);
+                        luxChart.data.datasets[1].data = [];
+                        luxChart.data.datasets[1].hidden = true;
+                        luxChart.update();
+                    });
+            }
         }
+
+        function onChannelChange() { loadHistory(_currentHours); }
 
         // Initialize
         connectSSE();

@@ -16,6 +16,7 @@ from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
 from web_server import update_current_state, run_server, water_scheduler, register_solenoid_setter
+from solar_check import check_reading
 
 
 class DisplayMode(IntEnum):
@@ -99,6 +100,17 @@ def loop():
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
     pot = io.get_analog_value()
+    spectral = io.get_spectral_channels()
+    gps = io.get_last_gps()
+
+    sanity_flag = False
+    if gps.get('valid') and spectral:
+        sanity_flag = check_reading(
+            clear_value=spectral.get('clear', raw_lux),
+            lat=gps['latitude'],
+            lon=gps['longitude'],
+            unix_time=gps['unix_time'],
+        )
 
     actual_pwm = 0
     actual_mode = 'lux'
@@ -149,6 +161,9 @@ def loop():
     usb_logger.log_reading(raw_lux, clamped_lux, actual_pwm, actual_mode,
                            io.live_min, io.live_max)
 
+    if spectral:
+        db.log_spectral(channels=spectral, gps=gps, sanity_flag=sanity_flag)
+
     update_current_state(
         raw_lux=raw_lux,
         clamped_lux=clamped_lux,
@@ -158,7 +173,8 @@ def loop():
         bounds_max=io.live_max,
         pot_value=pot,
         sw1=sw1,
-        sw2=sw2
+        sw2=sw2,
+        sanity_flag=sanity_flag,
     )
 
     duty_pct = (actual_pwm / MAX_PWM_VALUE) * 100.0

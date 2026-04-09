@@ -77,6 +77,28 @@ class Database:
                 VALUES (1, 0, 0, ?)
             """, (time.time(),))
 
+            # Spectral history table — all 13 AS7343 channels per reading
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS spectral_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp REAL NOT NULL,
+                    f1 INTEGER, f2 INTEGER, fz INTEGER,
+                    f3 INTEGER, f4 INTEGER, f5 INTEGER,
+                    fy INTEGER, f6 INTEGER, fxl INTEGER,
+                    f7 INTEGER, f8 INTEGER, nir INTEGER,
+                    clear INTEGER,
+                    gps_valid INTEGER DEFAULT 0,
+                    gps_lat REAL DEFAULT 0.0,
+                    gps_lon REAL DEFAULT 0.0,
+                    gps_unix_time INTEGER DEFAULT 0,
+                    sanity_flag INTEGER DEFAULT 0
+                )
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_spectral_timestamp
+                ON spectral_history(timestamp)
+            """)
+
             # Water control state table (single row)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS water_control (
@@ -182,6 +204,39 @@ class Database:
             """, (start_time,))
             row = cursor.fetchone()
             return dict(row) if row else {}
+
+    def log_spectral(self, channels: dict, gps: dict, sanity_flag: bool):
+        """Log a full spectral reading with GPS and sanity flag."""
+        with self._cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO spectral_history
+                (timestamp, f1, f2, fz, f3, f4, f5, fy, f6, fxl, f7, f8, nir, clear,
+                 gps_valid, gps_lat, gps_lon, gps_unix_time, sanity_flag)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                time.time(),
+                channels.get('f1', 0), channels.get('f2', 0), channels.get('fz', 0),
+                channels.get('f3', 0), channels.get('f4', 0), channels.get('f5', 0),
+                channels.get('fy', 0), channels.get('f6', 0), channels.get('fxl', 0),
+                channels.get('f7', 0), channels.get('f8', 0), channels.get('nir', 0),
+                channels.get('clear', 0),
+                int(gps.get('valid', False)),
+                gps.get('latitude', 0.0), gps.get('longitude', 0.0),
+                gps.get('unix_time', 0),
+                int(sanity_flag),
+            ))
+
+    def get_spectral_history(self, hours: float = 6, limit: int = 500) -> List[Dict[str, Any]]:
+        """Get spectral history for the last N hours."""
+        start_time = time.time() - (hours * 3600)
+        with self._cursor() as cursor:
+            cursor.execute("""
+                SELECT * FROM spectral_history
+                WHERE timestamp >= ?
+                ORDER BY timestamp DESC LIMIT ?
+            """, (start_time, limit))
+            rows = cursor.fetchall()
+            return [dict(row) for row in reversed(rows)]
 
     def get_water_control_state(self) -> Dict[str, Any]:
         """Get water control state."""
