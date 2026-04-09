@@ -77,6 +77,23 @@ class Database:
                 VALUES (1, 0, 0, ?)
             """, (time.time(),))
 
+            # Water control state table (single row)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS water_control (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    mode TEXT DEFAULT 'manual',
+                    manual_open INTEGER DEFAULT 0,
+                    auto_interval_s INTEGER DEFAULT 7200,
+                    auto_duration_s INTEGER DEFAULT 10,
+                    updated_at REAL
+                )
+            """)
+            cursor.execute("""
+                INSERT OR IGNORE INTO water_control
+                    (id, mode, manual_open, auto_interval_s, auto_duration_s, updated_at)
+                VALUES (1, 'manual', 0, 7200, 10, ?)
+            """, (time.time(),))
+
     def log_reading(self, raw_lux: int, clamped_lux: int, pwm_value: int,
                     mode: str, bounds_min: int, bounds_max: int):
         """Log a lux reading to history."""
@@ -165,6 +182,32 @@ class Database:
             """, (start_time,))
             row = cursor.fetchone()
             return dict(row) if row else {}
+
+    def get_water_control_state(self) -> Dict[str, Any]:
+        """Get water control state."""
+        with self._cursor() as cursor:
+            cursor.execute("SELECT * FROM water_control WHERE id = 1")
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'mode': row['mode'],
+                    'manual_open': bool(row['manual_open']),
+                    'auto_interval_s': row['auto_interval_s'],
+                    'auto_duration_s': row['auto_duration_s'],
+                    'updated_at': row['updated_at'],
+                }
+            return {'mode': 'manual', 'manual_open': False,
+                    'auto_interval_s': 7200, 'auto_duration_s': 10, 'updated_at': None}
+
+    def set_water_control_state(self, mode: str, manual_open: bool,
+                                auto_interval_s: int, auto_duration_s: int):
+        """Update water control state."""
+        with self._cursor() as cursor:
+            cursor.execute("""
+                UPDATE water_control
+                SET mode = ?, manual_open = ?, auto_interval_s = ?, auto_duration_s = ?, updated_at = ?
+                WHERE id = 1
+            """, (mode, int(manual_open), auto_interval_s, auto_duration_s, time.time()))
 
     def close(self):
         """Close database connection."""

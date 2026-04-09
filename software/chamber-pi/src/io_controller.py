@@ -7,7 +7,8 @@ from config import (
     LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
-    LUX_BUFFER_SIZE
+    LUX_BUFFER_SIZE,
+    SOLENOID_PIN
 )
 from lora_receiver import LoRaReceiver, decode_packet
 
@@ -41,12 +42,14 @@ class IOController:
             'pwm': 'Not initialized',
             'spi': 'Not initialized',
             'lora': 'Not initialized',
+            'solenoid': 'Not initialized',
         }
         self.hardware_ready = {
             'gpio': False,
             'pwm': False,
             'spi': False,
             'lora': False,
+            'solenoid': False,
         }
 
     def begin(self):
@@ -58,10 +61,13 @@ class IOController:
             GPIO.setup(SWITCH1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(SWITCH2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(PWM_PIN, GPIO.OUT)
+            GPIO.setup(SOLENOID_PIN, GPIO.OUT, initial=GPIO.LOW)
             self.status['gpio'] = (
-                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN})"
+                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN}, SOL=BCM{SOLENOID_PIN})"
             )
             self.hardware_ready['gpio'] = True
+            self.hardware_ready['solenoid'] = True
+            self.status['solenoid'] = f"OK - Solenoid on BCM{SOLENOID_PIN}, initially CLOSED"
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
@@ -123,7 +129,7 @@ class IOController:
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'spi', 'lora'):
+        for name in ('gpio', 'pwm', 'spi', 'lora', 'solenoid'):
             print(f"{name.upper():>4}: {self.status[name]}")
 
     def update(self):
@@ -180,6 +186,12 @@ class IOController:
         duty = 100.0 - (value / MAX_PWM_VALUE) * 100.0
         duty = max(0.0, min(100.0, duty))
         self.pwm.ChangeDutyCycle(duty)
+
+    def set_solenoid(self, on: bool):
+        """Open (True) or close (False) the solenoid valve."""
+        if not self.hardware_ready['solenoid']:
+            return
+        GPIO.output(SOLENOID_PIN, GPIO.HIGH if on else GPIO.LOW)
 
     def get_switch1(self):
         return self.sw1

@@ -15,7 +15,7 @@ from database import db
 from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
-from web_server import update_current_state, run_server
+from web_server import update_current_state, run_server, water_scheduler, register_solenoid_setter
 
 
 class DisplayMode(IntEnum):
@@ -71,6 +71,7 @@ def setup():
         time.sleep(2)
 
     io.set_pwm(0)
+    register_solenoid_setter(io.set_solenoid)
 
 
 def loop():
@@ -177,6 +178,7 @@ def main_loop():
             time.sleep(1)
 
     io.set_pwm(0)
+    water_scheduler.stop()
     io.cleanup()
     lcd.cleanup()
     db.close()
@@ -192,6 +194,7 @@ def main():
 
     web_thread = threading.Thread(target=run_web_server, daemon=True)
     web_thread.start()
+    water_scheduler.start()
 
     print("=" * 50)
     print("  Chamber Controller Started")
