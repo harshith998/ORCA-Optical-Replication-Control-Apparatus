@@ -68,3 +68,6 @@ while True :
         status = LoRa.status()
         if status == LoRa.STATUS_CRC_ERR : print("CRC error")
         if status == LoRa.STATUS_HEADER_ERR : print("Packet header error")
+
+        # Re-enter RX continuous mode for next packet
+        LoRa.request(LoRa.RX_CONTINUOUS)
