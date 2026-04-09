@@ -42,7 +42,7 @@ The application has a single entry point (`src/main.py`) that:
 |------|---------------|
 | `src/config.py` | All hardware pin assignments, timing constants, I2C/SPI/LoRa config |
 | `src/io_controller.py` | GPIO, SPI (MCP3008 ADC), UART abstraction; lux rolling buffer |
-| `src/lora_receiver.py` | Minimal SX1262 receive-only driver (spidev + RPi.GPIO); packet decoder |
+| `src/lora_receiver.py` | SX1262 receive-only driver (LoRaRF library); packet decoder |
 | `src/lcd_display.py` | I2C 16x2 LCD (PCF8574 expander at 0x27) |
 | `src/database.py` | SQLite logging (`chamber_data.db`), web control state persistence |
 | `src/usb_logger.py` | CSV export to auto-detected USB drives |
@@ -75,7 +75,7 @@ Each 100ms tick:
 
 ### Hardware Interfaces
 
-- **SPI (`/dev/spidev0.1`, CE1)**: SX1262 LoRa hat — receives binary spectral + GPS packets from the satellite (see packet format below). Driven by `lora_receiver.py` via `spidev` + `RPi.GPIO`.
+- **SPI (`/dev/spidev0.1`, CE1)**: SX1262 LoRa hat — receives binary spectral + GPS packets from the satellite (see packet format below). Driven by `lora_receiver.py` via the `LoRaRF` library (`SX126x`). The module has an onboard TCXO controlled via DIO3 — `setDio3TcxoCtrl()` must be called during init or the chip will not lock onto any frequency.
 - **SPI (`/dev/spidev0.0`, CE0)**: MCP3008 ADC reads potentiometer on channel 0
 - **I2C** (bus 1): LCD display at address `0x27`
 - **GPIO PWM** (BCM 12): LED driver output at 500 Hz (RPi.GPIO software PWM); signal is inverted by Q3 in the MOSFET driver circuit — 0% duty = LEDs full on, 100% duty = LEDs off. `set_pwm()` handles this inversion.
