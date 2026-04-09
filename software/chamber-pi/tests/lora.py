@@ -1,19 +1,13 @@
 import os, sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(currentdir)))
-from LoRaRF import SX126x, LoRaSpi, LoRaGpio
+from LoRaRF import SX126x
 import time
 
-# Begin LoRa radio with connected SPI bus and IO pins (cs and reset) on GPIO
-# SPI is defined by bus ID and cs ID and IO pins defined by chip and offset number
-spi = LoRaSpi(0, 1)
-cs = LoRaGpio(0, 7)
-reset = LoRaGpio(0, 8)
-busy = LoRaGpio(0, 20)
-irq = LoRaGpio(0, 21)
-LoRa = SX126x(spi, cs, reset, busy, irq)
+# Begin LoRa radio: SPI bus 0, CE1 (spidev0.1), reset=BCM8, busy=BCM20, irq/DIO1=BCM21
+LoRa = SX126x()
 print("Begin LoRa radio")
-if not LoRa.begin() :
+if not LoRa.begin(0, 1, 8, 20, 21) :
     raise Exception("Something wrong, can't begin LoRa radio")
 
 # Configure LoRa to use TCXO with DIO3 as control
