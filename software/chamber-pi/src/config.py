@@ -32,10 +32,6 @@ LCD_COLS = 16
 LCD_ROWS = 2
 
 # ---------- SPI Settings ----------
-# SPI bus exists on the Pi even if no external device is attached.
-SPI_PORT = 0
-SPI_DEVICE = 0
-POT_CHANNEL = 0       # Legacy ADC channel; ignored if no ADC is attached.
 LORA_NRESET_PIN = 8
 LORA_CS_PIN = 7
 LORA_BUSY_PIN = 20

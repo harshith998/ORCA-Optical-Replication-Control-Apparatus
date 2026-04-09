@@ -8,8 +8,6 @@ Includes web server for remote monitoring and control.
 import signal
 import threading
 import time
-from enum import IntEnum
-
 from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT
 from database import db
 from io_controller import IOController
@@ -19,15 +17,9 @@ from web_server import update_current_state, run_server, water_scheduler, regist
 from solar_check import check_reading
 
 
-class DisplayMode(IntEnum):
-    ANALOG = 0
-    LUX = 1
-
-
 io = IOController()
 lcd = LCDDisplay()
 
-display_mode = DisplayMode.LUX
 pwm_enabled = False
 running = True
 
@@ -76,7 +68,7 @@ def setup():
 
 
 def loop():
-    global display_mode, pwm_enabled
+    global pwm_enabled
 
     io.update()
 
@@ -87,11 +79,6 @@ def loop():
     web_manual_enabled = web_state['web_manual_enabled']
     web_manual_pwm = web_state['web_manual_pwm']
 
-    if sw1:
-        display_mode = DisplayMode.ANALOG
-    else:
-        display_mode = DisplayMode.LUX
-
     if sw2:
         pwm_enabled = False
     else:
@@ -99,7 +86,6 @@ def loop():
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
-    pot = io.get_analog_value()
     spectral = io.get_spectral_channels()
     gps = io.get_last_gps()
 
@@ -119,14 +105,9 @@ def loop():
         actual_pwm = web_manual_pwm
         actual_mode = 'web_manual'
     elif pwm_enabled:
-        if display_mode == DisplayMode.ANALOG:
-            input_norm = pot
-            actual_mode = 'analog'
-        else:
-            input_norm = clamped_lux / SCALE_CONSTANT
-            input_norm = max(0.0, min(1.0, input_norm))
-            actual_mode = 'lux'
-
+        input_norm = clamped_lux / SCALE_CONSTANT
+        input_norm = max(0.0, min(1.0, input_norm))
+        actual_mode = 'lux'
         actual_pwm = int(input_norm * MAX_PWM_VALUE + 0.5)
         actual_pwm = min(actual_pwm, MAX_PWM_VALUE)
 
@@ -138,16 +119,11 @@ def loop():
 
         if web_manual_enabled:
             lcd.print("Mode: WEB CTRL")
-        elif display_mode == DisplayMode.ANALOG:
-            lcd.print("Mode: ANALOG")
         else:
             lcd.print("Mode: LUX")
 
         lcd.set_cursor(0, 1)
-        if display_mode == DisplayMode.ANALOG and not web_manual_enabled:
-            lcd.print(f"Pot:{pot:.3f}")
-        else:
-            lcd.print(f"Lux:{raw_lux}")
+        lcd.print(f"Lux:{raw_lux}")
 
     db.log_reading(
         raw_lux=raw_lux,
@@ -171,7 +147,6 @@ def loop():
         mode=actual_mode,
         bounds_min=io.live_min,
         bounds_max=io.live_max,
-        pot_value=pot,
         sw1=sw1,
         sw2=sw2,
         sanity_flag=sanity_flag,

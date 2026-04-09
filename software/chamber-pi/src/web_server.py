@@ -87,7 +87,6 @@ current_state = {
     'mode': 'lux',
     'bounds_min': 0,
     'bounds_max': 0,
-    'pot_value': 0.0,
     'sw1': False,
     'sw2': False,
     'web_manual_enabled': False,
@@ -100,7 +99,7 @@ state_lock = threading.Lock()
 
 def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          mode: str, bounds_min: int, bounds_max: int,
-                         pot_value: float, sw1: bool, sw2: bool,
+                         sw1: bool, sw2: bool,
                          sanity_flag: bool = False):
     """Update current state and notify SSE subscribers."""
     with state_lock:
@@ -111,7 +110,6 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['mode'] = mode
         current_state['bounds_min'] = bounds_min
         current_state['bounds_max'] = bounds_max
-        current_state['pot_value'] = pot_value
         current_state['sw1'] = sw1
         current_state['sw2'] = sw2
         current_state['sanity_flag'] = sanity_flag
@@ -660,10 +658,6 @@ DASHBOARD_HTML = """
             color: var(--success);
         }
 
-        .mode-indicator.analog {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning);
-        }
 
         .mode-indicator.manual {
             background: rgba(59, 130, 246, 0.2);
@@ -803,10 +797,6 @@ DASHBOARD_HTML = """
                 <div class="metric-row">
                     <span>Physical PWM Switch</span>
                     <span id="sw2Status">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>Potentiometer</span>
-                    <span id="potValue">--</span>
                 </div>
             </div>
         </div>
@@ -1014,18 +1004,14 @@ DASHBOARD_HTML = """
             if (data.web_manual_enabled) {
                 modeEl.textContent = 'WEB MANUAL';
                 modeEl.className = 'mode-indicator manual';
-            } else if (data.mode === 'analog') {
-                modeEl.textContent = 'ANALOG';
-                modeEl.className = 'mode-indicator analog';
             } else {
                 modeEl.textContent = 'AUTO LUX';
                 modeEl.className = 'mode-indicator lux';
             }
 
             // Update system status
-            document.getElementById('sw1Status').textContent = data.sw1 ? 'ANALOG' : 'LUX';
+            document.getElementById('sw1Status').textContent = data.sw1 ? 'HIGH' : 'LOW';
             document.getElementById('sw2Status').textContent = data.sw2 ? 'OFF' : 'ON';
-            document.getElementById('potValue').textContent = (data.pot_value * 100).toFixed(1) + '%';
 
             // Update web control state
             document.getElementById('webManualToggle').checked = data.web_manual_enabled;

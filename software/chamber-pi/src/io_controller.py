@@ -1,9 +1,7 @@
-import spidev
 import RPi.GPIO as GPIO
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
-    SPI_PORT, SPI_DEVICE, POT_CHANNEL,
     LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
@@ -18,7 +16,6 @@ class IOController:
         # State variables
         self.sw1 = True
         self.sw2 = True
-        self.pot_value = 0.0
         self.lux_value = 0
 
         # Bounds buffer (1 minute of lux history)
@@ -29,7 +26,6 @@ class IOController:
         self.live_max = 0
 
         # Hardware handles
-        self.spi = None
         self.lora = None
         self.pwm = None
 
@@ -46,14 +42,12 @@ class IOController:
         self.status = {
             'gpio': 'Not initialized',
             'pwm': 'Not initialized',
-            'spi': 'Not initialized',
             'lora': 'Not initialized',
             'solenoid': 'Not initialized',
         }
         self.hardware_ready = {
             'gpio': False,
             'pwm': False,
-            'spi': False,
             'lora': False,
             'solenoid': False,
         }
@@ -89,24 +83,6 @@ class IOController:
         else:
             self.status['pwm'] = 'Skipped - GPIO not available'
 
-        # SPI setup
-        try:
-            self.spi = spidev.SpiDev()
-            self.spi.open(SPI_PORT, SPI_DEVICE)
-            self.spi.max_speed_hz = 1000000
-            self.status['spi'] = (
-                f"OK - SPI bus /dev/spidev{SPI_PORT}.{SPI_DEVICE} opened; external device not verified"
-            )
-            self.hardware_ready['spi'] = True
-        except FileNotFoundError:
-            self.spi = None
-            self.status['spi'] = (
-                f"Missing - /dev/spidev{SPI_PORT}.{SPI_DEVICE} not found. Enable SPI if you plan to use it"
-            )
-        except Exception as exc:
-            self.spi = None
-            self.status['spi'] = f"Unavailable - SPI open failed: {exc}"
-
         # LoRa setup (SX1262 on spidev0.1 / CE1)
         try:
             self.lora = LoRaReceiver(
@@ -135,13 +111,12 @@ class IOController:
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'spi', 'lora', 'solenoid'):
+        for name in ('gpio', 'pwm', 'lora', 'solenoid'):
             print(f"{name.upper():>4}: {self.status[name]}")
 
     def update(self):
         """Update all input states."""
         self._read_switches()
-        self._read_analog()
         self._read_lora()
 
     def _read_switches(self):
@@ -152,19 +127,6 @@ class IOController:
             return
         self.sw1 = GPIO.input(SWITCH1_PIN)
         self.sw2 = GPIO.input(SWITCH2_PIN)
-
-    def _read_analog(self):
-        """Read potentiometer via MCP3008 ADC when available; otherwise keep a safe default."""
-        if not self.hardware_ready['spi'] or self.spi is None:
-            self.pot_value = 0.0
-            return
-        try:
-            adc = self.spi.xfer2([1, (8 + POT_CHANNEL) << 4, 0])
-            raw = ((adc[1] & 3) << 8) + adc[2]
-            self.pot_value = raw / 1023.0
-        except Exception:
-            # No verified SPI ADC present. Stay operational.
-            self.pot_value = 0.0
 
     def _read_lora(self):
         """Poll SX1262 for a received packet and decode it."""
@@ -209,9 +171,6 @@ class IOController:
 
     def get_switch2(self):
         return self.sw2
-
-    def get_analog_value(self):
-        return self.pot_value
 
     def get_lux_value(self):
         return self.lux_value
@@ -261,7 +220,6 @@ class IOController:
         sw1_str = "HIGH" if self.sw1 else "LOW "
         sw2_str = "HIGH" if self.sw2 else "LOW "
         return (f"[Switches] S1={sw1_str} S2={sw2_str} | "
-                f"[Analog] {self.pot_value:.3f} | "
                 f"[Lux] {self.lux_value}")
 
     def cleanup(self):
@@ -269,11 +227,6 @@ class IOController:
         if self.pwm:
             try:
                 self.pwm.stop()
-            except Exception:
-                pass
-        if self.spi:
-            try:
-                self.spi.close()
             except Exception:
                 pass
         if self.lora:
