@@ -1107,11 +1107,7 @@ DASHBOARD_HTML = """
         loadHistory(6);
 
         // Refresh history every 30 seconds
-        setInterval(() => {
-            const activeBtn = document.querySelector('.time-btn.active');
-            const hours = activeBtn.textContent === '7D' ? 168 : parseInt(activeBtn.textContent);
-            loadHistory(hours);
-        }, 30000);
+        setInterval(() => loadHistory(_currentHours), 30000);
 
         // ---- Water System ----
         function loadWaterState() {
