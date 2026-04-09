@@ -4,12 +4,10 @@ sys.path.append(os.path.dirname(os.path.dirname(currentdir)))
 from LoRaRF import SX126x
 import time
 
-# Begin LoRa radio using legacy initialization
-# begin(bus, device, reset, busy, irq)
-# SPI Port 0, Device 1 (CE1), NRESET=BCM8, BUSY=BCM20, DIO1=BCM21
 LoRa = SX126x()
 print("Begin LoRa radio")
-if not LoRa.begin(0, 1, 8, 20, 21) :
+# Pass -1 for irq pin to disable interrupt-based edge detection
+if not LoRa.begin(0, 1, 8, 20, -1) :
     raise Exception("Something wrong, can't begin LoRa radio")
 
 # Configure LoRa to use TCXO with DIO3 as control
@@ -48,7 +46,13 @@ print("\n-- LoRa Receiver --\n")
 # Receive message continuously
 while True :
     LoRa.request()
-    LoRa.wait()
+
+    # Poll BUSY pin manually instead of relying on IRQ edge detection
+    timeout = time.time() + 10  # 10 second timeout
+    while time.time() < timeout:
+        if not LoRa.wait(100):  # wait with short timeout
+            break
+        time.sleep(0.01)
 
     message = ""
     while LoRa.available() > 1 :
