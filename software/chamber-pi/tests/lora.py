@@ -37,7 +37,16 @@ LoRa.setLoRaPacket(headerType, preambleLength, payloadLength, crcType)
 print("Set syncronize word to 0x1424 (private, matches satellite 0x12)")
 LoRa.setSyncWord(0x1424)
 
-print("\n-- LoRa Receiver Continuous --\n")
+print("\n-- Transmitting test packet --")
+LoRa.beginPacket()
+LoRa.write(0x54)  # 'T'
+LoRa.write(0x45)  # 'E'
+LoRa.write(0x53)  # 'S'
+LoRa.write(0x54)  # 'T'
+LoRa.endPacket()
+print("Test packet sent\n")
+
+print("-- LoRa Receiver Continuous --\n")
 
 # Request for receiving new LoRa packet in RX continuous mode
 LoRa.request(LoRa.RX_CONTINUOUS)
