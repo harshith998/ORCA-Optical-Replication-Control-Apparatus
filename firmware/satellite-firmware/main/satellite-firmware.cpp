@@ -10,6 +10,7 @@
 #include "esp_timer.h"
 #include "EspHal.h"
 #include "gps.h"
+#include "rs_transciever.h"
 
 /**
  * The satellite module utilizes deep sleep cycles to minimize power draw while sampling data
@@ -50,6 +51,13 @@ static constexpr gpio_num_t LORA_BUSY  = GPIO_NUM_3;
 #define LORA_SPREAD 9
 #define LORA_CODING_RATE 7
 #define LORA_SYNC_WORD 0x12
+
+// RS-485 pin configuration
+static constexpr gpio_num_t RS_SNS = GPIO_NUM_10;
+static constexpr gpio_num_t RS_EN = GPIO_NUM_23;
+static constexpr gpio_num_t RS_TX = GPIO_NUM_16;
+static constexpr gpio_num_t RS_GRN = GPIO_NUM_21;
+static constexpr gpio_num_t RS_YLW = GPIO_NUM_22;
 
 // Light sensor setup
 static i2c_master_bus_handle_t s_i2c_bus = NULL;
@@ -473,6 +481,15 @@ extern "C" void app_main(void)
     printf("RTC expected state: cycle sample count=%lu total_sample_count=%lu\n",
            (unsigned long)s_rtc_state.cycle_sample_count + 1,
            (unsigned long)s_rtc_state.total_sample_count + 1);
+
+    // TODO: ADD RS-485 CHECK
+
+    if (is_connected()) {
+        printf("RS-485 device connected!\n");
+    }
+    else {
+        printf("No RS-485 device detected.\n");
+    }
 
     // Initialize I2C bus and sensor
     init_i2c_and_sensor();
