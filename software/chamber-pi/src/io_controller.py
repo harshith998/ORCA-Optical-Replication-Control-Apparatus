@@ -25,6 +25,11 @@ class IOController:
         self.live_min = 0
         self.live_max = 0
 
+        # Frozen per-minute snapshot used for clamping (updated once per full window)
+        self.frozen_min = 0
+        self.frozen_max = 0
+        self._samples_since_freeze = 0
+
         # Hardware handles
         self.lora = None
         self.pwm = None
@@ -198,21 +203,36 @@ class IOController:
                 self.live_max = self.lux_buffer[i]
 
     def get_clamped_lux(self, raw_lux):
-        """Get lux clamped to 1-minute bounds."""
+        """Get lux clamped to the previous minute's frozen bounds.
+
+        The accumulation buffer fills for one full window (LUX_BUFFER_SIZE samples).
+        When it completes, live min/max are computed and frozen. Clamping uses the
+        frozen snapshot so bounds only shift once per minute, and never include the
+        value currently being clamped.
+        """
+        # Accumulate into buffer
         self.lux_buffer[self.buffer_index] = raw_lux
         self.buffer_index = (self.buffer_index + 1) % LUX_BUFFER_SIZE
         if self.buffer_count < LUX_BUFFER_SIZE:
             self.buffer_count += 1
 
-        self._update_bounds()
+        self._samples_since_freeze += 1
 
+        # Freeze a new snapshot once per full window
+        if self._samples_since_freeze >= LUX_BUFFER_SIZE:
+            self._update_bounds()
+            self.frozen_min = self.live_min
+            self.frozen_max = self.live_max
+            self._samples_since_freeze = 0
+
+        # No frozen snapshot yet — pass through unclamped
         if self.buffer_count < LUX_BUFFER_SIZE:
             return raw_lux
 
-        if raw_lux < self.live_min:
-            return self.live_min
-        if raw_lux > self.live_max:
-            return self.live_max
+        if raw_lux < self.frozen_min:
+            return self.frozen_min
+        if raw_lux > self.frozen_max:
+            return self.frozen_max
         return raw_lux
 
     def to_string(self):
