@@ -12,7 +12,7 @@ LED_GRN_PIN = 23
 RJ45_SNS_PIN = 18
 ROTARY_A_PIN = 22     # KNOB_A
 ROTARY_B_PIN = 24     # KNOB_B
-UART_RX_PIN = 15      # RS_RX
+UART_RX_PIN = 15         # RS_RX
 
 # Generic GPIO breakout pins from schematic
 GPIO21_PIN = 5
@@ -55,6 +55,10 @@ LOOP_DELAY_MS = 100   # 100 milliseconds loop delay
 
 # ---------- Lux Scaling ----------
 SCALE_CONSTANT = 2750 # Lux scaling constant
+
+# ---------- RS-485 / Wired UART Settings ----------
+RS_UART_DEVICE = '/dev/serial0'  # Primary hardware UART RX (BCM 15)
+RS_RX_BAUD     = 115200
 
 # ---------- Bounds Buffer Settings ----------
 LUX_BUFFER_SIZE = 600 # 1 minute of samples at 100ms intervals

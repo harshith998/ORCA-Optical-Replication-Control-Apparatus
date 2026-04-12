@@ -6,9 +6,11 @@ from config import (
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
     LUX_BUFFER_SIZE,
-    SOLENOID_PIN
+    SOLENOID_PIN,
+    LED_GRN_PIN, LED_YLW_PIN,
 )
 from lora_receiver import LoRaReceiver, decode_packet, PACKET_SIZE
+from rs_receiver import RS485Receiver
 
 
 class IOController:
@@ -33,6 +35,10 @@ class IOController:
         # Hardware handles
         self.lora = None
         self.pwm = None
+        self.rs = RS485Receiver()
+
+        # YLW LED flash counter: set to N on packet receipt, decremented each update
+        self._ylw_flash_ticks = 0
 
         # Last decoded LoRa packet (full spectral + GPS data)
         self.last_packet = None
@@ -49,6 +55,8 @@ class IOController:
             'pwm': 'Not initialized',
             'lora': 'Not initialized',
             'solenoid': 'Not initialized',
+            'rs485': 'Not initialized',
+            'leds': 'Not initialized',
         }
         self.hardware_ready = {
             'gpio': False,
@@ -88,6 +96,23 @@ class IOController:
         else:
             self.status['pwm'] = 'Skipped - GPIO not available'
 
+        # Indicator LED setup (GRN = wired connected, YLW = RS-485 activity)
+        if self.hardware_ready['gpio']:
+            try:
+                GPIO.setup(LED_GRN_PIN, GPIO.OUT, initial=GPIO.LOW)
+                GPIO.setup(LED_YLW_PIN, GPIO.OUT, initial=GPIO.LOW)
+                self.status['leds'] = (
+                    f'OK - GRN=BCM{LED_GRN_PIN} (wired link), YLW=BCM{LED_YLW_PIN} (RS-485 activity)'
+                )
+            except Exception as exc:
+                self.status['leds'] = f'Unavailable - LED init failed: {exc}'
+        else:
+            self.status['leds'] = 'Skipped - GPIO not available'
+
+        # RS-485 / wired UART setup (SNS sense pin + /dev/serial0)
+        self.rs.begin()
+        self.status['rs485'] = self.rs.status
+
         # LoRa setup (SX1262 on spidev0.1 / CE1)
         try:
             self.lora = LoRaReceiver(
@@ -116,13 +141,38 @@ class IOController:
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'lora', 'solenoid'):
-            print(f"{name.upper():>4}: {self.status[name]}")
+        for name in ('gpio', 'pwm', 'lora', 'solenoid', 'rs485', 'leds'):
+            print(f"{name.upper():>6}: {self.status[name]}")
 
     def update(self):
         """Update all input states."""
         self._read_switches()
-        self._read_lora()
+
+        # Prefer wired RS-485 when a cable is detected, mirroring the firmware
+        # path: is_connected() → rs485_send, else → LoRa.
+        if self.rs.is_connected():
+            self._read_rs485()
+        else:
+            self._read_lora()
+
+        self._update_leds()
+
+    def _update_leds(self):
+        """Drive indicator LEDs based on connection and activity state."""
+        if not self.hardware_ready.get('gpio'):
+            return
+        try:
+            # GRN: solid on when RJ45 cable is plugged in
+            GPIO.output(LED_GRN_PIN, GPIO.HIGH if self.rs.is_connected() else GPIO.LOW)
+
+            # YLW: flashes for ~500 ms after each RS-485 packet is received
+            if self._ylw_flash_ticks > 0:
+                self._ylw_flash_ticks -= 1
+                GPIO.output(LED_YLW_PIN, GPIO.HIGH)
+            else:
+                GPIO.output(LED_YLW_PIN, GPIO.LOW)
+        except Exception as exc:
+            print(f'[LED] Output error: {exc}')
 
     def _read_switches(self):
         """Read switch states (pull-up: HIGH = released)."""
@@ -157,11 +207,29 @@ class IOController:
         except Exception as exc:
             print(f"[LoRa] Exception in _read_lora: {exc}")
 
+    def _read_rs485(self):
+        """Poll the RS-485 UART for a complete packet and decode it."""
+        packet = self.rs.poll()
+        if packet is None:
+            return
+        print(f'[RS485] Packet received: sample={packet["sample_count"]} '
+              f'clear={packet["channels"]["clear"]} gps_valid={packet["gps"]["valid"]}')
+        self.last_packet = packet
+        self.spectral_channels = packet['channels']
+        self.lux_value = packet['channels']['clear']
+        self.last_gps = packet['gps']
+        # Trigger YLW flash for ~500 ms (5 ticks at 100 ms loop rate)
+        self._ylw_flash_ticks = 5
+
+    def is_wired_connected(self) -> bool:
+        """Return True when a cable is detected on the RJ45 sense pin."""
+        return self.rs.is_connected()
+
     def set_pwm(self, value):
         """Set PWM duty cycle (0-1023 maps to 0-100%)."""
         if not self.hardware_ready['pwm'] or self.pwm is None:
             return
-        duty = 100.0 - (value / MAX_PWM_VALUE) * 100.0
+        duty = (value / MAX_PWM_VALUE) * 100.0
         duty = max(0.0, min(100.0, duty))
         self.pwm.ChangeDutyCycle(duty)
 
@@ -254,6 +322,10 @@ class IOController:
                 self.lora.close()
             except Exception:
                 pass
+        try:
+            self.rs.close()
+        except Exception:
+            pass
         try:
             GPIO.cleanup()
         except Exception:

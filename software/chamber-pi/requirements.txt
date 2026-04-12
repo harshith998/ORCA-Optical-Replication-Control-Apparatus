@@ -17,3 +17,6 @@ Flask>=2.0.0
 
 # Solar position for sanity checking (pure Python, no C extensions)
 pysolar>=0.10
+
+# Serial/UART for RS-485 wired link
+pyserial>=3.5

@@ -92,6 +92,7 @@ current_state = {
     'web_manual_enabled': False,
     'web_manual_pwm': 0,
     'sanity_flag': False,
+    'wired_connected': False,
     'timestamp': time.time()
 }
 state_lock = threading.Lock()
@@ -100,7 +101,8 @@ state_lock = threading.Lock()
 def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          mode: str, bounds_min: int, bounds_max: int,
                          sw1: bool, sw2: bool,
-                         sanity_flag: bool = False):
+                         sanity_flag: bool = False,
+                         wired_connected: bool = False):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         # Update in-place to preserve references
@@ -113,6 +115,7 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['sw1'] = sw1
         current_state['sw2'] = sw2
         current_state['sanity_flag'] = sanity_flag
+        current_state['wired_connected'] = wired_connected
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
@@ -798,6 +801,10 @@ DASHBOARD_HTML = """
                     <span>Physical PWM Switch</span>
                     <span id="sw2Status">--</span>
                 </div>
+                <div class="metric-row">
+                    <span>Data Link</span>
+                    <span id="dataLinkStatus" class="mode-indicator" style="font-size:11px;">--</span>
+                </div>
             </div>
         </div>
 
@@ -1017,6 +1024,16 @@ DASHBOARD_HTML = """
             // Update system status
             document.getElementById('sw1Status').textContent = data.sw1 ? 'HIGH' : 'LOW';
             document.getElementById('sw2Status').textContent = data.sw2 ? 'OFF' : 'ON';
+
+            // Data link indicator: wired RS-485 vs wireless LoRa
+            const linkEl = document.getElementById('dataLinkStatus');
+            if (data.wired_connected) {
+                linkEl.textContent = 'WIRED';
+                linkEl.className = 'mode-indicator manual';
+            } else {
+                linkEl.textContent = 'WIRELESS';
+                linkEl.className = 'mode-indicator lux';
+            }
 
             // Update web control state
             document.getElementById('webManualToggle').checked = data.web_manual_enabled;

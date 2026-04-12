@@ -10812,7 +10812,7 @@
 		)
 	)
 	(global_label "RJ45_SNS"
-		(shape output)
+		(shape input)
 		(at 166.37 139.7 0)
 		(fields_autoplaced yes)
 		(effects
