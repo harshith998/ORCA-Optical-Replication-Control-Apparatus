@@ -24,6 +24,9 @@ _INT_FIELDS = {
 _FLOAT_FIELDS = {'lat', 'lon'}
 _ALL_FIELDS = _INT_FIELDS | _FLOAT_FIELDS
 
+# Matches START...END on a single line; no \n required (handles hangup before \n arrives)
+_PACKET_RE = re.compile(rb'START\s+([^\r\n]+)\s+END')
+
 
 def _parse_line(line: str) -> dict | None:
     """Parse a single 'START ... END' ASCII line into a decoded packet dict.
@@ -113,6 +116,25 @@ class RS485Receiver:
             self.status += f'; UART unavailable: {exc}'
             print(f'[RS485] Failed to open {RS_UART_DEVICE}: {exc}')
 
+    def _reopen(self):
+        """Close and reopen the serial port after a hangup (ESP32 deep-sleep cycle end)."""
+        try:
+            if self._ser:
+                self._ser.close()
+        except Exception:
+            pass
+        try:
+            self._ser = serial.Serial(
+                port=RS_UART_DEVICE,
+                baudrate=RS_RX_BAUD,
+                timeout=0,
+                dsrdtr=False,
+                rtscts=False,
+            )
+        except Exception as exc:
+            self._ser = None
+            print(f'[RS485] Reopen failed: {exc}')
+
     def is_connected(self) -> bool:
         """Return True when the sense pin reads LOW (cable grounded)."""
         if not self.hardware_ready:
@@ -121,33 +143,33 @@ class RS485Receiver:
 
     def poll(self) -> dict | None:
         """Read available bytes from the UART, buffer them, and return a decoded
-        packet dict if a complete line is available.  Returns None otherwise."""
+        packet dict if a complete START...END frame is available."""
         if self._ser is None or not self._ser.is_open:
-            print('[RS485] poll() skipped: serial port not open')
             return None
         try:
             chunk = self._ser.read(4096)
             if chunk:
-                print(f'[RS485] {len(chunk)} bytes received')
                 self._buf += chunk
-        except Exception as exc:
-            print(f'[RS485] Serial read error: {exc}')
-            return None
+        except serial.SerialException:
+            # Hangup fires when the ESP32 de-asserts RS485 EN and deep-sleeps.
+            # Reopen for the next cycle; keep the buffer so any partial packet
+            # that arrived before the hangup can still be parsed below.
+            self._reopen()
 
         # Cap buffer to prevent unbounded growth from boot noise
         if len(self._buf) > 8192:
             self._buf = self._buf[-4096:]
 
-        # Drain all available lines; return the first valid packet found
-        while b'\n' in self._buf:
-            line, _, self._buf = self._buf.partition(b'\n')
-            decoded = line.decode('ascii', errors='replace').strip()
-            if not decoded.startswith('START'):
-                continue
+        # Search for a complete START...END frame without requiring \n.
+        # The final \n is often the byte that triggers the hangup, so we
+        # match on the self-delimiting START...END markers instead.
+        m = _PACKET_RE.search(self._buf)
+        if m:
+            decoded = m.group(0).decode('ascii', errors='replace')
+            self._buf = self._buf[m.end():]
             print(f'[RS485] Parsing line: {decoded!r}')
-            packet = _parse_line(decoded)
-            if packet is not None:
-                return packet
+            return _parse_line(decoded)
+
         return None
 
     def close(self):

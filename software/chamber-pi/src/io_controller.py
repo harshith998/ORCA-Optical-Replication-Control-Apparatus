@@ -152,7 +152,6 @@ class IOController:
         # Prefer wired RS-485 when a cable is detected, mirroring the firmware
         # path: is_connected() → rs485_send, else → LoRa.
         wired = self.rs.is_connected()
-        print(f'[IO] wired={wired} hw_ready={self.rs.hardware_ready} ser={self.rs._ser is not None}')
         if wired:
             self._read_rs485()
         else:
