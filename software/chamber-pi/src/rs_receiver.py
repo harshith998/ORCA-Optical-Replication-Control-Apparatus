@@ -111,6 +111,7 @@ class RS485Receiver:
         except Exception as exc:
             self._ser = None
             self.status += f'; UART unavailable: {exc}'
+            print(f'[RS485] Failed to open {RS_UART_DEVICE}: {exc}')
 
     def is_connected(self) -> bool:
         """Return True when the sense pin reads LOW (cable grounded)."""
