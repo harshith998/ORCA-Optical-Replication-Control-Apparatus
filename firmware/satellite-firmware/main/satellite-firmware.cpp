@@ -474,41 +474,63 @@ static void schedule_next_wakeup_and_sleep(void)
 
 extern "C" void app_main(void)
 {
-    // Initialize RTC memory is needed
+    // Initialize RTC memory if needed
     rtc_state_init_if_needed();
 
-    // DEBUG: Report expected cycle_sample_count and total_sample_count by end of cycle
-    printf("RTC expected state: cycle sample count=%lu total_sample_count=%lu\n",
-           (unsigned long)s_rtc_state.cycle_sample_count + 1,
-           (unsigned long)s_rtc_state.total_sample_count + 1);
-
-    // TODO: ADD RS-485 CHECK
-
-    if (is_connected()) {
-        printf("RS-485 device connected!\n");
-    }
-    else {
-        printf("No RS-485 device detected.\n");
-    }
+    printf("RTC state: cycle_sample_count=%lu total_sample_count=%lu\n",
+           (unsigned long)s_rtc_state.cycle_sample_count,
+           (unsigned long)s_rtc_state.total_sample_count);
 
     // Initialize I2C bus and sensor
     init_i2c_and_sensor();
 
-    // Sensor sampling and RTC storage
-    esp_err_t err = read_sensor_and_accumulate();
-    if (err != ESP_OK)
+    if (is_connected())
     {
-        printf("Sensor read failed: %s\n", esp_err_to_name(err));
-        schedule_next_wakeup_and_sleep();
-    }
+        printf("RS-485 connected — bypassing LoRa averaging\n");
 
-    // Transmit averaged sample on transmit interval
-    if (transmit_due())
-    {
-        err = perform_transmit_cycle();
+        // Sample sensor
+        esp_err_t err = read_sensor_and_accumulate();
         if (err != ESP_OK)
         {
-            printf("Report cycle failed; retained data kept for retry.\n");
+            printf("Sensor read failed: %s\n", esp_err_to_name(err));
+            schedule_next_wakeup_and_sleep();
+        }
+
+        // Always get GPS on RS-485 path
+        gps_fix_t gps = {0};
+        get_gps_fix(&gps);
+
+        // Build report from this single sample and send immediately
+        s_rtc_state.total_sample_count++;
+        report_payload_t report = {0};
+        rtc_state_build_report(&report, &gps);
+        rtc_state_clear_accumulator();
+
+        // rs_report_payload_t has identical layout — cast via memcpy
+        rs_report_payload_t rs_report;
+        memcpy(&rs_report, &report, sizeof(rs_report));
+        rs485_send(&rs_report);
+    }
+    else
+    {
+        printf("No RS-485 device — normal LoRa path\n");
+
+        // Sensor sampling and RTC storage
+        esp_err_t err = read_sensor_and_accumulate();
+        if (err != ESP_OK)
+        {
+            printf("Sensor read failed: %s\n", esp_err_to_name(err));
+            schedule_next_wakeup_and_sleep();
+        }
+
+        // Transmit averaged sample on transmit interval
+        if (transmit_due())
+        {
+            err = perform_transmit_cycle();
+            if (err != ESP_OK)
+            {
+                printf("Report cycle failed; retained data kept for retry.\n");
+            }
         }
     }
 
