@@ -122,10 +122,12 @@ class RS485Receiver:
         """Read available bytes from the UART, buffer them, and return a decoded
         packet dict if a complete line is available.  Returns None otherwise."""
         if self._ser is None or not self._ser.is_open:
+            print('[RS485] poll() skipped: serial port not open')
             return None
         try:
             chunk = self._ser.read(4096)
             if chunk:
+                print(f'[RS485] {len(chunk)} bytes received')
                 self._buf += chunk
         except Exception as exc:
             print(f'[RS485] Serial read error: {exc}')

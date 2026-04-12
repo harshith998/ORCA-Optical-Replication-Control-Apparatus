@@ -71,12 +71,13 @@ class IOController:
         try:
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
-            GPIO.setup(SWITCH1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            # BCM 14 = UART TX: skip GPIO.setup so it stays in ALT0 (UART) mode.
+            # SW1 is not used for control logic; default to released (True).
             GPIO.setup(SWITCH2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(PWM_PIN, GPIO.OUT)
             GPIO.setup(SOLENOID_PIN, GPIO.OUT, initial=GPIO.LOW)
             self.status['gpio'] = (
-                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN}, SOL=BCM{SOLENOID_PIN})"
+                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN} skipped/UART-TX, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN}, SOL=BCM{SOLENOID_PIN})"
             )
             self.hardware_ready['gpio'] = True
             self.hardware_ready['solenoid'] = True
@@ -150,7 +151,9 @@ class IOController:
 
         # Prefer wired RS-485 when a cable is detected, mirroring the firmware
         # path: is_connected() → rs485_send, else → LoRa.
-        if self.rs.is_connected():
+        wired = self.rs.is_connected()
+        print(f'[IO] wired={wired} hw_ready={self.rs.hardware_ready} ser={self.rs._ser is not None}')
+        if wired:
             self._read_rs485()
         else:
             self._read_lora()
@@ -180,7 +183,7 @@ class IOController:
             self.sw1 = True
             self.sw2 = True
             return
-        self.sw1 = GPIO.input(SWITCH1_PIN)
+        self.sw1 = True  # BCM 14 = UART TX; not configured as GPIO — default released
         self.sw2 = GPIO.input(SWITCH2_PIN)
 
     def _read_lora(self):
