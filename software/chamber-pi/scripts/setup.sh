@@ -96,7 +96,30 @@ else
     echo "[INFO] Virtual environment already exists, skipping creation."
 fi
 
-# ── 7. Run update to activate venv and install requirements ───
+# ── 7. Install udev rule so /dev/ttyAMA0 stays accessible ─────
+# Without an ACTION filter the rule fires on every udev event (including
+# the 'change' event triggered by each UART hangup), keeping permissions
+# correct across deep-sleep cycles without needing runtime sudo calls.
+UDEV_RULE='KERNEL=="ttyAMA0", GROUP="dialout", MODE="0660"'
+UDEV_FILE='/etc/udev/rules.d/99-ttyAMA0.rules'
+echo "[INFO] Installing udev rule: $UDEV_FILE"
+echo "$UDEV_RULE" | sudo tee "$UDEV_FILE" > /dev/null
+sudo udevadm control --reload-rules
+echo "[SUCCESS] udev rule installed."
+
+# ── 8. Grant pi user passwordless chmod on ttyAMA0 ────────────
+# Needed as a fallback while the udev rule propagates and on older images.
+SUDOERS_LINE='pi ALL=(ALL) NOPASSWD: /bin/chmod 660 /dev/ttyAMA0'
+SUDOERS_FILE='/etc/sudoers.d/99-ttyAMA0-chmod'
+if ! sudo grep -qF "$SUDOERS_LINE" "$SUDOERS_FILE" 2>/dev/null; then
+    echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
+    sudo chmod 440 "$SUDOERS_FILE"
+    echo "[SUCCESS] sudoers entry installed."
+else
+    echo "[INFO] sudoers entry already present."
+fi
+
+# ── 9. Run update to activate venv and install requirements ───
 echo ""
 echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"

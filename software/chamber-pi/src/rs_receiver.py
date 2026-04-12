@@ -11,6 +11,7 @@ Packet format (single newline-terminated line sent by rs_transciever.c):
 """
 
 import re
+import subprocess
 import serial
 import RPi.GPIO as GPIO
 
@@ -115,6 +116,17 @@ class RS485Receiver:
             except Exception:
                 pass
             self._ser = None
+
+        # A udev 'change' event fires on every serial hangup and resets
+        # /dev/ttyAMA0 to 0600 root:tty.  Restore permissions before opening.
+        # (sudoers entry installed by setup.sh grants this without a password)
+        try:
+            subprocess.run(
+                ['sudo', 'chmod', '660', '/dev/ttyAMA0'],
+                capture_output=True, timeout=2,
+            )
+        except Exception:
+            pass
 
         try:
             self._ser = serial.Serial(
