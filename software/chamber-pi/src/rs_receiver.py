@@ -124,19 +124,28 @@ class RS485Receiver:
         if self._ser is None or not self._ser.is_open:
             return None
         try:
-            chunk = self._ser.read(256)
+            chunk = self._ser.read(4096)
             if chunk:
-                print(f'[RS485] Raw bytes ({len(chunk)}): {chunk!r}')
                 self._buf += chunk
-                print(f'[RS485] Buffer now ({len(self._buf)} bytes): {self._buf!r}')
-            if b'\n' not in self._buf:
-                return None
-            line, _, self._buf = self._buf.partition(b'\n')
-            print(f'[RS485] Parsing line: {line!r}')
-            return _parse_line(line.decode('ascii', errors='replace'))
         except Exception as exc:
             print(f'[RS485] Serial read error: {exc}')
             return None
+
+        # Cap buffer to prevent unbounded growth from boot noise
+        if len(self._buf) > 8192:
+            self._buf = self._buf[-4096:]
+
+        # Drain all available lines; return the first valid packet found
+        while b'\n' in self._buf:
+            line, _, self._buf = self._buf.partition(b'\n')
+            decoded = line.decode('ascii', errors='replace').strip()
+            if not decoded.startswith('START'):
+                continue
+            print(f'[RS485] Parsing line: {decoded!r}')
+            packet = _parse_line(decoded)
+            if packet is not None:
+                return packet
+        return None
 
     def close(self):
         if self._ser and self._ser.is_open:
