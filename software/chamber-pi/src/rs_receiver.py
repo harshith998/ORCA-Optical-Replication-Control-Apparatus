@@ -94,7 +94,6 @@ class RS485Receiver:
     def begin(self):
         """Set up the SNS GPIO input (software pull-up) and open the serial port."""
         try:
-            # Pull-up: idle HIGH; cable grounds to LOW → connected
             GPIO.setup(RJ45_SNS_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             self.status = f'OK - SNS on BCM{RJ45_SNS_PIN} (pull-up, LOW = connected)'
             self.hardware_ready = True
@@ -102,20 +101,33 @@ class RS485Receiver:
             self.status = f'Unavailable - SNS GPIO init failed: {exc}'
             return
 
+        self._open_port()
+        if self._ser:
+            self.status += f'; UART {RS_UART_DEVICE} @ {RS_RX_BAUD} baud'
+        else:
+            self.status += f'; UART unavailable (see log)'
+
+    def _open_port(self):
+        """Open (or reopen) the serial port. Safe to call while running."""
+        if self._ser is not None:
+            try:
+                self._ser.close()
+            except Exception:
+                pass
+            self._ser = None
+
         try:
             self._ser = serial.Serial(
                 port=RS_UART_DEVICE,
                 baudrate=RS_RX_BAUD,
-                timeout=0,   # non-blocking
+                timeout=0,      # non-blocking
                 dsrdtr=False,
                 rtscts=False,
             )
-            self.status += f'; UART {RS_UART_DEVICE} @ {RS_RX_BAUD} baud'
+            print(f'[RS485] Port opened: {RS_UART_DEVICE} @ {RS_RX_BAUD}')
         except Exception as exc:
             self._ser = None
-            self.status += f'; UART unavailable: {exc}'
             print(f'[RS485] Failed to open {RS_UART_DEVICE}: {exc}')
-
 
     def is_connected(self) -> bool:
         """Return True when the sense pin reads LOW (cable grounded)."""
@@ -125,26 +137,32 @@ class RS485Receiver:
 
     def poll(self) -> dict | None:
         """Read available bytes from the UART, buffer them, and return a decoded
-        packet dict if a complete START...END frame is available."""
-        if self._ser is None or not self._ser.is_open:
+        packet dict if a complete START...END frame is available.
+
+        On hangup (ESP32 deep-sleep cycle end), the port is closed and reopened
+        so the next transmission cycle is received cleanly.
+        """
+        if self._ser is None:
+            self._open_port()
             return None
+
         try:
             chunk = self._ser.read(4096)
             if chunk:
                 self._buf += chunk
         except serial.SerialException:
-            # Hangup fires when the ESP32 de-asserts RS485 EN and deep-sleeps.
-            # Don't close/reopen — that resets udev permissions. The PL011
-            # self-recovers on the next transmission without any intervention.
-            pass
+            # The ESP32 de-asserts RS485 EN and deep-sleeps, causing a UART
+            # hangup on the Pi side.  Close and reopen so the port is ready
+            # for the next transmission cycle.
+            print('[RS485] Hangup detected — reopening port for next cycle')
+            self._open_port()
+            return None
 
         # Cap buffer to prevent unbounded growth from boot noise
         if len(self._buf) > 8192:
             self._buf = self._buf[-4096:]
 
         # Search for a complete START...END frame without requiring \n.
-        # The final \n is often the byte that triggers the hangup, so we
-        # match on the self-delimiting START...END markers instead.
         m = _PACKET_RE.search(self._buf)
         if m:
             decoded = m.group(0).decode('ascii', errors='replace')
