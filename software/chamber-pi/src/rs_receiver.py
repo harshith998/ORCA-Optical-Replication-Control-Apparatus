@@ -124,10 +124,13 @@ class RS485Receiver:
         try:
             chunk = self._ser.read(256)
             if chunk:
+                print(f'[RS485] Raw bytes ({len(chunk)}): {chunk!r}')
                 self._buf += chunk
+                print(f'[RS485] Buffer now ({len(self._buf)} bytes): {self._buf!r}')
             if b'\n' not in self._buf:
                 return None
             line, _, self._buf = self._buf.partition(b'\n')
+            print(f'[RS485] Parsing line: {line!r}')
             return _parse_line(line.decode('ascii', errors='replace'))
         except Exception as exc:
             print(f'[RS485] Serial read error: {exc}')
