@@ -116,24 +116,19 @@ class RS485Receiver:
             self.status += f'; UART unavailable: {exc}'
             print(f'[RS485] Failed to open {RS_UART_DEVICE}: {exc}')
 
-    def _reopen(self):
-        """Close and reopen the serial port after a hangup (ESP32 deep-sleep cycle end)."""
-        try:
-            if self._ser:
-                self._ser.close()
-        except Exception:
-            pass
-        try:
-            self._ser = serial.Serial(
-                port=RS_UART_DEVICE,
-                baudrate=RS_RX_BAUD,
-                timeout=0,
-                dsrdtr=False,
-                rtscts=False,
-            )
-        except Exception as exc:
-            self._ser = None
-            print(f'[RS485] Reopen failed: {exc}')
+    def _recover_hangup(self):
+        """Recover from a serial hangup without closing the port.
+
+        The hangup fires when the ESP32 de-asserts RS485 EN and deep-sleeps.
+        Flushing the input buffer clears the hangup state on the PL011 UART;
+        the port becomes readable again when the next transmission begins.
+        Closing and reopening would hit a udev permission reset, so we avoid it.
+        """
+        if self._ser and self._ser.is_open:
+            try:
+                self._ser.reset_input_buffer()
+            except Exception:
+                pass
 
     def is_connected(self) -> bool:
         """Return True when the sense pin reads LOW (cable grounded)."""
@@ -152,9 +147,8 @@ class RS485Receiver:
                 self._buf += chunk
         except serial.SerialException:
             # Hangup fires when the ESP32 de-asserts RS485 EN and deep-sleeps.
-            # Reopen for the next cycle; keep the buffer so any partial packet
-            # that arrived before the hangup can still be parsed below.
-            self._reopen()
+            # Flush without closing — reopening resets udev permissions.
+            self._recover_hangup()
 
         # Cap buffer to prevent unbounded growth from boot noise
         if len(self._buf) > 8192:
