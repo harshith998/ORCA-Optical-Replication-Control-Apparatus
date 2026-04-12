@@ -103,7 +103,9 @@ class RS485Receiver:
             self._ser = serial.Serial(
                 port=RS_UART_DEVICE,
                 baudrate=RS_RX_BAUD,
-                timeout=0,  # non-blocking
+                timeout=0,   # non-blocking
+                dsrdtr=False,
+                rtscts=False,
             )
             self.status += f'; UART {RS_UART_DEVICE} @ {RS_RX_BAUD} baud'
         except Exception as exc:
