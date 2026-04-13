@@ -1040,10 +1040,14 @@ DASHBOARD_HTML = """
             linkBadge.style.display = 'flex';
             if (data.wired_connected) {
                 linkEl.textContent = 'WIRED';
-                linkBadge.style.color = 'var(--accent)';
+                linkBadge.style.background = 'rgba(59,130,246,0.15)';
+                linkBadge.style.color = '#60a5fa';
+                linkBadge.style.border = '1px solid rgba(59,130,246,0.4)';
             } else {
                 linkEl.textContent = 'WIRELESS';
-                linkBadge.style.color = 'var(--text-secondary)';
+                linkBadge.style.background = 'rgba(168,85,247,0.15)';
+                linkBadge.style.color = '#c084fc';
+                linkBadge.style.border = '1px solid rgba(168,85,247,0.4)';
             }
 
             // Update GPS
@@ -1051,19 +1055,19 @@ DASHBOARD_HTML = """
             const fixEl = document.getElementById('gpsFixStatus');
             if (gps.valid) {
                 fixEl.textContent = 'FIX';
-                fixEl.className = 'mode-indicator lux';
+                fixEl.style.background = 'rgba(34,197,94,0.2)';
+                fixEl.style.color = 'var(--success)';
                 document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
                 document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
                 if (gps.unix_time > 0) {
                     const d = new Date(gps.unix_time * 1000);
                     document.getElementById('gpsTime').textContent =
-                        d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+                        d.toUTCString().slice(5, 22);
                 } else {
                     document.getElementById('gpsTime').textContent = '--';
                 }
             } else {
                 fixEl.textContent = 'NO FIX';
-                fixEl.className = 'mode-indicator';
                 fixEl.style.background = 'rgba(239,68,68,0.2)';
                 fixEl.style.color = 'var(--danger)';
                 document.getElementById('gpsLat').textContent = '--';
