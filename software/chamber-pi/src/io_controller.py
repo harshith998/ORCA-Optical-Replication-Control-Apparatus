@@ -1,5 +1,5 @@
-import pigpio
 import RPi.GPIO as GPIO
+from rpi_hardware_pwm import HardwarePWM
 
 from config import (
     SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
@@ -37,7 +37,7 @@ class IOController:
 
         # Hardware handles
         self.lora = None
-        self._pi = None   # pigpio connection for hardware PWM
+        self._pwm = None  # rpi-hardware-pwm instance for BCM 12 (PWM0)
         self.rs = RS485Receiver()
         self.rotary = RotaryEncoder(ROTARY_A_PIN, ROTARY_B_PIN, ROTARY_BTN_PIN)
 
@@ -92,17 +92,19 @@ class IOController:
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
-        # Hardware PWM via pigpiod — runs in the PWM peripheral, independent of Python
+        # Hardware PWM via Linux sysfs (rpi-hardware-pwm) — runs in the PWM peripheral,
+        # independent of Python. Requires dtoverlay=pwm,pin=12,func=4 in config.txt.
         try:
-            self._pi = pigpio.pi()
-            if not self._pi.connected:
-                raise RuntimeError('pigpiod is not running — install and start it with: sudo systemctl start pigpiod')
-            self._pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
-            self.status['pwm'] = f"OK - hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (pigpiod)"
+            self._pwm = HardwarePWM(pwm_channel=0, hz=PWM_FREQ, chip=0)
+            self._pwm.start(0)
+            self.status['pwm'] = f"OK - hardware PWM on BCM{PWM_PIN} at {PWM_FREQ} Hz (sysfs)"
             self.hardware_ready['pwm'] = True
         except Exception as exc:
-            self._pi = None
-            self.status['pwm'] = f"Unavailable - hardware PWM init failed: {exc}"
+            self._pwm = None
+            self.status['pwm'] = (
+                f"Unavailable - hardware PWM init failed: {exc}. "
+                f"Ensure dtoverlay=pwm,pin=12,func=4 is in config.txt and Pi has been rebooted."
+            )
 
         # Indicator LED setup (GRN = wired connected, YLW = RS-485 activity)
         if self.hardware_ready['gpio']:
@@ -246,14 +248,14 @@ class IOController:
     def set_pwm(self, value):
         """Set PWM duty cycle (0-1023 maps to 0-100%).
 
-        Delegates to pigpiod hardware PWM — the peripheral continues at this
+        Delegates to hardware PWM peripheral via sysfs — continues at this
         duty cycle even if the Python process hangs between calls.
         """
-        if not self.hardware_ready['pwm'] or self._pi is None:
+        if not self.hardware_ready['pwm'] or self._pwm is None:
             return
-        duty = int((value / MAX_PWM_VALUE) * 1_000_000)
-        duty = max(0, min(1_000_000, duty))
-        self._pi.hardware_PWM(PWM_PIN, PWM_FREQ, duty)
+        duty = (value / MAX_PWM_VALUE) * 100.0
+        duty = max(0.0, min(100.0, duty))
+        self._pwm.change_duty_cycle(duty)
 
     def set_solenoid(self, on: bool):
         """Open (True) or close (False) the solenoid valve."""
@@ -347,10 +349,9 @@ class IOController:
 
     def cleanup(self):
         """Cleanup GPIO and peripherals."""
-        if self._pi is not None:
+        if self._pwm is not None:
             try:
-                self._pi.hardware_PWM(PWM_PIN, PWM_FREQ, 0)
-                self._pi.stop()
+                self._pwm.stop()
             except Exception:
                 pass
         if self.lora:

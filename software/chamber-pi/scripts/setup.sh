@@ -109,8 +109,8 @@ CONFIG_FILE='/boot/firmware/config.txt'
 # Fall back to legacy path on older Pi OS images
 [ -f "$CONFIG_FILE" ] || CONFIG_FILE='/boot/config.txt'
 
-echo "[INFO] Configuring $CONFIG_FILE for PL011 on BCM 14/15..."
-for LINE in 'dtoverlay=disable-bt' 'enable_uart=1'; do
+echo "[INFO] Configuring $CONFIG_FILE for PL011 on BCM 14/15 and hardware PWM on BCM 12..."
+for LINE in 'dtoverlay=disable-bt' 'enable_uart=1' 'dtoverlay=pwm,pin=12,func=4'; do
     if ! grep -qF "$LINE" "$CONFIG_FILE"; then
         echo "$LINE" | sudo tee -a "$CONFIG_FILE" > /dev/null
         echo "[SUCCESS] Added: $LINE"
@@ -157,16 +157,7 @@ else
     echo "[SUCCESS] Added $USER to dialout group (takes effect after reboot)."
 fi
 
-# ── 10. Install pigpio for hardware PWM ───────────────────────
-# pigpiod daemon manages hardware PWM independently of Python.
-# PWM continues at the last set value even if the Python process hangs.
-echo "[INFO] Installing pigpio..."
-sudo apt install -y pigpio python3-pigpio
-sudo systemctl enable pigpiod
-sudo systemctl start pigpiod
-echo "[SUCCESS] pigpiod installed and running."
-
-# ── 11. Install systemd service to auto-start ORCA on boot ───
+# ── 10. Install systemd service to auto-start ORCA on boot ───
 # Creates /etc/systemd/system/orca.service and enables it.
 # After reboot, ORCA starts automatically. Useful commands:
 #   sudo systemctl status orca   — check if running
@@ -178,8 +169,7 @@ echo "[INFO] Writing $SERVICE_FILE..."
 sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
 Description=ORCA Chamber Controller
-After=network.target pigpiod.service
-Requires=pigpiod.service
+After=network.target
 
 [Service]
 Type=simple
