@@ -5,6 +5,7 @@ Replicates ESP32 chamber functionality for nitrogen fixation light control.
 Includes web server for remote monitoring and control.
 """
 
+import datetime
 import signal
 import threading
 import time
@@ -14,7 +15,7 @@ from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
 from web_server import update_current_state, run_server, water_scheduler, register_solenoid_setter
-from solar_check import check_reading
+from solar_check import check_reading, get_sun_elevation
 
 
 io = IOController()
@@ -22,8 +23,6 @@ lcd = LCDDisplay()
 
 pwm_enabled   = False
 running       = True
-knob_manual   = False   # True = rotary knob controls PWM directly
-manual_pwm    = 0       # current PWM value when in knob manual mode
 last_knob_pos = 0       # previous encoder position for delta tracking
 
 

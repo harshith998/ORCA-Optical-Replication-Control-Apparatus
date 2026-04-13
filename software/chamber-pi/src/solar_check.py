@@ -34,6 +34,19 @@ SANITY_TOLERANCE = 5.0
 MIN_ELEVATION_DEG = 5.0
 
 
+def get_sun_elevation(lat: float, lon: float, unix_time: int) -> float | None:
+    """Return sun elevation angle in degrees, or None if unavailable."""
+    if not _PYSOLAR_AVAILABLE or unix_time <= 0 or (lat == 0.0 and lon == 0.0):
+        return None
+    try:
+        dt = datetime.datetime.fromtimestamp(unix_time, tz=datetime.timezone.utc)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return get_altitude(lat, lon, dt)
+    except Exception:
+        return None
+
+
 def check_reading(clear_value: int, lat: float, lon: float, unix_time: int) -> bool:
     """
     Returns True if the reading appears suspicious (sanity flag raised),
