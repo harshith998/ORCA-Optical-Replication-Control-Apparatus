@@ -86,11 +86,12 @@ def loop():
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
-    spectral = io.get_spectral_channels()
+    new_packet = io.consume_new_packet()
+    spectral = io.get_spectral_channels() if new_packet else {}
     gps = io.get_last_gps()
 
     sanity_flag = False
-    if gps.get('valid') and spectral:
+    if new_packet and gps.get('valid') and spectral:
         sanity_flag = check_reading(
             clear_value=spectral.get('clear', raw_lux),
             lat=gps['latitude'],
@@ -150,7 +151,7 @@ def loop():
     usb_logger.log_reading(raw_lux, clamped_lux, actual_pwm, actual_mode,
                            io.live_min, io.live_max)
 
-    if spectral:
+    if new_packet and spectral:
         db.log_spectral(channels=spectral, gps=gps, sanity_flag=sanity_flag)
 
     update_current_state(
@@ -173,10 +174,17 @@ def loop():
 def main_loop():
     global running
     loop_delay = LOOP_DELAY_MS / 1000.0
+    # Purge data older than 7 days every ~1 hour (36000 ticks at 100 ms)
+    _cleanup_interval = 36000
+    _tick = 0
 
     while running:
         try:
             loop()
+            _tick += 1
+            if _tick >= _cleanup_interval:
+                db.cleanup_old_data()
+                _tick = 0
             time.sleep(loop_delay)
         except Exception as e:
             print(f"Loop error: {e}")

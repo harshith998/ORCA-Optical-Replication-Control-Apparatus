@@ -43,6 +43,9 @@ class IOController:
         # YLW LED flash counter: set to N on packet receipt, decremented each update
         self._ylw_flash_ticks = 0
 
+        # Set to True when a new packet is decoded; cleared by consume_new_packet()
+        self._new_packet = False
+
         # Last decoded LoRa packet (full spectral + GPS data)
         self.last_packet = None
 
@@ -216,6 +219,7 @@ class IOController:
             self.spectral_channels = packet['channels']
             self.lux_value = packet['channels']['clear']
             self.last_gps = packet['gps']
+            self._new_packet = True
             print(f"[LoRa] Decoded: sample={packet['sample_count']} clear={packet['channels']['clear']} gps_valid={packet['gps']['valid']}")
         except Exception as exc:
             print(f"[LoRa] Exception in _read_lora: {exc}")
@@ -231,6 +235,7 @@ class IOController:
         self.spectral_channels = packet['channels']
         self.lux_value = packet['channels']['clear']
         self.last_gps = packet['gps']
+        self._new_packet = True
         # Trigger YLW flash for ~500 ms (5 ticks at 100 ms loop rate)
         self._ylw_flash_ticks = 5
 
@@ -266,6 +271,13 @@ class IOController:
 
     def get_last_gps(self) -> dict:
         return dict(self.last_gps)
+
+    def consume_new_packet(self) -> bool:
+        """Returns True (and clears the flag) if a new packet was decoded this tick."""
+        if self._new_packet:
+            self._new_packet = False
+            return True
+        return False
 
     def get_rotary_position(self) -> int:
         return self.rotary.get_position()

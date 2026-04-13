@@ -10,6 +10,7 @@ Requires: pysolar  (pip install pysolar)
 
 import datetime
 import math
+import warnings
 
 try:
     from pysolar.solar import get_altitude
@@ -59,7 +60,9 @@ def check_reading(clear_value: int, lat: float, lon: float, unix_time: int) -> b
 
     try:
         dt = datetime.datetime.fromtimestamp(unix_time, tz=datetime.timezone.utc)
-        elevation_deg = get_altitude(lat, lon, dt)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            elevation_deg = get_altitude(lat, lon, dt)
 
         if elevation_deg < MIN_ELEVATION_DEG:
             # Sun is below or near horizon — nighttime/twilight, expect near-zero
