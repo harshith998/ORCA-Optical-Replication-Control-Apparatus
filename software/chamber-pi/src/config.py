@@ -48,7 +48,7 @@ LORA_CR          = 7       # RadioLib notation: 7 → CR4/7
 LORA_SYNC_WORD   = 0x12
 
 # ---------- PWM Settings ----------
-PWM_FREQ = 200        # 200 Hz PWM — lower reduces flicker from OS scheduling jitter
+PWM_FREQ = 1000       # 1000 Hz — hardware PWM is jitter-free, higher freq = smoother dimming
 MAX_PWM_VALUE = 1023  # 10-bit equivalent (0-1023)
 
 # ---------- Timing Settings ----------

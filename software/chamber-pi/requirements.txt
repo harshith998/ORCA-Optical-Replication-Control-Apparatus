@@ -3,6 +3,9 @@
 # GPIO control (only works on Raspberry Pi)
 RPi.GPIO>=0.7.0
 
+# Hardware PWM via pigpiod daemon — PWM runs in hardware, independent of Python loop
+pigpio>=1.78
+
 # SPI for MCP3008 ADC (potentiometer)
 spidev>=3.5
 
