@@ -12,6 +12,7 @@ LED_GRN_PIN = 23
 RJ45_SNS_PIN = 18
 ROTARY_A_PIN = 22     # KNOB_A
 ROTARY_B_PIN = 24     # KNOB_B
+ROTARY_BTN_PIN = 5    # KNOB button click
 UART_RX_PIN = 15         # RS_RX
 
 # Generic GPIO breakout pins from schematic
@@ -28,8 +29,8 @@ I2C_BUS = 1
 I2C_SDA_PIN = 2
 I2C_SCL_PIN = 3
 LCD_I2C_ADDRESS = 0x27
-LCD_COLS = 16
-LCD_ROWS = 2
+LCD_COLS = 20
+LCD_ROWS = 4
 
 # ---------- SPI Settings ----------
 LORA_NRESET_PIN = 8

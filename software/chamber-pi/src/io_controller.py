@@ -8,8 +8,10 @@ from config import (
     LUX_BUFFER_SIZE,
     SOLENOID_PIN,
     LED_GRN_PIN, LED_YLW_PIN,
+    ROTARY_A_PIN, ROTARY_B_PIN, ROTARY_BTN_PIN,
 )
 from lora_receiver import LoRaReceiver, decode_packet, PACKET_SIZE
+from rotary_encoder import RotaryEncoder
 from rs_receiver import RS485Receiver
 
 
@@ -36,6 +38,7 @@ class IOController:
         self.lora = None
         self.pwm = None
         self.rs = RS485Receiver()
+        self.rotary = RotaryEncoder(ROTARY_A_PIN, ROTARY_B_PIN, ROTARY_BTN_PIN)
 
         # YLW LED flash counter: set to N on packet receipt, decremented each update
         self._ylw_flash_ticks = 0
@@ -57,6 +60,7 @@ class IOController:
             'solenoid': 'Not initialized',
             'rs485': 'Not initialized',
             'leds': 'Not initialized',
+            'rotary': 'Not initialized',
         }
         self.hardware_ready = {
             'gpio': False,
@@ -110,6 +114,13 @@ class IOController:
         else:
             self.status['leds'] = 'Skipped - GPIO not available'
 
+        # Rotary encoder setup (interrupt-driven, requires GPIO ready)
+        if self.hardware_ready['gpio']:
+            self.rotary.begin()
+            self.status['rotary'] = self.rotary.status
+        else:
+            self.status['rotary'] = 'Skipped - GPIO not available'
+
         # RS-485 / wired UART setup (SNS sense pin + /dev/serial0)
         self.rs.begin()
         self.status['rs485'] = self.rs.status
@@ -142,7 +153,7 @@ class IOController:
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'lora', 'solenoid', 'rs485', 'leds'):
+        for name in ('gpio', 'pwm', 'lora', 'solenoid', 'rs485', 'leds', 'rotary'):
             print(f"{name.upper():>6}: {self.status[name]}")
 
     def update(self):
@@ -256,6 +267,12 @@ class IOController:
     def get_last_gps(self) -> dict:
         return dict(self.last_gps)
 
+    def get_rotary_position(self) -> int:
+        return self.rotary.get_position()
+
+    def consume_rotary_click(self) -> bool:
+        return self.rotary.consume_click()
+
     def get_init_report(self):
         return dict(self.status)
 
@@ -326,6 +343,10 @@ class IOController:
                 pass
         try:
             self.rs.close()
+        except Exception:
+            pass
+        try:
+            self.rotary.cleanup()
         except Exception:
             pass
         try:

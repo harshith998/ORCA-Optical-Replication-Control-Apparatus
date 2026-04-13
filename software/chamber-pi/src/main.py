@@ -113,16 +113,30 @@ def loop():
     io.set_pwm(actual_pwm)
 
     if lcd.available:
-        lcd.clear()
+        knob_pos = io.get_rotary_position()
+        clicked  = io.consume_rotary_click()
+
+        mode_str = "WEB CTRL" if web_manual_enabled else "LUX     "
+        conn_str = "WIRE" if io.is_wired_connected() else "LORA"
+        duty_pct_int = int((actual_pwm / MAX_PWM_VALUE) * 100.0)
+
+        # Row 0: mode + connection source  e.g. "Mode:LUX      [LORA]"
         lcd.set_cursor(0, 0)
+        lcd.print(f"Mode:{mode_str:<8} [{conn_str}]")
 
-        if web_manual_enabled:
-            lcd.print("Mode: WEB CTRL")
-        else:
-            lcd.print("Mode: LUX")
-
+        # Row 1: lux + pwm                 e.g. "Lux:77   PWM:28%    "
         lcd.set_cursor(0, 1)
-        lcd.print(f"Lux:{raw_lux}")
+        lcd.print(f"Lux:{raw_lux:<6} PWM:{duty_pct_int:>3}%  ")
+
+        # Row 2: rotary position + click    e.g. "Knob: +3   [CLICK!] "
+        knob_display = f"Knob:{knob_pos:>+5}"
+        click_display = "  [CLICK!]" if clicked else "          "
+        lcd.set_cursor(0, 2)
+        lcd.print(f"{knob_display}{click_display}")
+
+        # Row 3: bounds info                e.g. "Min:10   Max:4705   "
+        lcd.set_cursor(0, 3)
+        lcd.print(f"Min:{io.live_min:<6} Max:{io.live_max:<6}")
 
     db.log_reading(
         raw_lux=raw_lux,
