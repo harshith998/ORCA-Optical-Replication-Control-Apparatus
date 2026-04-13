@@ -96,30 +96,68 @@ else
     echo "[INFO] Virtual environment already exists, skipping creation."
 fi
 
-# ── 7. Install udev rule so /dev/ttyAMA0 stays accessible ─────
-# Without an ACTION filter the rule fires on every udev event (including
-# the 'change' event triggered by each UART hangup), keeping permissions
-# correct across deep-sleep cycles without needing runtime sudo calls.
-UDEV_RULE='KERNEL=="ttyAMA0", GROUP="dialout", MODE="0660"'
-UDEV_FILE='/etc/udev/rules.d/99-ttyAMA0.rules'
-echo "[INFO] Installing udev rule: $UDEV_FILE"
-echo "$UDEV_RULE" | sudo tee "$UDEV_FILE" > /dev/null
-sudo udevadm control --reload-rules
-echo "[SUCCESS] udev rule installed."
+# ── 7. Assign PL011 (good UART) to GPIO pins, disable mini-UART and BT ───
+# By default the PL011 (/dev/ttyAMA0) is claimed by Bluetooth and the
+# weaker mini-UART (/dev/ttyS0) is routed to BCM 14/15.  We want the
+# opposite: PL011 on BCM 14 TX / BCM 15 RX, mini-UART and BT disabled.
+#
+# dtoverlay=disable-bt  — detaches BT from PL011, routes PL011 to GPIO
+# enable_uart=1         — ensures the UART is active (required on Pi 3/4/5)
+# dtoverlay=disable-miniuart-bt is NOT used; disable-bt is sufficient.
 
-# ── 8. Grant pi user passwordless chmod on ttyAMA0 ────────────
-# Needed as a fallback while the udev rule propagates and on older images.
-SUDOERS_LINE='pi ALL=(ALL) NOPASSWD: /bin/chmod 660 /dev/ttyAMA0'
-SUDOERS_FILE='/etc/sudoers.d/99-ttyAMA0-chmod'
-if ! sudo grep -qF "$SUDOERS_LINE" "$SUDOERS_FILE" 2>/dev/null; then
-    echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
-    sudo chmod 440 "$SUDOERS_FILE"
-    echo "[SUCCESS] sudoers entry installed."
+CONFIG_FILE='/boot/firmware/config.txt'
+# Fall back to legacy path on older Pi OS images
+[ -f "$CONFIG_FILE" ] || CONFIG_FILE='/boot/config.txt'
+
+echo "[INFO] Configuring $CONFIG_FILE for PL011 on BCM 14/15..."
+for LINE in 'dtoverlay=disable-bt' 'enable_uart=1'; do
+    if ! grep -qF "$LINE" "$CONFIG_FILE"; then
+        echo "$LINE" | sudo tee -a "$CONFIG_FILE" > /dev/null
+        echo "[SUCCESS] Added: $LINE"
+    else
+        echo "[INFO] Already present: $LINE"
+    fi
+done
+
+# Disable the Bluetooth UART service so it no longer holds /dev/ttyAMA0
+sudo systemctl disable --now hciuart 2>/dev/null || true
+echo "[SUCCESS] hciuart service disabled."
+echo "[INFO] A reboot is required for the UART reassignment to take effect."
+echo "       After reboot, verify: ls -la /dev/serial0  (should show -> ttyAMA0)"
+
+# ── 8. Free UART from serial console so Python can use it exclusively ─
+# By default Pi OS puts a kernel console and a getty login shell on the
+# UART.  Both must be removed or they will fight with rs_receiver.py.
+#
+#  cmdline.txt: remove 'console=serial0,115200' kernel parameter
+#  systemd:     disable serial-getty@ttyAMA0 login service
+
+CMDLINE_FILE='/boot/firmware/cmdline.txt'
+[ -f "$CMDLINE_FILE" ] || CMDLINE_FILE='/boot/cmdline.txt'
+
+echo "[INFO] Removing serial console from $CMDLINE_FILE..."
+if grep -q 'console=serial0' "$CMDLINE_FILE"; then
+    # sed in-place: strip the console=serial0,<baud> token (with or without trailing space)
+    sudo sed -i 's/console=serial0,[0-9]* \?//g' "$CMDLINE_FILE"
+    echo "[SUCCESS] Removed console=serial0 from $CMDLINE_FILE"
 else
-    echo "[INFO] sudoers entry already present."
+    echo "[INFO] console=serial0 not present in $CMDLINE_FILE — nothing to remove."
 fi
 
-# ── 9. Run update to activate venv and install requirements ───
+echo "[INFO] Disabling serial-getty on ttyAMA0..."
+sudo systemctl disable --now serial-getty@ttyAMA0.service 2>/dev/null || true
+echo "[SUCCESS] serial-getty@ttyAMA0 disabled."
+
+# ── 9. Add user to dialout group for persistent UART access ───
+# Group membership survives udev permission resets; no sudo needed at runtime.
+if groups "$USER" | grep -qw dialout; then
+    echo "[INFO] $USER is already in the dialout group."
+else
+    sudo usermod -aG dialout "$USER"
+    echo "[SUCCESS] Added $USER to dialout group (takes effect after reboot)."
+fi
+
+# ── 10. Run update to activate venv and install requirements ──
 echo ""
 echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"
@@ -131,4 +169,9 @@ echo "────────────────────────�
 echo " Setup complete!"
 echo " 'update' — pull latest + sync deps"
 echo " 'start'  — launch main.py"
+echo ""
+echo " *** REBOOT REQUIRED ***"
+echo " Run: sudo reboot"
+echo " Then verify: ls -la /dev/serial0"
+echo " Expected:    /dev/serial0 -> ttyAMA0"
 echo "──────────────────────────────────────"

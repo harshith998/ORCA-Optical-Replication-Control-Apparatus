@@ -107,7 +107,6 @@ def loop():
     elif pwm_enabled:
         input_norm = clamped_lux / SCALE_CONSTANT
         input_norm = max(0.0, min(1.0, input_norm))
-        actual_mode = 'lux'
         actual_pwm = int(input_norm * MAX_PWM_VALUE + 0.5)
         actual_pwm = min(actual_pwm, MAX_PWM_VALUE)
 
