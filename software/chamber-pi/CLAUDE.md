@@ -79,6 +79,7 @@ Each 100ms tick:
 - **SPI (`/dev/spidev0.0`, CE0)**: MCP3008 ADC reads potentiometer on channel 0
 - **I2C** (bus 1): LCD display at address `0x27`
 - **GPIO PWM** (BCM 12): LED driver output at 500 Hz (RPi.GPIO software PWM). 0% duty = LEDs off, 100% duty = LEDs full on.
+- **UART (`/dev/serial0` → `/dev/ttyAMA0`, BCM 15 RX)**: RS-485 wired receiver. See RS-485 section below.
 
 #### LoRa Hat Pin Assignments (BCM, from `src/config.py`)
 
@@ -123,4 +124,60 @@ The satellite runs on an ESP32 and uses **deep sleep** between cycles to minimiz
 
 **GPS**: polled only on transmit cycles, 5 s lock timeout (`GPS_LOCK_TIMEOUT_MS`). If lock fails, `gps.valid = 0` and coordinates are zeroed.
 
-**Outstanding TODOs in firmware**: GPS warm-sleep between cycles; RS-485/Ethernet integration on the receiver side.
+**Outstanding TODOs in firmware**: GPS warm-sleep between cycles.
+
+---
+
+## RS-485 Wired Reception
+
+### Overview
+
+The Pi receives wired UART packets on `/dev/serial0` (→ `/dev/ttyAMA0`, the PL011 UART). The ESP32 transmits one ASCII packet per cycle then deep-sleeps. `rs_receiver.py` polls the port every 100 ms; `io_controller` prefers wired over LoRa when the RJ45 sense pin (BCM 18) reads LOW.
+
+### Packet format
+
+```
+START sample_count:N,f1:N,...,clear:N,gps_valid:N,lat:F,lon:F,time:N END\n
+```
+
+`_parse_line()` returns the same dict structure as `lora_receiver.decode_packet`.
+Packet detection uses `rb'START\s+([^\r\n]+)\s+END'` rather than line splitting — the trailing `\n` is often the byte lost to the hangup, so we match on the self-delimiting markers instead.
+
+### GPIO conflict: BCM 14 (UART TX)
+
+BCM 14 is the UART TX pin. **Do not call `GPIO.setup(14, ...)` — it overrides the ALT0 UART function and breaks transmission.** `io_controller` skips `GPIO.setup` for `SWITCH1_PIN` and hard-codes `sw1 = True`.
+
+### Serial hangup on deep-sleep
+
+After each ESP32 packet the bus goes idle (ESP32 de-asserts RS-485 EN and deep-sleeps). The Linux tty layer sees this as a carrier drop and puts the fd in a hangup state. pyserial raises `SerialException("device reports readiness to read but returned no data")` on every subsequent `read()` call — the port **does not self-recover**. `_open_port()` closes and reopens the port on each `SerialException`.
+
+### `/dev/ttyAMA0` permission resets
+
+Every `SerialException` hangup triggers a udev `change` event which resets `/dev/ttyAMA0` back to `0600 root:tty`. Two mitigations are in place:
+
+1. **udev rule** — `setup.sh` installs `/etc/udev/rules.d/99-ttyAMA0.rules`:
+   ```
+   KERNEL=="ttyAMA0", GROUP="dialout", MODE="0660"
+   ```
+   No `ACTION` filter means it fires on every event, including `change`.
+
+2. **Runtime chmod** — `_open_port()` calls `sudo chmod 660 /dev/ttyAMA0` via `subprocess` before each open as a fallback. Requires the passwordless sudoers entry that `setup.sh` installs at `/etc/sudoers.d/99-ttyAMA0-chmod`.
+
+### `/dev/serial0` must point to `ttyAMA0` (PL011), not `ttyS0` (mini-UART)
+
+The mini-UART (`ttyS0`) is unreliable at 115200 baud. Verify with:
+```bash
+ls -la /dev/serial0   # must show -> ttyAMA0
+```
+If it shows `ttyS0`, add `dtoverlay=disable-bt` to `/boot/firmware/config.txt` and reboot.
+
+### `start.sh` permission fix
+
+`start.sh` runs `sudo chmod 660 /dev/ttyAMA0 && sudo chown root:dialout /dev/ttyAMA0` immediately before launching Python, covering the window between boot and the first udev rule trigger.
+
+### Indicator LEDs
+
+| LED | BCM | Meaning |
+|-----|-----|---------|
+| GRN | 23  | Solid on when RJ45 cable is plugged in (SNS pin LOW) |
+| YLW | 27  | Flashes ~500 ms after each RS-485 packet is received |
