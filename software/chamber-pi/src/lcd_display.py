@@ -78,6 +78,8 @@ class LCDDisplay:
             self.clear()
             self._command(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
             time.sleep(0.001)
+            # Send cursor-off again after full init — some LCD2004 backpacks need this
+            self._command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF)
 
             self.available = True
             self.status = f"OK - LCD responded at I2C address 0x{self.address:02X} on bus {I2C_BUS}"

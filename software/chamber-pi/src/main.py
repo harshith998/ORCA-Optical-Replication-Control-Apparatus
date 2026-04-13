@@ -20,8 +20,11 @@ from solar_check import check_reading
 io = IOController()
 lcd = LCDDisplay()
 
-pwm_enabled = False
-running = True
+pwm_enabled   = False
+running       = True
+knob_manual   = False   # True = rotary knob controls PWM directly
+manual_pwm    = 0       # current PWM value when in knob manual mode
+last_knob_pos = 0       # previous encoder position for delta tracking
 
 
 def signal_handler(sig, frame):

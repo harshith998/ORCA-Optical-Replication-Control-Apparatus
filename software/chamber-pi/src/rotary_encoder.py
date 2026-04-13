@@ -62,7 +62,7 @@ class RotaryEncoder:
             # Rotary: falling edge on A → check B for direction
             if last_a == GPIO.HIGH and a == GPIO.LOW:
                 with self._lock:
-                    self._position += 1 if b == GPIO.HIGH else -1
+                    self._position += -1 if b == GPIO.HIGH else 1
 
             # Button: falling edge with debounce
             if last_btn == GPIO.HIGH and btn == GPIO.LOW:
