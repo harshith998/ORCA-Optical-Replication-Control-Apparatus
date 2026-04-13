@@ -70,8 +70,11 @@ def setup():
     register_solenoid_setter(io.set_solenoid)
 
 
+_KNOB_STEP = 10  # PWM units per encoder detent in manual mode
+
+
 def loop():
-    global pwm_enabled
+    global pwm_enabled, knob_manual, manual_pwm, last_knob_pos
 
     io.update()
 
@@ -86,6 +89,18 @@ def loop():
         pwm_enabled = True
     else:
         pwm_enabled = False
+
+    # Rotary: compute delta and toggle mode on button click
+    knob_pos = io.get_rotary_position()
+    clicked  = io.consume_rotary_click()
+    delta    = knob_pos - last_knob_pos
+    last_knob_pos = knob_pos
+
+    if clicked:
+        knob_manual = not knob_manual
+
+    if knob_manual and delta != 0:
+        manual_pwm = max(0, min(MAX_PWM_VALUE, manual_pwm + delta * _KNOB_STEP))
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
@@ -105,7 +120,10 @@ def loop():
     actual_pwm = 0
     actual_mode = 'lux'
 
-    if web_manual_enabled:
+    if knob_manual:
+        actual_pwm = manual_pwm
+        actual_mode = 'manual'
+    elif web_manual_enabled:
         actual_pwm = web_manual_pwm
         actual_mode = 'web_manual'
     elif pwm_enabled:
@@ -117,30 +135,30 @@ def loop():
     io.set_pwm(actual_pwm)
 
     if lcd.available:
-        knob_pos = io.get_rotary_position()
-        clicked  = io.consume_rotary_click()
-
-        mode_str = "WEB CTRL" if web_manual_enabled else "LUX     "
-        conn_str = "WIRE" if io.is_wired_connected() else "LORA"
+        conn_str     = "WIRE" if io.is_wired_connected() else "LORA"
         duty_pct_int = int((actual_pwm / MAX_PWM_VALUE) * 100.0)
+        mode_str     = "MANUAL  " if knob_manual else ("WEB CTRL" if web_manual_enabled else "LUX     ")
 
-        # Row 0: mode + connection source  e.g. "Mode:LUX      [LORA]"
+        # Row 0: mode + connection source  e.g. "Mode:MANUAL   [LORA]"
         lcd.set_cursor(0, 0)
         lcd.print(f"Mode:{mode_str:<8} [{conn_str}]")
 
-        # Row 1: lux + pwm                 e.g. "Lux:77   PWM:28%    "
+        # Row 1: lux + pwm                 e.g. "Lux:77   PWM: 28%   "
         lcd.set_cursor(0, 1)
         lcd.print(f"Lux:{raw_lux:<6} PWM:{duty_pct_int:>3}%  ")
 
-        # Row 2: rotary position + click    e.g. "Knob: +3   [CLICK!] "
-        knob_display = f"Knob:{knob_pos:>+5}"
-        click_display = "  [CLICK!]" if clicked else "          "
+        # Row 2: click hint                e.g. "CLICK: -> WEB CTRL  "
+        next_mode  = "WEB CTRL" if knob_manual else "MANUAL  "
         lcd.set_cursor(0, 2)
-        lcd.print(f"{knob_display}{click_display}")
+        lcd.print(f"CLICK: -> {next_mode:<8}   ")
 
-        # Row 3: bounds info                e.g. "Min:10   Max:4705   "
+        # Row 3: GPS status                e.g. "GPS: 48.12  -122.34 "
+        #                                   or  "NO GPS              "
         lcd.set_cursor(0, 3)
-        lcd.print(f"Min:{io.live_min:<6} Max:{io.live_max:<6}")
+        if gps.get('valid'):
+            lcd.print(f"GPS:{gps['latitude']:>8.2f} {gps['longitude']:>8.2f}")
+        else:
+            lcd.print(f"NO GPS              ")
 
     db.log_reading(
         raw_lux=raw_lux,
