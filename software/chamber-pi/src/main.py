@@ -147,21 +147,20 @@ def loop():
         lcd.set_cursor(0, 1)
         lcd.print(f"Lux:{raw_lux:<7} PWM:{actual_pwm:<6}")
 
-        # Row 2: click hint                e.g. "CLICK: -> MANUAL    "
-        next_mode = "AUTO  " if web_manual_enabled else "MANUAL"
+        # Row 2: GPS coordinates             e.g. " 48.1234  -122.3456 "
+        #                                   or  "NO GPS              "
         lcd.set_cursor(0, 2)
-        lcd.print(f"CLICK: -> {next_mode:<6}      ")
+        if gps.get('valid'):
+            lcd.print(f"{gps['latitude']:>9.4f} {gps['longitude']:>10.4f}")
+        else:
+            lcd.print(f"NO GPS              ")
 
-        # Row 3: satellite time + sun elevation
+        # Row 3: satellite UTC time          e.g. "UTC 14:32:07        "
+        #                                   or  "NO SAT TIME         "
         lcd.set_cursor(0, 3)
         if gps.get('valid') and gps.get('unix_time', 0) > 0:
-            elev = get_sun_elevation(gps['latitude'], gps['longitude'], gps['unix_time'])
             t = datetime.datetime.fromtimestamp(gps['unix_time'], tz=datetime.timezone.utc)
-            time_str = t.strftime("%H:%M:%S")
-            if elev is not None:
-                lcd.print(f"{time_str} El:{elev:>5.1f}d")
-            else:
-                lcd.print(f"{time_str} El:  N/A")
+            lcd.print(f"UTC {t.strftime('%H:%M:%S')}           ")
         else:
             lcd.print(f"NO SAT TIME         ")
 
