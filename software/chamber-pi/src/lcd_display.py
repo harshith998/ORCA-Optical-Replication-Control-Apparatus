@@ -95,31 +95,53 @@ class LCDDisplay:
         print(f" LCD: {self.status}")
         return self.available
 
+    def _io_error(self, exc):
+        """Mark display unavailable on I2C failure so the main loop isn't affected."""
+        self.available = False
+        print(f"[LCD] I2C error, disabling display: {exc}")
+        try:
+            self.bus.close()
+        except Exception:
+            pass
+        self.bus = None
+
     def clear(self):
         if not self.available:
             return
-        self._command(LCD_CLEARDISPLAY)
-        time.sleep(0.002)
+        try:
+            self._command(LCD_CLEARDISPLAY)
+            time.sleep(0.002)
+        except Exception as exc:
+            self._io_error(exc)
 
     def set_cursor(self, col, row):
         if not self.available:
             return
-        row_offsets = [0x00, 0x40, 0x14, 0x54]
-        if row >= self.rows:
-            row = self.rows - 1
-        self._command(LCD_SETDDRAMADDR | (col + row_offsets[row]))
+        try:
+            row_offsets = [0x00, 0x40, 0x14, 0x54]
+            if row >= self.rows:
+                row = self.rows - 1
+            self._command(LCD_SETDDRAMADDR | (col + row_offsets[row]))
+        except Exception as exc:
+            self._io_error(exc)
 
     def print(self, text):
         if not self.available:
             return
-        for char in str(text):
-            self._write(ord(char))
+        try:
+            for char in str(text):
+                self._write(ord(char))
+        except Exception as exc:
+            self._io_error(exc)
 
     def set_backlight(self, state):
         if not self.available:
             return
-        self.backlight = LCD_BACKLIGHT if state else LCD_NOBACKLIGHT
-        self._expander_write(0)
+        try:
+            self.backlight = LCD_BACKLIGHT if state else LCD_NOBACKLIGHT
+            self._expander_write(0)
+        except Exception as exc:
+            self._io_error(exc)
 
     def get_init_report(self):
         return self.status

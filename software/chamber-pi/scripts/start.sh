@@ -29,7 +29,14 @@ source "$VENV_DIR/bin/activate" || { echo "[ERROR] Failed to activate venv. Has 
 #     sudo chown root:dialout /dev/ttyAMA0
 # fi
 
-# ── 4. Run main.py ─────────────────────────────────────────────
+# ── 4. Stop the systemd service if it's running ───────────────
+# Prevents port 5000 conflict when running manually alongside the auto-start service.
+if systemctl is-active --quiet orca 2>/dev/null; then
+    echo "[INFO] Stopping orca systemd service..."
+    sudo systemctl stop orca
+fi
+
+# ── 5. Run main.py ─────────────────────────────────────────────
 echo "[INFO] Running main.py..."
 echo "──────────────────────────────────────"
 python src/main.py
