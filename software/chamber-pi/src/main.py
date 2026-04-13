@@ -73,7 +73,7 @@ _KNOB_STEP = 10  # PWM units per encoder detent in manual mode
 
 
 def loop():
-    global pwm_enabled, knob_manual, manual_pwm, last_knob_pos
+    global pwm_enabled, last_knob_pos
 
     io.update()
 
@@ -96,10 +96,14 @@ def loop():
     last_knob_pos = knob_pos
 
     if clicked:
-        knob_manual = not knob_manual
+        init_pwm = web_manual_pwm if web_manual_enabled else 0
+        db.set_web_control_state(enabled=not web_manual_enabled, pwm_value=init_pwm)
+        web_manual_enabled = not web_manual_enabled
+        web_manual_pwm = init_pwm
 
-    if knob_manual and delta != 0:
-        manual_pwm = max(0, min(MAX_PWM_VALUE, manual_pwm + delta * _KNOB_STEP))
+    if web_manual_enabled and delta != 0:
+        web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * _KNOB_STEP))
+        db.set_web_control_state(enabled=True, pwm_value=web_manual_pwm)
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
@@ -117,14 +121,11 @@ def loop():
         )
 
     actual_pwm = 0
-    actual_mode = 'lux'
+    actual_mode = 'auto'
 
-    if knob_manual:
-        actual_pwm = manual_pwm
-        actual_mode = 'manual'
-    elif web_manual_enabled:
+    if web_manual_enabled:
         actual_pwm = web_manual_pwm
-        actual_mode = 'web_manual'
+        actual_mode = 'manual'
     elif pwm_enabled:
         input_norm = clamped_lux / SCALE_CONSTANT
         input_norm = max(0.0, min(1.0, input_norm))
@@ -136,28 +137,33 @@ def loop():
     if lcd.available:
         conn_str     = "WIRE" if io.is_wired_connected() else "LORA"
         duty_pct_int = int((actual_pwm / MAX_PWM_VALUE) * 100.0)
-        mode_str     = "MANUAL  " if knob_manual else ("WEB CTRL" if web_manual_enabled else "LUX     ")
+        mode_str     = "MANUAL" if web_manual_enabled else "AUTO  "
 
-        # Row 0: mode + connection source  e.g. "Mode:MANUAL   [LORA]"
+        # Row 0: mode + connection source  e.g. "Mode:AUTO    [LORA]"
         lcd.set_cursor(0, 0)
-        lcd.print(f"Mode:{mode_str:<8} [{conn_str}]")
+        lcd.print(f"Mode:{mode_str:<6} [{conn_str}] {duty_pct_int:>3}%")
 
-        # Row 1: lux + pwm                 e.g. "Lux:77   PWM: 28%   "
+        # Row 1: lux + pwm                 e.g. "Lux:77   PWM:281    "
         lcd.set_cursor(0, 1)
-        lcd.print(f"Lux:{raw_lux:<6} PWM:{duty_pct_int:>3}%  ")
+        lcd.print(f"Lux:{raw_lux:<7} PWM:{actual_pwm:<6}")
 
-        # Row 2: click hint                e.g. "CLICK: -> WEB CTRL  "
-        next_mode  = "WEB CTRL" if knob_manual else "MANUAL  "
+        # Row 2: click hint                e.g. "CLICK: -> MANUAL    "
+        next_mode = "AUTO  " if web_manual_enabled else "MANUAL"
         lcd.set_cursor(0, 2)
-        lcd.print(f"CLICK: -> {next_mode:<8}   ")
+        lcd.print(f"CLICK: -> {next_mode:<6}      ")
 
-        # Row 3: GPS status                e.g. "GPS: 48.12  -122.34 "
-        #                                   or  "NO GPS              "
+        # Row 3: satellite time + sun elevation
         lcd.set_cursor(0, 3)
-        if gps.get('valid'):
-            lcd.print(f"GPS:{gps['latitude']:>8.2f} {gps['longitude']:>8.2f}")
+        if gps.get('valid') and gps.get('unix_time', 0) > 0:
+            elev = get_sun_elevation(gps['latitude'], gps['longitude'], gps['unix_time'])
+            t = datetime.datetime.fromtimestamp(gps['unix_time'], tz=datetime.timezone.utc)
+            time_str = t.strftime("%H:%M:%S")
+            if elev is not None:
+                lcd.print(f"{time_str} El:{elev:>5.1f}d")
+            else:
+                lcd.print(f"{time_str} El:  N/A")
         else:
-            lcd.print(f"NO GPS              ")
+            lcd.print(f"NO SAT TIME         ")
 
     db.log_reading(
         raw_lux=raw_lux,
