@@ -9,7 +9,7 @@ import datetime
 import signal
 import threading
 import time
-from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT
+from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT, LCD_COLS
 from database import db
 from io_controller import IOController
 from lcd_display import LCDDisplay
@@ -24,6 +24,16 @@ lcd = LCDDisplay()
 pwm_enabled   = False
 running       = True
 last_knob_pos = 0       # previous encoder position for delta tracking
+_lcd_cache    = ['', '', '', '']  # last-written content per row; skip write if unchanged
+
+
+def lcd_row(row: int, text: str):
+    """Write text to an LCD row only if the content has changed."""
+    padded = f"{text:<{LCD_COLS}}"[:LCD_COLS]
+    if padded != _lcd_cache[row]:
+        _lcd_cache[row] = padded
+        lcd.set_cursor(0, row)
+        lcd.print(padded)
 
 
 def signal_handler(sig, frame):
@@ -139,30 +149,19 @@ def loop():
         duty_pct_int = int((actual_pwm / MAX_PWM_VALUE) * 100.0)
         mode_str     = "MANUAL" if web_manual_enabled else "AUTO  "
 
-        # Row 0: mode + connection source  e.g. "Mode:AUTO    [LORA]"
-        lcd.set_cursor(0, 0)
-        lcd.print(f"Mode:{mode_str:<6} [{conn_str}] {duty_pct_int:>3}%")
+        lcd_row(0, f"Mode:{mode_str:<6} [{conn_str}] {duty_pct_int:>3}%")
+        lcd_row(1, f"Lux:{raw_lux:<7} PWM:{actual_pwm:<6}")
 
-        # Row 1: lux + pwm                 e.g. "Lux:77   PWM:281    "
-        lcd.set_cursor(0, 1)
-        lcd.print(f"Lux:{raw_lux:<7} PWM:{actual_pwm:<6}")
-
-        # Row 2: GPS coordinates             e.g. " 48.1234  -122.3456 "
-        #                                   or  "NO GPS              "
-        lcd.set_cursor(0, 2)
         if gps.get('valid'):
-            lcd.print(f"{gps['latitude']:>9.4f} {gps['longitude']:>10.4f}")
+            lcd_row(2, f"{gps['latitude']:>9.4f} {gps['longitude']:>10.4f}")
         else:
-            lcd.print(f"NO GPS              ")
+            lcd_row(2, "NO GPS")
 
-        # Row 3: satellite UTC time          e.g. "UTC 14:32:07        "
-        #                                   or  "NO SAT TIME         "
-        lcd.set_cursor(0, 3)
         if gps.get('valid') and gps.get('unix_time', 0) > 0:
             t = datetime.datetime.fromtimestamp(gps['unix_time'], tz=datetime.timezone.utc)
-            lcd.print(f"UTC {t.strftime('%H:%M:%S')}           ")
+            lcd_row(3, f"UTC {t.strftime('%H:%M:%S')}")
         else:
-            lcd.print(f"NO SAT TIME         ")
+            lcd_row(3, "NO SAT TIME")
 
     db.log_reading(
         raw_lux=raw_lux,
