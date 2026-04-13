@@ -31,6 +31,13 @@ class RotaryEncoder:
             GPIO.setup(self._pin_b,   GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self._pin_btn, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+            # Clear any stale edge detection left over from a previous run
+            for pin in (self._pin_a, self._pin_btn):
+                try:
+                    GPIO.remove_event_detect(pin)
+                except Exception:
+                    pass
+
             # Detect on both edges of A — check B state to determine direction
             GPIO.add_event_detect(self._pin_a, GPIO.BOTH, callback=self._on_a)
             # Button: falling edge (pull-up, active LOW), 200 ms debounce
