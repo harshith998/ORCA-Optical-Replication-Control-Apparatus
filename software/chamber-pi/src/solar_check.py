@@ -64,7 +64,7 @@ def check_reading(clear_value: int, lat: float, lon: float, unix_time: int) -> b
         if elevation_deg < MIN_ELEVATION_DEG:
             # Sun is below or near horizon — nighttime/twilight, expect near-zero
             # Flag only if reading is very high (sensor malfunction)
-            return clear_value > 1000
+            return bool(clear_value > 1000)
 
         radiation = get_radiation_direct(dt, elevation_deg)  # W/m²
         expected_clear = radiation * CLEAR_PER_WM2
@@ -73,7 +73,7 @@ def check_reading(clear_value: int, lat: float, lon: float, unix_time: int) -> b
             return False
 
         ratio = clear_value / expected_clear
-        flagged = ratio < (1.0 / SANITY_TOLERANCE) or ratio > SANITY_TOLERANCE
+        flagged = bool(ratio < (1.0 / SANITY_TOLERANCE) or ratio > SANITY_TOLERANCE)
 
         if flagged:
             print(f"[SolarCheck] FLAGGED — clear={clear_value}, expected≈{expected_clear:.0f} "

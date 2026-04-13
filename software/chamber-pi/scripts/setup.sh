@@ -157,7 +157,36 @@ else
     echo "[SUCCESS] Added $USER to dialout group (takes effect after reboot)."
 fi
 
-# ── 10. Run update to activate venv and install requirements ──
+# ── 10. Install systemd service to auto-start ORCA on boot ───
+# Creates /etc/systemd/system/orca.service and enables it.
+# After reboot, ORCA starts automatically. Useful commands:
+#   sudo systemctl status orca   — check if running
+#   sudo systemctl stop orca     — stop it
+#   sudo journalctl -u orca -f   — live log output
+
+SERVICE_FILE='/etc/systemd/system/orca.service'
+echo "[INFO] Writing $SERVICE_FILE..."
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
+[Unit]
+Description=ORCA Chamber Controller
+After=network.target
+
+[Service]
+Type=simple
+User=$USER
+ExecStart=/usr/local/bin/start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable orca
+echo "[SUCCESS] orca.service installed and enabled — will start on next boot."
+
+# ── 12. Run update to activate venv and install requirements ──
 echo ""
 echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"
@@ -174,4 +203,8 @@ echo " *** REBOOT REQUIRED ***"
 echo " Run: sudo reboot"
 echo " Then verify: ls -la /dev/serial0"
 echo " Expected:    /dev/serial0 -> ttyAMA0"
+echo ""
+echo " ORCA will start automatically on boot."
+echo " To check status:  sudo systemctl status orca"
+echo " To view logs:     sudo journalctl -u orca -f"
 echo "──────────────────────────────────────"

@@ -80,9 +80,9 @@ def loop():
     web_manual_pwm = web_state['web_manual_pwm']
 
     if sw2:
-        pwm_enabled = False
-    else:
         pwm_enabled = True
+    else:
+        pwm_enabled = False
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
