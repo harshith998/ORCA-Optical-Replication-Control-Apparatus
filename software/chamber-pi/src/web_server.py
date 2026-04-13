@@ -93,6 +93,7 @@ current_state = {
     'web_manual_pwm': 0,
     'sanity_flag': False,
     'wired_connected': False,
+    'gps': {'valid': False, 'latitude': 0.0, 'longitude': 0.0, 'unix_time': 0},
     'timestamp': time.time()
 }
 state_lock = threading.Lock()
@@ -102,7 +103,8 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          mode: str, bounds_min: int, bounds_max: int,
                          sw1: bool, sw2: bool,
                          sanity_flag: bool = False,
-                         wired_connected: bool = False):
+                         wired_connected: bool = False,
+                         gps: dict = None):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         # Update in-place to preserve references
@@ -116,6 +118,8 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['sw2'] = sw2
         current_state['sanity_flag'] = sanity_flag
         current_state['wired_connected'] = wired_connected
+        if gps is not None:
+            current_state['gps'] = gps
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
@@ -704,9 +708,14 @@ DASHBOARD_HTML = """
                 </div>
                 <h1>Chamber Control</h1>
             </div>
-            <div class="status-badge">
-                <div class="status-dot" id="connectionStatus"></div>
-                <span id="connectionText">Connecting...</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="status-badge" id="dataLinkBadge" style="display:none;">
+                    <span id="dataLinkStatus">--</span>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot" id="connectionStatus"></div>
+                    <span id="connectionText">Connecting...</span>
+                </div>
             </div>
         </header>
 
@@ -785,25 +794,29 @@ DASHBOARD_HTML = """
                 </div>
             </div>
 
-            <!-- System Status Card -->
+            <!-- GPS / Satellite Card -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">System Status</span>
+                    <span class="card-title">GPS / Satellite</span>
                     <div class="card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                     </div>
                 </div>
                 <div class="metric-row">
-                    <span>Physical Mode Switch</span>
-                    <span id="sw1Status">--</span>
+                    <span>Fix</span>
+                    <span id="gpsFixStatus" class="mode-indicator" style="font-size:11px;">--</span>
                 </div>
                 <div class="metric-row">
-                    <span>Physical PWM Switch</span>
-                    <span id="sw2Status">--</span>
+                    <span>Latitude</span>
+                    <span id="gpsLat">--</span>
                 </div>
                 <div class="metric-row">
-                    <span>Data Link</span>
-                    <span id="dataLinkStatus" class="mode-indicator" style="font-size:11px;">--</span>
+                    <span>Longitude</span>
+                    <span id="gpsLon">--</span>
+                </div>
+                <div class="metric-row">
+                    <span>UTC Time</span>
+                    <span id="gpsTime">--</span>
                 </div>
             </div>
         </div>
@@ -1021,18 +1034,41 @@ DASHBOARD_HTML = """
                 modeEl.className = 'mode-indicator lux';
             }
 
-            // Update system status
-            document.getElementById('sw1Status').textContent = data.sw1 ? 'HIGH' : 'LOW';
-            document.getElementById('sw2Status').textContent = data.sw2 ? 'OFF' : 'ON';
-
-            // Data link indicator: wired RS-485 vs wireless LoRa
+            // Data link badge in header
             const linkEl = document.getElementById('dataLinkStatus');
+            const linkBadge = document.getElementById('dataLinkBadge');
+            linkBadge.style.display = 'flex';
             if (data.wired_connected) {
                 linkEl.textContent = 'WIRED';
-                linkEl.className = 'mode-indicator manual';
+                linkBadge.style.color = 'var(--accent)';
             } else {
                 linkEl.textContent = 'WIRELESS';
-                linkEl.className = 'mode-indicator lux';
+                linkBadge.style.color = 'var(--text-secondary)';
+            }
+
+            // Update GPS
+            const gps = data.gps || {};
+            const fixEl = document.getElementById('gpsFixStatus');
+            if (gps.valid) {
+                fixEl.textContent = 'FIX';
+                fixEl.className = 'mode-indicator lux';
+                document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
+                document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
+                if (gps.unix_time > 0) {
+                    const d = new Date(gps.unix_time * 1000);
+                    document.getElementById('gpsTime').textContent =
+                        d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+                } else {
+                    document.getElementById('gpsTime').textContent = '--';
+                }
+            } else {
+                fixEl.textContent = 'NO FIX';
+                fixEl.className = 'mode-indicator';
+                fixEl.style.background = 'rgba(239,68,68,0.2)';
+                fixEl.style.color = 'var(--danger)';
+                document.getElementById('gpsLat').textContent = '--';
+                document.getElementById('gpsLon').textContent = '--';
+                document.getElementById('gpsTime').textContent = '--';
             }
 
             // Update web control state

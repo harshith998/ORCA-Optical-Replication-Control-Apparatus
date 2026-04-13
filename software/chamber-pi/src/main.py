@@ -189,6 +189,7 @@ def loop():
         sw2=sw2,
         sanity_flag=sanity_flag,
         wired_connected=io.is_wired_connected(),
+        gps=gps,
     )
 
     duty_pct = (actual_pwm / MAX_PWM_VALUE) * 100.0
