@@ -84,6 +84,14 @@ float  gps_get_heading_deg(void);
 int    gps_get_satellites(void);
 bool   gps_has_fix(void);
 
+/**
+ * @brief Send the $PAIR650,0*25 backup command over UART.
+ * Puts the GPS module into Backup Mode (way 2). V_BCKP must remain powered
+ * to preserve satellite data for a warm start on the next wakeup.
+ * Only call this after a valid fix has been obtained.
+ */
+void gps_send_backup_cmd(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -26,7 +26,7 @@ RadioLib is fetched automatically via the IDF component manager on first build (
 |---|---|---|
 | AS7343 spectral sensor | I2C @ 100 kHz | SDA=18, SCL=19, addr=0x39 |
 | SX1262 LoRa radio | SPI @ 2 MHz | SCK=6, MISO=2, MOSI=7, CS=11, DIO1=20, RST=0, BUSY=3 |
-| GPS module | UART1 @ 115200 | RX=5 (TX unused) |
+| GPS module | UART1 @ 115200 | RX=5, TX=4, RESET_N=1 |
 
 ## LoRa config
 
@@ -36,7 +36,7 @@ RadioLib is fetched automatically via the IDF component manager on first build (
 
 `app_main` runs once per wakeup, then calls `esp_deep_sleep_start()`.
 
-- `TRANSMIT_CYCLE_MS` (1000 ms) / `SAMPLES_PER_TRANSMIT` (1) = `SAMPLING_CYCLE_MS` sleep interval
+- `TRANSMIT_CYCLE_MS` (10000 ms) / `SAMPLES_PER_TRANSMIT` (2) = `SAMPLING_CYCLE_MS` sleep interval
 - Each wakeup reads the AS7343 once and accumulates into RTC sums
 - When `cycle_sample_count >= SAMPLES_PER_TRANSMIT`: attempt GPS fix, build and send LoRa packet, clear accumulators
 - RTC state is validated on boot with magic `0xA53443D1` + version `1`; mismatches reset all accumulators
@@ -72,8 +72,10 @@ Default config: gain=256×, atime=0, astep=599 → ~1.67 ms integration time.
 
 ## GPS behavior
 
+- Each transmit cycle begins by pulsing RESET_N (GPIO1) low for 100 ms to wake the module from backup mode, then releases to input (module has internal 1.8 V pull-up; no external pull-up allowed). GPIO1 drives the base of Q1 (NPN MMBT3904) through R7 (4.7k), so the signal is inverted: GPIO1 must be driven **HIGH** to pull RESET_N low, then LOW to release it.
 - Blocks in a polling loop for up to `GPS_LOCK_TIMEOUT_MS` (5 s) waiting for valid NMEA fix + datetime
-- On timeout, `gps_fix_t.valid = false` and the packet is transmitted anyway
+- On valid fix: sends `$PAIR650,0*25` over UART TX to put the module into Backup Mode (Method 2, ~35 µA) before deep sleep; V_BCKP remains powered to preserve satellite data for warm start
+- On timeout, `gps_fix_t.valid = false`, packet is transmitted anyway, and the GPS is left in continuous mode
 - Timezone forced to `UTC0`; parsed from RMC + GGA + GSA + VTG sentences
 
 ## EspHal.h

@@ -16,6 +16,7 @@
  * -------------------------------------------------------------------------- */
 #define GPS_UART_NUM        UART_NUM_1
 #define GPS_UART_RX_PIN     5
+#define GPS_UART_TX_PIN     4   /* ESP32-C6 GPIO driving GPS RXD — adjust if different */
 #define GPS_UART_BAUD       115200
 #define GPS_UART_BUF_SIZE   1024
 
@@ -229,7 +230,7 @@ void gps_init(void)
     };
     ESP_ERROR_CHECK(uart_param_config(GPS_UART_NUM, &cfg));
     ESP_ERROR_CHECK(uart_set_pin(GPS_UART_NUM,
-                                 UART_PIN_NO_CHANGE, GPS_UART_RX_PIN,
+                                 GPS_UART_TX_PIN, GPS_UART_RX_PIN,
                                  UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     ESP_ERROR_CHECK(uart_driver_install(GPS_UART_NUM,
                                         GPS_UART_BUF_SIZE * 2, 0, 0, NULL, 0));
@@ -280,3 +281,13 @@ float  gps_get_speed_kmph(void)  { return s_data.speed_kmph;  }
 float  gps_get_heading_deg(void) { return s_data.heading_deg; }
 int    gps_get_satellites(void)  { return s_data.satellites;  }
 bool   gps_has_fix(void)         { return s_data.valid;       }
+
+void gps_send_backup_cmd(void)
+{
+    /* $PAIR650,0*25<CR><LF> — shuts down internal main power supply (Backup Mode way 2) */
+    static const char cmd[] = "$PAIR650,0*25\r\n";
+    uart_write_bytes(GPS_UART_NUM, cmd, sizeof(cmd) - 1);
+    /* Allow time for the module to process the command and enter backup mode */
+    vTaskDelay(pdMS_TO_TICKS(100));
+    ESP_LOGI(TAG, "GPS sent to backup mode");
+}

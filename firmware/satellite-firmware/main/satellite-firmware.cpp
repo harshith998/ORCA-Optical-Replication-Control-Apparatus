@@ -25,9 +25,9 @@ static constexpr gpio_num_t I2C_SDA_GPIO = GPIO_NUM_18;
 #define I2C_PORT I2C_NUM_0
 
 // Sampling & transmit timing configuration
-#define TRANSMIT_CYCLE_MS 1000ULL
-#define SAMPLES_PER_TRANSMIT 1
-#define GPS_LOCK_TIMEOUT_MS 5000ULL
+#define TRANSMIT_CYCLE_MS 10000ULL          // How often to transmit data (ms)
+#define SAMPLES_PER_TRANSMIT 2              // How many samples to average into each transmit cycle
+#define GPS_LOCK_TIMEOUT_MS 5000ULL         // How long to wait for a GPS fix before giving up (ms)
 #define SAMPLING_CYCLE_MS (uint64_t)(TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
 
 // RTC retained-state validation
@@ -43,6 +43,7 @@ static constexpr gpio_num_t SPI_MOSI = GPIO_NUM_7;
 static constexpr gpio_num_t LORA_CS    = GPIO_NUM_11;
 static constexpr gpio_num_t LORA_DIO1  = GPIO_NUM_20;
 static constexpr gpio_num_t LORA_RESET = GPIO_NUM_0;
+static constexpr gpio_num_t GPS_RESET  = GPIO_NUM_1;
 static constexpr gpio_num_t LORA_BUSY  = GPIO_NUM_3;
 
 // LoRa frequency configuration
@@ -288,7 +289,18 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
 
     memset(fix, 0, sizeof(*fix));
 
-    // Initialize GPS
+    // Wake GPS from backup mode: pulse RESET_N low for 100 ms.
+    // GPIO1 drives the base of Q1 (NPN, MMBT3904) through R7 (4.7k), so the
+    // logic is inverted — GPIO1 HIGH turns Q1 on and pulls RESET_N to GND.
+    // Release by driving GPIO1 LOW (Q1 off), then float as input so the GPS
+    // internal 1.8 V pull-up holds RESET_N high during normal operation.
+    gpio_set_direction(GPS_RESET, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPS_RESET, 1); // HIGH → Q1 ON → RESET_N LOW (reset asserted)
+    vTaskDelay(pdMS_TO_TICKS(100));
+    gpio_set_level(GPS_RESET, 0); // LOW → Q1 OFF → RESET_N released HIGH
+    gpio_set_direction(GPS_RESET, GPIO_MODE_INPUT);
+
+    // Initialize GPS UART
     gps_init();
     gps_data_t data;
 
@@ -307,8 +319,6 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
             fix->longitude_deg = 0.0;
             fix->unix_time = 0;
             return ESP_OK;
-
-            // TODO: Put GPS to warm-sleep between cycles via UART TX
         }
     } while (!data.valid || !data.datetime_valid);
 
@@ -322,6 +332,10 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
     fix->latitude_deg = data.latitude;
     fix->longitude_deg = data.longitude;
     fix->unix_time = unix_time;
+
+    // Valid fix obtained — put GPS into backup mode to preserve satellite data
+    // for a warm start next cycle. V_BCKP must remain powered during sleep.
+    gps_send_backup_cmd();
 
     return ESP_OK;
 }
