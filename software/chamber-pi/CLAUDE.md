@@ -13,6 +13,63 @@ ORCA (Optical Replication & Control Apparatus) is a dynamic lighting control sys
 | Ethernet / mDNS | `ssh pi@pi.local` |
 | Hotspot (ORCA-Pi) | `ssh pi@10.42.0.1` |
 
+Ethernet (`eth0`) and WiFi (`wlan0`) are independent — plugging in ethernet always works regardless of WiFi/hotspot state.
+
+## Global Scripts
+
+`setup.sh` installs these commands to `/usr/local/bin/` so they're available from anywhere on the Pi:
+
+| Command | Script | Purpose |
+|---------|--------|---------|
+| `update` | `update.sh` | `git pull` + re-installs global scripts + syncs venv deps |
+| `start` | `start.sh` | Activates venv and runs `src/main.py` |
+| `hotspot` | `hotspot.sh` | Switches wlan0 to AP mode (ORCA-Pi) |
+| `wifi <ssid> [pass]` | `wifi.sh` | Connects wlan0 to a WiFi network |
+| `chamber-help` | `chamber-help.sh` | Prints all available commands |
+
+`update` re-installs all scripts from the repo after pulling, so new scripts added to `scripts/` are automatically deployed on the next `update` run.
+
+## Networking
+
+### Hotspot
+
+- **SSID:** `ORCA-Pi` | **Password:** `orca1234` | **Pi IP:** `10.42.0.1`
+- **Dashboard:** `http://10.42.0.1:5000`
+- The `orca-hotspot` NetworkManager profile is created by `setup.sh` with `autoconnect no` — it does **not** activate on boot. Run `hotspot` explicitly to switch to AP mode.
+- WiFi (`wlan0`) is the default on boot. Hotspot and WiFi share `wlan0` and cannot run simultaneously.
+
+### nmcli — Important Quirks
+
+All `nmcli` calls in scripts **must use `sudo`** or they silently fail on RPi OS.
+
+On RPi4, `nmcli con add` does not accept all properties inline. Security and IP settings must be applied via separate `nmcli con modify` calls:
+
+```bash
+sudo nmcli con add type wifi ifname wlan0 con-name orca-hotspot ssid "ORCA-Pi" mode ap
+sudo nmcli con modify orca-hotspot wifi.band bg
+sudo nmcli con modify orca-hotspot wifi-sec.key-mgmt wpa-psk
+sudo nmcli con modify orca-hotspot wifi-sec.psk "orca1234"
+sudo nmcli con modify orca-hotspot ipv4.method shared
+sudo nmcli con modify orca-hotspot ipv4.addresses "10.42.0.1/24"
+sudo nmcli con modify orca-hotspot ipv6.method disabled
+sudo nmcli con modify orca-hotspot connection.autoconnect no
+```
+
+Use `wifi-sec.psk` not `802-11-wireless-security.psk` — the long form causes shell parsing errors on RPi OS.
+
+If scripts are edited on Windows, run `dos2unix scripts/*.sh` on the Pi before executing — CRLF line endings break bash `\` continuations.
+
+### nmcli Profiles
+
+Each saved network is a profile. View all with `nmcli con show`, active ones with `nmcli con show --active`.
+
+| Profile | Type | Notes |
+|---------|------|-------|
+| `DukeOpen` | wifi | saved client connection |
+| `orca-hotspot` | wifi | AP mode profile, `autoconnect no` |
+| `Wired connection 1` | ethernet | auto-configured eth0 |
+| `lo` | loopback | OS internal, always active |
+
 ## Development Commands
 
 ```bash

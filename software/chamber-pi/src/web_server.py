@@ -3,6 +3,7 @@ Flask web server with REST API and Server-Sent Events for live updates.
 """
 
 import json
+import os
 import time
 import threading
 import queue
@@ -73,6 +74,8 @@ class WaterScheduler:
 
 water_scheduler = WaterScheduler()
 
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+
 app = Flask(__name__)
 
 # SSE subscribers
@@ -107,7 +110,6 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          gps: dict = None):
     """Update current state and notify SSE subscribers."""
     with state_lock:
-        # Update in-place to preserve references
         current_state['raw_lux'] = raw_lux
         current_state['clamped_lux'] = clamped_lux
         current_state['pwm_value'] = pwm_value
@@ -123,7 +125,6 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
-    # Notify SSE subscribers
     broadcast_sse(state_copy)
 
 
@@ -139,7 +140,6 @@ def broadcast_sse(data: dict):
             except queue.Full:
                 dead_queues.append(q)
 
-        # Remove dead queues
         for q in dead_queues:
             sse_subscribers.remove(q)
 
@@ -152,7 +152,6 @@ def sse_stream() -> Generator[str, None, None]:
         sse_subscribers.append(q)
 
     try:
-        # Send initial state
         with state_lock:
             yield f"data: {json.dumps(current_state)}\n\n"
 
@@ -161,7 +160,6 @@ def sse_stream() -> Generator[str, None, None]:
                 message = q.get(timeout=30)
                 yield message
             except queue.Empty:
-                # Send keepalive
                 yield ": keepalive\n\n"
     finally:
         with sse_lock:
@@ -173,30 +171,21 @@ def sse_stream() -> Generator[str, None, None]:
 
 @app.route('/api/status')
 def api_status():
-    """Get current system status."""
     with state_lock:
         return jsonify(current_state)
 
 
 @app.route('/api/control', methods=['GET', 'POST'])
 def api_control():
-    """Get or set web manual control state."""
     if request.method == 'GET':
-        state = db.get_web_control_state()
-        return jsonify(state)
+        return jsonify(db.get_web_control_state())
 
-    # POST - update control state
     data = request.get_json() or {}
-
     enabled = data.get('enabled', False)
-    pwm = data.get('pwm', 0)
-
-    # Validate PWM value
-    pwm = max(0, min(MAX_PWM_VALUE, int(pwm)))
+    pwm = max(0, min(MAX_PWM_VALUE, int(data.get('pwm', 0))))
 
     db.set_web_control_state(enabled, pwm)
 
-    # Update current state cache
     with state_lock:
         current_state['web_manual_enabled'] = enabled
         current_state['web_manual_pwm'] = pwm
@@ -206,28 +195,20 @@ def api_control():
 
 @app.route('/api/history')
 def api_history():
-    """Get historical data."""
-    # Query parameters
     hours = request.args.get('hours', 24, type=float)
     limit = request.args.get('limit', 1000, type=int)
-
     start_time = time.time() - (hours * 3600)
-    history = db.get_history(start_time=start_time, limit=limit)
-
-    return jsonify(history)
+    return jsonify(db.get_history(start_time=start_time, limit=limit))
 
 
 @app.route('/api/stats')
 def api_stats():
-    """Get statistics."""
     hours = request.args.get('hours', 24, type=int)
-    stats = db.get_stats(hours)
-    return jsonify(stats)
+    return jsonify(db.get_stats(hours))
 
 
 @app.route('/api/stream')
 def api_stream():
-    """Server-Sent Events stream for live updates."""
     return Response(
         sse_stream(),
         mimetype='text/event-stream',
@@ -241,13 +222,11 @@ def api_stream():
 
 @app.route('/api/usb')
 def api_usb():
-    """Get USB logger status."""
     return jsonify(usb_logger.get_status())
 
 
 @app.route('/api/water', methods=['GET', 'POST'])
 def api_water():
-    """Get or set water/solenoid control state."""
     if request.method == 'GET':
         state = db.get_water_control_state()
         state['valve_open'] = water_scheduler.get_valve_open()
@@ -269,955 +248,872 @@ def api_water():
 
 @app.route('/api/spectrum')
 def api_spectrum():
-    """Get spectral history for all 13 channels."""
     hours = request.args.get('hours', 6, type=float)
     limit = request.args.get('limit', 500, type=int)
     return jsonify(db.get_spectral_history(hours=hours, limit=limit))
 
 
+@app.route('/chart.js')
+def serve_chartjs():
+    """Serve Chart.js from local static file for offline operation."""
+    path = os.path.join(_STATIC_DIR, 'chart.min.js')
+    if os.path.exists(path):
+        with open(path, 'rb') as f:
+            return Response(f.read(), mimetype='application/javascript')
+    return Response('console.warn("chart.js not found locally");', mimetype='application/javascript', status=404)
+
+
 @app.route('/')
 def index():
-    """Serve the main dashboard."""
     return render_template_string(DASHBOARD_HTML)
 
 
 # ============== Dashboard HTML ==============
 
-DASHBOARD_HTML = """
-<!DOCTYPE html>
+DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chamber Control</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #242424;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --border: #333333;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORCA — Chamber Control</title>
+<script src="/chart.js"></script>
+<style>
+:root {
+    --bg:           #080f1c;
+    --bg-panel:     #0b1525;
+    --bg-card:      #0e1b2e;
+    --bg-raised:    #152236;
+    --bg-input:     #0a1220;
+    --text-hi:      #dce6f5;
+    --text-mid:     #5a7a9e;
+    --text-lo:      #2d4a64;
+    --accent:       #2979ff;
+    --accent-dim:   rgba(41,121,255,0.12);
+    --accent-rim:   rgba(41,121,255,0.28);
+    --ok:           #00e5a0;
+    --ok-dim:       rgba(0,229,160,0.12);
+    --ok-rim:       rgba(0,229,160,0.25);
+    --warn:         #ffab40;
+    --warn-dim:     rgba(255,171,64,0.12);
+    --err:          #ff5252;
+    --err-dim:      rgba(255,82,82,0.12);
+    --err-rim:      rgba(255,82,82,0.25);
+    --rim:          rgba(255,255,255,0.055);
+    --rim2:         rgba(255,255,255,0.09);
+    --sb:           280px;
+    --tb:           50px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text-hi);
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    overflow:hidden;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* ── TOPBAR ── */
+.tb{
+    height:var(--tb);
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--rim2);
+    display:flex;
+    align-items:center;
+    padding:0 20px;
+    gap:14px;
+    flex-shrink:0;
+    z-index:10;
+}
+.tb-logo{
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+.tb-mark{
+    width:26px;height:26px;
+    background:var(--accent);
+    border-radius:5px;
+    display:flex;align-items:center;justify-content:center;
+}
+.tb-mark svg{width:14px;height:14px;fill:white;}
+.tb-name{
+    font-size:14px;font-weight:700;
+    letter-spacing:0.06em;
+    color:var(--text-hi);
+}
+.tb-sep{width:1px;height:18px;background:var(--rim2);}
+.tb-sub{font-size:12px;color:var(--text-mid);}
+.tb-sp{flex:1;}
+.tb-badge{
+    display:flex;align-items:center;gap:6px;
+    padding:4px 11px;
+    border-radius:3px;
+    font-size:10px;font-weight:700;
+    letter-spacing:0.09em;text-transform:uppercase;
+    border:1px solid transparent;
+}
+.tb-badge.wired{background:var(--accent-dim);color:#6fa3ff;border-color:var(--accent-rim);}
+.tb-badge.wireless{background:rgba(168,85,247,0.1);color:#c084fc;border-color:rgba(168,85,247,0.25);}
+.tb-badge.live{background:var(--ok-dim);color:var(--ok);border-color:var(--ok-rim);}
+.tb-badge.offline{background:var(--err-dim);color:var(--err);border-color:var(--err-rim);}
+.tb-time{font-size:12px;color:var(--text-mid);font-variant-numeric:tabular-nums;letter-spacing:0.03em;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.dot.ok{background:var(--ok);}
+.dot.err{background:var(--err);}
+.dot.acc{background:var(--accent);}
+.dot.pulse{animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.5;
-        }
+/* ── LAYOUT ── */
+.layout{flex:1;display:flex;overflow:hidden;}
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
+/* ── SIDEBAR ── */
+.sb{
+    width:var(--sb);
+    flex-shrink:0;
+    background:var(--bg-panel);
+    border-right:1px solid var(--rim2);
+    display:flex;flex-direction:column;
+    overflow-y:auto;overflow-x:hidden;
+}
+.sb::-webkit-scrollbar{width:3px;}
+.sb::-webkit-scrollbar-track{background:transparent;}
+.sb::-webkit-scrollbar-thumb{background:var(--rim2);border-radius:2px;}
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border);
-        }
+.sb-sec{padding:18px 18px 14px;border-bottom:1px solid var(--rim);}
+.sb-sec:last-child{border-bottom:none;flex:1;}
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+.lbl{
+    font-size:9px;font-weight:700;
+    letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--text-lo);
+    margin-bottom:10px;
+}
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+/* Status row */
+.status-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.status-txt{font-size:19px;font-weight:600;color:var(--text-hi);}
 
-        .logo-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
+/* Big metric */
+.big-val{
+    font-size:42px;font-weight:700;line-height:1;
+    color:var(--text-hi);font-variant-numeric:tabular-nums;
+}
+.big-unit{font-size:14px;font-weight:400;color:var(--text-mid);margin-left:3px;}
+.big-sub{font-size:11px;color:var(--text-mid);margin-top:5px;}
 
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
+/* Rows */
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;}
+.row-k{font-size:11px;color:var(--text-mid);}
+.row-v{font-size:12px;color:var(--text-hi);font-weight:500;font-variant-numeric:tabular-nums;}
 
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-card);
-            border-radius: 20px;
-            font-size: 14px;
-        }
+/* Mode pill */
+.pill{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:3px 9px;
+    border-radius:3px;
+    font-size:10px;font-weight:700;
+    letter-spacing:0.09em;text-transform:uppercase;
+}
+.pill.auto{background:var(--ok-dim);color:var(--ok);border:1px solid var(--ok-rim);}
+.pill.manual{background:var(--accent-dim);color:#6fa3ff;border:1px solid var(--accent-rim);}
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 
-        .status-dot.disconnected {
-            background: var(--danger);
-            animation: none;
-        }
+/* Chart area */
+.chart-area{
+    flex:1;min-height:0;
+    padding:16px 18px 14px;
+    display:flex;flex-direction:column;
+}
+.chart-panel{
+    flex:1;min-height:0;
+    background:var(--bg-card);
+    border:1px solid var(--rim2);
+    border-radius:7px;
+    padding:14px 16px;
+    display:flex;flex-direction:column;
+}
+.chart-hdr{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;flex-shrink:0;
+}
+.chart-ttl{
+    font-size:10px;font-weight:700;
+    letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-mid);
+}
+.chart-ctrls{display:flex;align-items:center;gap:8px;}
+.ch-sel{
+    padding:3px 8px;
+    background:var(--bg-raised);
+    border:1px solid var(--rim2);
+    border-radius:3px;
+    color:var(--text-hi);
+    font-size:10px;
+    cursor:pointer;outline:none;
+}
+.ch-sel option{background:var(--bg-raised);}
+.time-grp{
+    display:flex;
+    background:var(--bg-raised);
+    border:1px solid var(--rim2);
+    border-radius:3px;overflow:hidden;
+}
+.tbtn{
+    padding:3px 10px;border:none;background:transparent;
+    color:var(--text-mid);font-size:10px;font-weight:700;
+    cursor:pointer;letter-spacing:0.06em;transition:all 0.12s;
+}
+.tbtn:hover{color:var(--text-hi);}
+.tbtn.active{background:var(--accent);color:#fff;}
+.chart-wrap{flex:1;min-height:0;position:relative;}
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+/* Sanity warning (in chart area) */
+.sanity{
+    display:none;
+    padding:5px 10px;
+    background:var(--warn-dim);
+    border:1px solid rgba(255,171,64,0.25);
+    border-radius:3px;
+    color:var(--warn);
+    font-size:10px;
+    margin-bottom:8px;
+    flex-shrink:0;
+}
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 24px;
-        }
+/* ── BOTTOM ROW ── */
+.bot{
+    display:flex;
+    border-top:1px solid var(--rim2);
+    flex-shrink:0;
+    height:190px;
+}
+.bot-panel{
+    flex:1;
+    padding:14px 16px;
+    border-right:1px solid var(--rim2);
+    overflow-y:auto;
+    min-width:0;
+}
+.bot-panel:last-child{border-right:none;}
+.bot-panel::-webkit-scrollbar{width:3px;}
+.bot-panel::-webkit-scrollbar-track{background:transparent;}
+.bot-panel::-webkit-scrollbar-thumb{background:var(--rim2);}
 
-        .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--border);
-        }
+.bot-ttl{
+    font-size:9px;font-weight:700;
+    letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--text-lo);
+    margin-bottom:11px;
+    display:flex;align-items:center;justify-content:space-between;
+}
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+/* Toggle */
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.tog-lbl{font-size:12px;color:var(--text-mid);}
+.tog{position:relative;width:38px;height:20px;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;}
+.tog-track{
+    position:absolute;inset:0;
+    background:var(--bg-raised);
+    border:1px solid var(--rim2);
+    border-radius:10px;cursor:pointer;transition:0.18s;
+}
+.tog-track::before{
+    content:'';position:absolute;
+    width:14px;height:14px;top:2px;left:2px;
+    background:var(--text-mid);border-radius:50%;transition:0.18s;
+}
+.tog input:checked + .tog-track{background:var(--accent-dim);border-color:var(--accent-rim);}
+.tog input:checked + .tog-track::before{background:var(--accent);transform:translateX(18px);}
 
-        .card-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+/* Slider */
+.sld-row{display:flex;align-items:center;gap:8px;}
+.sld-lbl{font-size:10px;color:var(--text-mid);flex-shrink:0;}
+.sld-row input[type=range]{
+    flex:1;height:3px;-webkit-appearance:none;
+    background:var(--bg-raised);border-radius:2px;outline:none;cursor:pointer;
+}
+.sld-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;
+    background:var(--accent);border-radius:50%;
+    box-shadow:0 0 8px rgba(41,121,255,0.45);
+}
+.sld-row input[type=range]:disabled{opacity:0.25;cursor:not-allowed;}
+.sld-row input[type=range]:disabled::-webkit-slider-thumb{background:var(--text-mid);box-shadow:none;}
+.sld-val{font-size:12px;font-weight:600;color:var(--accent);min-width:32px;text-align:right;font-variant-numeric:tabular-nums;}
 
-        .card-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+/* Buttons */
+.btn-row{display:flex;gap:7px;margin-top:9px;}
+.btn{
+    flex:1;padding:7px 10px;
+    border:1px solid var(--rim2);border-radius:3px;
+    background:var(--bg-raised);color:var(--text-mid);
+    font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;
+    cursor:pointer;transition:all 0.12s;
+}
+.btn:hover{color:var(--text-hi);}
+.btn.ok{border-color:var(--ok-rim);color:var(--ok);}
+.btn.ok:hover{background:var(--ok-dim);}
+.btn.err{border-color:var(--err-rim);color:var(--err);}
+.btn.err:hover{background:var(--err-dim);}
+.btn.acc{background:var(--accent-dim);border-color:var(--accent-rim);color:#6fa3ff;}
+.btn.acc:hover{background:rgba(41,121,255,0.2);}
 
-        .card-icon svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--accent);
-        }
+/* Valve badge */
+.vbadge{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:2px 7px;border-radius:3px;
+    font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+}
+.vbadge.open{background:var(--ok-dim);color:var(--ok);}
+.vbadge.closed{background:var(--err-dim);color:var(--err);}
 
-        .metric {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+/* Fields */
+.field-row{display:flex;gap:7px;margin-bottom:7px;}
+.field{flex:1;}
+.field label{display:block;font-size:9px;color:var(--text-lo);margin-bottom:3px;letter-spacing:0.06em;}
+.field input[type=number]{
+    width:100%;padding:5px 7px;
+    background:var(--bg-input);
+    border:1px solid var(--rim2);border-radius:3px;
+    color:var(--text-hi);font-size:12px;outline:none;
+}
+.field input[type=number]:focus{border-color:var(--accent-rim);}
 
-        .metric-value {
-            font-size: 48px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .metric-unit {
-            font-size: 16px;
-            color: var(--text-secondary);
-        }
-
-        .metric-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .metric-row:last-child {
-            border-bottom: none;
-        }
-
-        .control-section {
-            margin-top: 20px;
-        }
-
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            margin-bottom: 16px;
-        }
-
-        .toggle-label {
-            font-weight: 500;
-        }
-
-        .toggle {
-            position: relative;
-            width: 56px;
-            height: 28px;
-        }
-
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background: var(--bg-card);
-            border-radius: 14px;
-            transition: 0.3s;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-
-        .toggle input:checked + .toggle-slider {
-            background: var(--accent);
-        }
-
-        .toggle input:checked + .toggle-slider:before {
-            transform: translateX(28px);
-        }
-
-        .slider-container {
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-        }
-
-        .slider-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .slider-value {
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-card);
-            border-radius: 4px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            background: var(--accent);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-        }
-
-        input[type="range"]:disabled {
-            opacity: 0.5;
-        }
-
-        input[type="range"]:disabled::-webkit-slider-thumb {
-            cursor: not-allowed;
-            background: var(--text-secondary);
-        }
-
-        .chart-container {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--border);
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .time-selector {
-            display: flex;
-            gap: 8px;
-        }
-
-        .time-btn {
-            padding: 8px 16px;
-            background: var(--bg-secondary);
-            border: none;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .time-btn:hover {
-            background: var(--border);
-        }
-
-        .time-btn.active {
-            background: var(--accent);
-            color: white;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-        }
-
-        .bounds-indicator {
-            display: flex;
-            gap: 24px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .bound-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .bound-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-        }
-
-        .bound-color.min {
-            background: var(--success);
-        }
-
-        .bound-color.max {
-            background: var(--danger);
-        }
-
-        .mode-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-
-        .mode-indicator.lux {
-            background: rgba(34, 197, 94, 0.2);
-            color: var(--success);
-        }
-
-
-        .mode-indicator.manual {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--accent);
-        }
-
-        footer {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-
-            header {
-                flex-direction: column;
-                gap: 16px;
-                align-items: flex-start;
-            }
-
-            .metric-value {
-                font-size: 36px;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+    body{overflow:auto;height:auto;}
+    .layout{flex-direction:column;overflow:visible;}
+    .sb{width:100%;border-right:none;border-bottom:1px solid var(--rim2);overflow:visible;flex-direction:row;flex-wrap:wrap;}
+    .sb-sec{flex:1;min-width:140px;border-bottom:none;border-right:1px solid var(--rim);}
+    .main{overflow:visible;}
+    .chart-area{min-height:320px;}
+    .bot{flex-direction:column;height:auto;}
+    .bot-panel{border-right:none;border-bottom:1px solid var(--rim2);}
+    .bot-panel:last-child{border-bottom:none;}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                </div>
-                <h1>Chamber Control</h1>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div class="status-badge" id="dataLinkBadge" style="display:none;">
-                    <span id="dataLinkStatus">--</span>
-                </div>
-                <div class="status-badge">
-                    <div class="status-dot" id="connectionStatus"></div>
-                    <span id="connectionText">Connecting...</span>
-                </div>
-            </div>
-        </header>
 
-        <div class="grid">
-            <!-- Live Lux Card -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Live Light Intensity</span>
-                    <div class="card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>
-                    </div>
-                </div>
-                <div class="metric">
-                    <div>
-                        <span class="metric-value" id="luxValue">--</span>
-                        <span class="metric-unit">lux</span>
-                    </div>
-                    <span class="metric-label">Clamped: <span id="clampedValue">--</span> lux</span>
-                </div>
-                <div class="bounds-indicator">
-                    <div class="bound-item">
-                        <div class="bound-color min"></div>
-                        <span>Min: <span id="boundsMin">--</span></span>
-                    </div>
-                    <div class="bound-item">
-                        <div class="bound-color max"></div>
-                        <span>Max: <span id="boundsMax">--</span></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PWM Output Card -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">LED Output</span>
-                    <div class="card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
-                    </div>
-                </div>
-                <div class="metric">
-                    <div>
-                        <span class="metric-value" id="pwmValue">--</span>
-                        <span class="metric-unit">/ 1023</span>
-                    </div>
-                    <span class="metric-label"><span id="pwmPercent">--</span>% brightness</span>
-                </div>
-                <div style="margin-top: 16px">
-                    <span class="mode-indicator" id="modeIndicator">--</span>
-                </div>
-            </div>
-
-            <!-- Manual Control Card -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Web Manual Control</span>
-                    <div class="card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M7 24h2v-2H7v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zM16 .01L8 0C6.9 0 6 .9 6 2v16c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V2c0-1.1-.9-1.99-2-1.99zM16 16H8V4h8v12z"/></svg>
-                    </div>
-                </div>
-                <div class="control-section">
-                    <div class="toggle-container">
-                        <span class="toggle-label">Enable Web Control</span>
-                        <label class="toggle">
-                            <input type="checkbox" id="webManualToggle" onchange="toggleWebManual()">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="slider-container">
-                        <div class="slider-header">
-                            <span>Manual Brightness</span>
-                            <span class="slider-value" id="manualPwmDisplay">0</span>
-                        </div>
-                        <input type="range" id="manualPwmSlider" min="0" max="1023" value="0"
-                               oninput="updateManualPwm()" disabled>
-                    </div>
-                </div>
-            </div>
-
-            <!-- GPS / Satellite Card -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">GPS / Satellite</span>
-                    <div class="card-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    </div>
-                </div>
-                <div class="metric-row">
-                    <span>Fix</span>
-                    <span id="gpsFixStatus" class="mode-indicator" style="font-size:11px;">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>Latitude</span>
-                    <span id="gpsLat">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>Longitude</span>
-                    <span id="gpsLon">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>UTC Time</span>
-                    <span id="gpsTime">--</span>
-                </div>
-            </div>
+<!-- ─── TOPBAR ─── -->
+<div class="tb">
+    <div class="tb-logo">
+        <div class="tb-mark">
+            <svg viewBox="0 0 24 24"><path d="M12 3L2 21h20L12 3zm0 3.5l7.5 13h-15L12 6.5z"/></svg>
         </div>
+        <span class="tb-name">ORCA</span>
+    </div>
+    <div class="tb-sep"></div>
+    <span class="tb-sub">Optical Replication &amp; Control Apparatus</span>
+    <div class="tb-sp"></div>
 
-        <!-- Chart Section -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <span class="chart-title">Light Intensity History</span>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <select id="channelSelect" onchange="onChannelChange()"
-                        style="padding:6px 10px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; color:var(--text-primary); font-size:13px; cursor:pointer;">
-                        <option value="clear" selected>Clear (default)</option>
-                        <option value="f1">F1 ~405nm</option>
-                        <option value="f2">F2 ~425nm</option>
-                        <option value="fz">FZ ~450nm</option>
-                        <option value="f3">F3 ~475nm</option>
-                        <option value="f4">F4 ~515nm</option>
-                        <option value="f5">F5 ~555nm</option>
-                        <option value="fy">FY ~590nm</option>
-                        <option value="f6">F6 ~630nm</option>
-                        <option value="fxl">FXL ~680nm</option>
-                        <option value="f7">F7 ~710nm</option>
-                        <option value="f8">F8 ~760nm</option>
-                        <option value="nir">NIR ~860nm</option>
-                    </select>
-                    <div class="time-selector">
-                        <button class="time-btn" onclick="loadHistory(1)">1H</button>
-                        <button class="time-btn active" onclick="loadHistory(6)">6H</button>
-                        <button class="time-btn" onclick="loadHistory(24)">24H</button>
-                        <button class="time-btn" onclick="loadHistory(168)">7D</button>
-                    </div>
-                </div>
-            </div>
-            <div id="sanityWarning" style="display:none; margin-bottom:12px; padding:10px 16px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:8px; color:var(--warning); font-size:13px;">
-                &#9888; Sanity flag: received light reading is significantly outside the expected solar range for current GPS position and time.
-            </div>
-            <div class="chart-wrapper">
-                <canvas id="luxChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Water Control Section -->
-        <div class="chart-container" style="margin-bottom: 24px;">
-            <div class="chart-header">
-                <span class="chart-title">Water System</span>
-                <span id="valveStatusBadge" style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(239,68,68,0.2); color:#ef4444;">CLOSED</span>
-            </div>
-
-            <div class="toggle-container" style="margin-bottom:16px;">
-                <span class="toggle-label">Auto Schedule</span>
-                <label class="toggle">
-                    <input type="checkbox" id="waterModeToggle" onchange="setWaterMode()">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div id="waterManualSection" class="slider-container" style="margin-bottom:16px;">
-                <div class="slider-header"><span>Manual Valve</span></div>
-                <div style="display:flex; gap:12px; margin-top:8px;">
-                    <button onclick="setManualValve(true)" style="flex:1; padding:12px; background:var(--success); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">OPEN</button>
-                    <button onclick="setManualValve(false)" style="flex:1; padding:12px; background:var(--danger); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">CLOSE</button>
-                </div>
-            </div>
-
-            <div id="waterAutoSection" class="slider-container" style="display:none;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                    <div>
-                        <label style="display:block; font-size:13px; color:var(--text-secondary); margin-bottom:6px;">Interval (minutes)</label>
-                        <input type="number" id="waterInterval" min="1" value="120" style="width:100%; padding:10px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; color:white; font-size:16px;">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:13px; color:var(--text-secondary); margin-bottom:6px;">Duration (seconds)</label>
-                        <input type="number" id="waterDuration" min="1" value="10" style="width:100%; padding:10px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; color:white; font-size:16px;">
-                    </div>
-                </div>
-                <button onclick="saveAutoSchedule()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save Schedule</button>
-            </div>
-        </div>
-
-        <footer>
-            <p>Chamber Control System &bull; Nitrogen Fixation Lab</p>
-        </footer>
+    <div id="sanityWarn" class="tb-badge" style="display:none;background:var(--warn-dim);color:var(--warn);border-color:rgba(255,171,64,0.3);">
+        &#9888;&nbsp;Sanity flag
     </div>
 
-    <script>
-        // Chart setup
-        const ctx = document.getElementById('luxChart').getContext('2d');
-        const luxChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Raw Lux',
-                        data: [],
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0
-                    },
-                    {
-                        label: 'Clamped Lux',
-                        data: [],
-                        borderColor: '#22c55e',
-                        backgroundColor: 'transparent',
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        pointRadius: 0
-                    }
-                ]
+    <div id="dataLinkBadge" class="tb-badge wired" style="display:none;">
+        <span class="dot acc"></span>
+        <span id="dataLinkText">Wired</span>
+    </div>
+
+    <span class="tb-time" id="gpsTimeTb">--:--:-- UTC</span>
+
+    <div id="connBadge" class="tb-badge live">
+        <span class="dot ok pulse" id="connDot"></span>
+        <span id="connText">Connecting</span>
+    </div>
+</div>
+
+<!-- ─── LAYOUT ─── -->
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sb">
+
+        <!-- System Status -->
+        <div class="sb-sec">
+            <div class="lbl">System Status</div>
+            <div class="status-row">
+                <span class="dot ok pulse" id="statusDot"></span>
+                <span class="status-txt" id="statusTxt">Operational</span>
+            </div>
+            <div style="margin-top:7px;" id="modePill">
+                <span class="pill auto"><span class="dot ok" style="width:5px;height:5px;"></span>&nbsp;Auto Lux</span>
+            </div>
+        </div>
+
+        <!-- Light Intensity -->
+        <div class="sb-sec">
+            <div class="lbl">Light Intensity</div>
+            <div>
+                <span class="big-val" id="luxVal">--</span>
+                <span class="big-unit">lux</span>
+            </div>
+            <div class="big-sub">Clamped: <span id="clampedVal">--</span> lux</div>
+            <div style="margin-top:9px;">
+                <div class="row"><span class="row-k">Bounds min</span><span class="row-v" id="boundsMin">--</span></div>
+                <div class="row"><span class="row-k">Bounds max</span><span class="row-v" id="boundsMax">--</span></div>
+            </div>
+        </div>
+
+        <!-- LED Output -->
+        <div class="sb-sec">
+            <div class="lbl">LED Output</div>
+            <div>
+                <span class="big-val" id="pwmPct">--</span>
+                <span class="big-unit">%</span>
+            </div>
+            <div class="big-sub">PWM <span id="pwmRaw">--</span> / 1023</div>
+        </div>
+
+        <!-- GPS / Satellite -->
+        <div class="sb-sec">
+            <div class="lbl">GPS / Satellite</div>
+            <div class="row"><span class="row-k">Fix</span><span class="row-v" id="gpsFix">--</span></div>
+            <div class="row"><span class="row-k">Latitude</span><span class="row-v" id="gpsLat">--</span></div>
+            <div class="row"><span class="row-k">Longitude</span><span class="row-v" id="gpsLon">--</span></div>
+        </div>
+
+    </div>
+    <!-- /SIDEBAR -->
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- Chart -->
+        <div class="chart-area">
+            <div class="chart-panel">
+                <div class="chart-hdr">
+                    <span class="chart-ttl">Light Intensity History</span>
+                    <div class="chart-ctrls">
+                        <select class="ch-sel" id="channelSelect" onchange="onChannelChange()">
+                            <option value="clear" selected>Clear (broadband)</option>
+                            <option value="f1">F1 ~405 nm</option>
+                            <option value="f2">F2 ~425 nm</option>
+                            <option value="fz">FZ ~450 nm</option>
+                            <option value="f3">F3 ~475 nm</option>
+                            <option value="f4">F4 ~515 nm</option>
+                            <option value="f5">F5 ~555 nm</option>
+                            <option value="fy">FY ~590 nm</option>
+                            <option value="f6">F6 ~630 nm</option>
+                            <option value="fxl">FXL ~680 nm</option>
+                            <option value="f7">F7 ~710 nm</option>
+                            <option value="f8">F8 ~760 nm</option>
+                            <option value="nir">NIR ~860 nm</option>
+                        </select>
+                        <div class="time-grp">
+                            <button class="tbtn" onclick="loadHistory(1)">1H</button>
+                            <button class="tbtn active" onclick="loadHistory(6)">6H</button>
+                            <button class="tbtn" onclick="loadHistory(24)">24H</button>
+                            <button class="tbtn" onclick="loadHistory(168)">7D</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="sanity" id="sanityChart">&#9888; Reading is outside the expected solar range for current GPS position and time.</div>
+                <div class="chart-wrap">
+                    <canvas id="luxChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom controls -->
+        <div class="bot">
+
+            <!-- Web Manual Control -->
+            <div class="bot-panel">
+                <div class="bot-ttl">Web Manual Control</div>
+                <div class="tog-row">
+                    <span class="tog-lbl">Enable Web Override</span>
+                    <label class="tog">
+                        <input type="checkbox" id="webManualToggle" onchange="toggleWebManual()">
+                        <span class="tog-track"></span>
+                    </label>
+                </div>
+                <div class="sld-row">
+                    <span class="sld-lbl">Brightness</span>
+                    <input type="range" id="manualPwmSlider" min="0" max="1023" value="0"
+                           oninput="updateManualPwm()" disabled>
+                    <span class="sld-val" id="manualPwmDisplay">0</span>
+                </div>
+            </div>
+
+            <!-- Water System -->
+            <div class="bot-panel">
+                <div class="bot-ttl">
+                    <span>Water System</span>
+                    <span class="vbadge closed" id="valveBadge">
+                        <span class="dot err" style="width:5px;height:5px;"></span> Closed
+                    </span>
+                </div>
+                <div class="tog-row">
+                    <span class="tog-lbl">Auto Schedule</span>
+                    <label class="tog">
+                        <input type="checkbox" id="waterModeToggle" onchange="setWaterMode()">
+                        <span class="tog-track"></span>
+                    </label>
+                </div>
+                <div id="waterManualSection">
+                    <div class="btn-row">
+                        <button class="btn ok" onclick="setManualValve(true)">Open</button>
+                        <button class="btn err" onclick="setManualValve(false)">Close</button>
+                    </div>
+                </div>
+                <div id="waterAutoSection" style="display:none;">
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Interval (min)</label>
+                            <input type="number" id="waterInterval" min="1" value="120">
+                        </div>
+                        <div class="field">
+                            <label>Duration (sec)</label>
+                            <input type="number" id="waterDuration" min="1" value="10">
+                        </div>
+                    </div>
+                    <button class="btn acc" style="width:100%;margin-top:0;" onclick="saveAutoSchedule()">Save Schedule</button>
+                </div>
+            </div>
+
+            <!-- USB Logger -->
+            <div class="bot-panel">
+                <div class="bot-ttl">USB Logger</div>
+                <div class="row"><span class="row-k">Status</span><span class="row-v" id="usbStatus">--</span></div>
+                <div class="row"><span class="row-k">Drive</span><span class="row-v" id="usbPath" style="font-size:10px;word-break:break-all;">--</span></div>
+                <div class="row"><span class="row-k">File</span><span class="row-v" id="usbFile" style="font-size:10px;word-break:break-all;">--</span></div>
+            </div>
+
+        </div>
+        <!-- /bot -->
+
+    </div>
+    <!-- /MAIN -->
+
+</div>
+
+<script>
+// ── Chart ──
+const ctx = document.getElementById('luxChart').getContext('2d');
+const luxChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: 'Raw Lux',
+                data: [],
+                borderColor: '#2979ff',
+                backgroundColor: 'rgba(41,121,255,0.07)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 1.5
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: '#a0a0a0',
-                            usePointStyle: true
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: '#333333'
-                        },
-                        ticks: {
-                            color: '#a0a0a0',
-                            maxTicksLimit: 10
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: '#333333'
-                        },
-                        ticks: {
-                            color: '#a0a0a0'
-                        },
-                        beginAtZero: true
-                    }
-                }
+            {
+                label: 'Clamped',
+                data: [],
+                borderColor: '#00e5a0',
+                backgroundColor: 'transparent',
+                borderDash: [4,4],
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 1.5
             }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {duration: 0},
+        interaction: {intersect: false, mode: 'index'},
+        plugins: {
+            legend: {
+                position: 'top', align: 'end',
+                labels: {color:'#5a7a9e', usePointStyle:true, pointStyleWidth:10, font:{size:10}}
+            },
+            tooltip: {
+                backgroundColor:'#0e1b2e',
+                borderColor:'rgba(255,255,255,0.07)',
+                borderWidth:1,
+                titleColor:'#dce6f5',
+                bodyColor:'#5a7a9e',
+                titleFont:{size:10},
+                bodyFont:{size:10}
+            }
+        },
+        scales: {
+            x: {
+                grid:{color:'rgba(255,255,255,0.035)'},
+                ticks:{color:'#2d4a64', maxTicksLimit:8, font:{size:9}},
+                border:{color:'rgba(255,255,255,0.055)'}
+            },
+            y: {
+                grid:{color:'rgba(255,255,255,0.035)'},
+                ticks:{color:'#2d4a64', font:{size:9}},
+                border:{color:'rgba(255,255,255,0.055)'},
+                beginAtZero:true
+            }
+        }
+    }
+});
+
+// ── SSE ──
+let es = null, reconnTimer = null;
+
+function connectSSE() {
+    if (es) es.close();
+    es = new EventSource('/api/stream');
+    es.onopen = () => {
+        setConn(true);
+        if (reconnTimer) { clearTimeout(reconnTimer); reconnTimer = null; }
+    };
+    es.onmessage = (e) => {
+        const d = JSON.parse(e.data);
+        updateUI(d);
+        const now = Date.now();
+        if (now - _lastChart > 10000) { _lastChart = now; loadHistory(_hrs); }
+    };
+    es.onerror = () => {
+        setConn(false);
+        es.close();
+        reconnTimer = setTimeout(connectSSE, 3000);
+    };
+}
+
+function setConn(ok) {
+    const badge = document.getElementById('connBadge');
+    const dot   = document.getElementById('connDot');
+    const txt   = document.getElementById('connText');
+    const sdot  = document.getElementById('statusDot');
+    const stxt  = document.getElementById('statusTxt');
+    if (ok) {
+        badge.className = 'tb-badge live';
+        dot.className   = 'dot ok pulse';
+        txt.textContent = 'Live';
+        sdot.className  = 'dot ok pulse';
+        stxt.textContent = 'Operational';
+    } else {
+        badge.className = 'tb-badge offline';
+        dot.className   = 'dot err';
+        txt.textContent = 'Offline';
+        sdot.className  = 'dot err';
+        stxt.textContent = 'Disconnected';
+    }
+}
+
+function updateUI(d) {
+    // Sanity
+    const sf = !!d.sanity_flag;
+    document.getElementById('sanityWarn').style.display  = sf ? 'flex'  : 'none';
+    document.getElementById('sanityChart').style.display = sf ? 'block' : 'none';
+
+    // Lux
+    document.getElementById('luxVal').textContent     = Number(d.raw_lux).toLocaleString();
+    document.getElementById('clampedVal').textContent = Number(d.clamped_lux).toLocaleString();
+    document.getElementById('boundsMin').textContent  = Number(d.bounds_min).toLocaleString();
+    document.getElementById('boundsMax').textContent  = Number(d.bounds_max).toLocaleString();
+
+    // PWM
+    document.getElementById('pwmPct').textContent = ((d.pwm_value / 1023) * 100).toFixed(1);
+    document.getElementById('pwmRaw').textContent  = d.pwm_value;
+
+    // Mode
+    const pill = document.getElementById('modePill');
+    if (d.web_manual_enabled) {
+        pill.innerHTML = '<span class="pill manual"><span class="dot acc" style="width:5px;height:5px;"></span>&nbsp;Web Manual</span>';
+    } else {
+        pill.innerHTML = '<span class="pill auto"><span class="dot ok" style="width:5px;height:5px;"></span>&nbsp;Auto Lux</span>';
+    }
+
+    // Data link
+    const lb   = document.getElementById('dataLinkBadge');
+    const ltxt = document.getElementById('dataLinkText');
+    lb.style.display = 'flex';
+    if (d.wired_connected) {
+        lb.className   = 'tb-badge wired';
+        ltxt.textContent = 'Wired';
+    } else {
+        lb.className   = 'tb-badge wireless';
+        ltxt.textContent = 'Wireless';
+    }
+
+    // GPS
+    const gps = d.gps || {};
+    const fixEl = document.getElementById('gpsFix');
+    if (gps.valid) {
+        fixEl.textContent = 'Fixed';
+        fixEl.style.color = 'var(--ok)';
+        document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
+        document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
+        if (gps.unix_time > 0) {
+            const dt = new Date(gps.unix_time * 1000);
+            const hh = String(dt.getUTCHours()).padStart(2,'0');
+            const mm = String(dt.getUTCMinutes()).padStart(2,'0');
+            const ss = String(dt.getUTCSeconds()).padStart(2,'0');
+            document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
+        }
+    } else {
+        fixEl.textContent = 'No Fix';
+        fixEl.style.color = 'var(--err)';
+        document.getElementById('gpsLat').textContent = '--';
+        document.getElementById('gpsLon').textContent = '--';
+    }
+
+    // Web manual sync (physical knob changes reflected in UI)
+    document.getElementById('webManualToggle').checked = d.web_manual_enabled;
+    const slider = document.getElementById('manualPwmSlider');
+    slider.disabled = !d.web_manual_enabled;
+    if (!slider.matches(':active')) {
+        slider.value = d.web_manual_pwm;
+        document.getElementById('manualPwmDisplay').textContent = d.web_manual_pwm;
+    }
+}
+
+// ── Manual Control ──
+function toggleWebManual() {
+    const enabled = document.getElementById('webManualToggle').checked;
+    const pwm     = parseInt(document.getElementById('manualPwmSlider').value);
+    document.getElementById('manualPwmSlider').disabled = !enabled;
+    fetch('/api/control', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({enabled, pwm})
+    });
+}
+
+function updateManualPwm() {
+    const pwm = parseInt(document.getElementById('manualPwmSlider').value);
+    document.getElementById('manualPwmDisplay').textContent = pwm;
+    if (document.getElementById('webManualToggle').checked) {
+        fetch('/api/control', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({enabled:true, pwm})
         });
+    }
+}
 
-        // SSE Connection
-        let eventSource = null;
-        let reconnectTimeout = null;
+// ── Chart history ──
+let _hrs = 6, _lastChart = 0;
 
-        function connectSSE() {
-            if (eventSource) {
-                eventSource.close();
-            }
+function loadHistory(hours) {
+    _hrs = hours;
+    document.querySelectorAll('.tbtn').forEach(b => {
+        const tag = hours === 168 ? '7D' : hours + 'H';
+        b.classList.toggle('active', b.textContent === tag);
+    });
 
-            eventSource = new EventSource('/api/stream');
+    const ch = document.getElementById('channelSelect').value;
 
-            eventSource.onopen = () => {
-                document.getElementById('connectionStatus').classList.remove('disconnected');
-                document.getElementById('connectionText').textContent = 'Connected';
-                if (reconnectTimeout) {
-                    clearTimeout(reconnectTimeout);
-                    reconnectTimeout = null;
-                }
-            };
-
-            eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                updateUI(data);
-                const now = Date.now();
-                if (now - _lastChartRefresh > 10000) {
-                    _lastChartRefresh = now;
-                    loadHistory(_currentHours);
-                }
-            };
-
-            eventSource.onerror = () => {
-                document.getElementById('connectionStatus').classList.add('disconnected');
-                document.getElementById('connectionText').textContent = 'Disconnected';
-                eventSource.close();
-
-                // Reconnect after 3 seconds
-                reconnectTimeout = setTimeout(connectSSE, 3000);
-            };
-        }
-
-        function updateUI(data) {
-            // Sanity flag
-            document.getElementById('sanityWarning').style.display =
-                data.sanity_flag ? 'block' : 'none';
-
-            // Update lux values
-            document.getElementById('luxValue').textContent = data.raw_lux;
-            document.getElementById('clampedValue').textContent = data.clamped_lux;
-            document.getElementById('boundsMin').textContent = data.bounds_min;
-            document.getElementById('boundsMax').textContent = data.bounds_max;
-
-            // Update PWM
-            document.getElementById('pwmValue').textContent = data.pwm_value;
-            const percent = ((data.pwm_value / 1023) * 100).toFixed(1);
-            document.getElementById('pwmPercent').textContent = percent;
-
-            // Update mode indicator
-            const modeEl = document.getElementById('modeIndicator');
-            if (data.web_manual_enabled) {
-                modeEl.textContent = 'WEB MANUAL';
-                modeEl.className = 'mode-indicator manual';
-            } else {
-                modeEl.textContent = 'AUTO LUX';
-                modeEl.className = 'mode-indicator lux';
-            }
-
-            // Data link badge in header
-            const linkEl = document.getElementById('dataLinkStatus');
-            const linkBadge = document.getElementById('dataLinkBadge');
-            linkBadge.style.display = 'flex';
-            if (data.wired_connected) {
-                linkEl.textContent = 'WIRED';
-                linkBadge.style.background = 'rgba(59,130,246,0.15)';
-                linkBadge.style.color = '#60a5fa';
-                linkBadge.style.border = '1px solid rgba(59,130,246,0.4)';
-            } else {
-                linkEl.textContent = 'WIRELESS';
-                linkBadge.style.background = 'rgba(168,85,247,0.15)';
-                linkBadge.style.color = '#c084fc';
-                linkBadge.style.border = '1px solid rgba(168,85,247,0.4)';
-            }
-
-            // Update GPS
-            const gps = data.gps || {};
-            const fixEl = document.getElementById('gpsFixStatus');
-            if (gps.valid) {
-                fixEl.textContent = 'FIX';
-                fixEl.style.background = 'rgba(34,197,94,0.2)';
-                fixEl.style.color = 'var(--success)';
-                document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
-                document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
-                if (gps.unix_time > 0) {
-                    const d = new Date(gps.unix_time * 1000);
-                    document.getElementById('gpsTime').textContent =
-                        d.toUTCString().slice(5, 22);
-                } else {
-                    document.getElementById('gpsTime').textContent = '--';
-                }
-            } else {
-                fixEl.textContent = 'NO FIX';
-                fixEl.style.background = 'rgba(239,68,68,0.2)';
-                fixEl.style.color = 'var(--danger)';
-                document.getElementById('gpsLat').textContent = '--';
-                document.getElementById('gpsLon').textContent = '--';
-                document.getElementById('gpsTime').textContent = '--';
-            }
-
-            // Update web control state
-            document.getElementById('webManualToggle').checked = data.web_manual_enabled;
-            document.getElementById('manualPwmSlider').disabled = !data.web_manual_enabled;
-            if (!document.getElementById('manualPwmSlider').matches(':active')) {
-                document.getElementById('manualPwmSlider').value = data.web_manual_pwm;
-                document.getElementById('manualPwmDisplay').textContent = data.web_manual_pwm;
-            }
-        }
-
-        function toggleWebManual() {
-            const enabled = document.getElementById('webManualToggle').checked;
-            const pwm = parseInt(document.getElementById('manualPwmSlider').value);
-
-            document.getElementById('manualPwmSlider').disabled = !enabled;
-
-            fetch('/api/control', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({enabled: enabled, pwm: pwm})
+    if (ch === 'clear') {
+        fetch(`/api/history?hours=${hours}&limit=500`)
+            .then(r => r.json())
+            .then(data => {
+                luxChart.data.labels             = data.map(d => fmt(d.timestamp));
+                luxChart.data.datasets[0].label  = 'Raw Lux';
+                luxChart.data.datasets[0].data   = data.map(d => d.raw_lux);
+                luxChart.data.datasets[1].label  = 'Clamped';
+                luxChart.data.datasets[1].data   = data.map(d => d.clamped_lux);
+                luxChart.data.datasets[1].hidden = false;
+                luxChart.update('none');
             });
-        }
-
-        function updateManualPwm() {
-            const pwm = parseInt(document.getElementById('manualPwmSlider').value);
-            document.getElementById('manualPwmDisplay').textContent = pwm;
-
-            const enabled = document.getElementById('webManualToggle').checked;
-            if (enabled) {
-                fetch('/api/control', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({enabled: true, pwm: pwm})
-                });
-            }
-        }
-
-        let _currentHours = 6;
-        let _lastChartRefresh = 0;
-
-        function loadHistory(hours) {
-            _currentHours = hours;
-            // Update active button
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent === (hours === 168 ? '7D' : hours + 'H')) {
-                    btn.classList.add('active');
-                }
+    } else {
+        fetch(`/api/spectrum?hours=${hours}&limit=500`)
+            .then(r => r.json())
+            .then(data => {
+                const lbl = document.getElementById('channelSelect').selectedOptions[0].text;
+                luxChart.data.labels             = data.map(d => fmt(d.timestamp));
+                luxChart.data.datasets[0].label  = lbl;
+                luxChart.data.datasets[0].data   = data.map(d => d[ch] ?? 0);
+                luxChart.data.datasets[1].data   = [];
+                luxChart.data.datasets[1].hidden = true;
+                luxChart.update('none');
             });
+    }
+}
 
-            const channel = document.getElementById('channelSelect').value;
+function fmt(ts) {
+    const d = new Date(ts * 1000);
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
 
-            if (channel === 'clear') {
-                // Use existing lux_history endpoint
-                fetch(`/api/history?hours=${hours}&limit=500`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const labels = data.map(d => {
-                            const date = new Date(d.timestamp * 1000);
-                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-                        });
-                        luxChart.data.labels = labels;
-                        luxChart.data.datasets[0].label = 'Raw Lux (clear)';
-                        luxChart.data.datasets[0].data = data.map(d => d.raw_lux);
-                        luxChart.data.datasets[1].label = 'Clamped Lux';
-                        luxChart.data.datasets[1].data = data.map(d => d.clamped_lux);
-                        luxChart.data.datasets[1].hidden = false;
-                        luxChart.update();
-                    });
-            } else {
-                // Use spectral_history endpoint
-                fetch(`/api/spectrum?hours=${hours}&limit=500`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const labels = data.map(d => {
-                            const date = new Date(d.timestamp * 1000);
-                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-                        });
-                        const channelLabel = document.getElementById('channelSelect').selectedOptions[0].text;
-                        luxChart.data.labels = labels;
-                        luxChart.data.datasets[0].label = channelLabel;
-                        luxChart.data.datasets[0].data = data.map(d => d[channel] ?? 0);
-                        luxChart.data.datasets[1].data = [];
-                        luxChart.data.datasets[1].hidden = true;
-                        luxChart.update();
-                    });
-            }
-        }
+function onChannelChange() { loadHistory(_hrs); }
 
-        function onChannelChange() { loadHistory(_currentHours); }
+// ── Water System ──
+function loadWaterState() {
+    fetch('/api/water').then(r => r.json()).then(d => {
+        const auto = d.mode === 'auto';
+        document.getElementById('waterModeToggle').checked = auto;
+        document.getElementById('waterManualSection').style.display = auto ? 'none'  : 'block';
+        document.getElementById('waterAutoSection').style.display   = auto ? 'block' : 'none';
+        document.getElementById('waterInterval').value = Math.round(d.auto_interval_s / 60);
+        document.getElementById('waterDuration').value = d.auto_duration_s;
+        updateValveBadge(d.valve_open);
+    });
+}
 
-        // Initialize
-        connectSSE();
-        loadHistory(6);
+function updateValveBadge(open) {
+    const b = document.getElementById('valveBadge');
+    if (open) {
+        b.className = 'vbadge open';
+        b.innerHTML = '<span class="dot ok" style="width:5px;height:5px;"></span> Open';
+    } else {
+        b.className = 'vbadge closed';
+        b.innerHTML = '<span class="dot err" style="width:5px;height:5px;"></span> Closed';
+    }
+}
 
-        // Refresh history every 30 seconds
-        setInterval(() => loadHistory(_currentHours), 30000);
+function setWaterMode() {
+    const auto = document.getElementById('waterModeToggle').checked;
+    document.getElementById('waterManualSection').style.display = auto ? 'none'  : 'block';
+    document.getElementById('waterAutoSection').style.display   = auto ? 'block' : 'none';
+    if (!auto) postWater({mode:'manual', manual_open:false});
+}
 
-        // ---- Water System ----
-        function loadWaterState() {
-            fetch('/api/water').then(r => r.json()).then(data => {
-                const isAuto = data.mode === 'auto';
-                document.getElementById('waterModeToggle').checked = isAuto;
-                document.getElementById('waterManualSection').style.display = isAuto ? 'none' : 'block';
-                document.getElementById('waterAutoSection').style.display = isAuto ? 'block' : 'none';
-                document.getElementById('waterInterval').value = Math.round(data.auto_interval_s / 60);
-                document.getElementById('waterDuration').value = data.auto_duration_s;
-                updateValveBadge(data.valve_open);
-            });
-        }
+function setManualValve(open) { postWater({mode:'manual', manual_open:open}); }
 
-        function updateValveBadge(open) {
-            const badge = document.getElementById('valveStatusBadge');
-            badge.textContent = open ? 'OPEN' : 'CLOSED';
-            badge.style.background = open ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)';
-            badge.style.color = open ? '#22c55e' : '#ef4444';
-        }
+function saveAutoSchedule() {
+    const mins = parseInt(document.getElementById('waterInterval').value) || 120;
+    const dur  = parseInt(document.getElementById('waterDuration').value) || 10;
+    postWater({mode:'auto', auto_interval_s:mins*60, auto_duration_s:dur});
+}
 
-        function setWaterMode() {
-            const isAuto = document.getElementById('waterModeToggle').checked;
-            document.getElementById('waterManualSection').style.display = isAuto ? 'none' : 'block';
-            document.getElementById('waterAutoSection').style.display = isAuto ? 'block' : 'none';
-            if (!isAuto) postWater({mode: 'manual', manual_open: false});
-        }
+function postWater(payload) {
+    fetch('/api/water', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+    }).then(() => loadWaterState());
+}
 
-        function setManualValve(open) { postWater({mode: 'manual', manual_open: open}); }
+// ── USB Logger ──
+function loadUsb() {
+    fetch('/api/usb').then(r => r.json()).then(d => {
+        const st  = document.getElementById('usbStatus');
+        const ok  = d.usb_connected;
+        st.textContent = ok ? 'Connected' : 'Not found';
+        st.style.color = ok ? 'var(--ok)' : 'var(--text-mid)';
+        document.getElementById('usbPath').textContent = d.usb_path  || '--';
+        document.getElementById('usbFile').textContent = d.csv_path  || '--';
+    }).catch(() => {});
+}
 
-        function saveAutoSchedule() {
-            const intervalMin = parseInt(document.getElementById('waterInterval').value) || 120;
-            const duration = parseInt(document.getElementById('waterDuration').value) || 10;
-            postWater({mode: 'auto', auto_interval_s: intervalMin * 60, auto_duration_s: duration});
-        }
-
-        function postWater(payload) {
-            fetch('/api/water', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
-                .then(() => loadWaterState());
-        }
-
-        loadWaterState();
-        setInterval(loadWaterState, 2000);
-    </script>
+// ── Init ──
+connectSSE();
+loadHistory(6);
+loadWaterState();
+loadUsb();
+setInterval(() => loadHistory(_hrs), 30000);
+setInterval(loadWaterState, 2000);
+setInterval(loadUsb, 5000);
+</script>
 </body>
-</html>
-"""
+</html>"""
 
 
 def run_server(host='0.0.0.0', port=5000, debug=False):
