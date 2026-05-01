@@ -23,18 +23,18 @@ echo " Connecting to WiFi"
 echo "──────────────────────────────────────"
 
 # ── 1. Tear down hotspot if it is running ─────────────────────
-if nmcli con show --active | grep -q "^orca-hotspot"; then
+if sudo nmcli con show --active | grep -q "^orca-hotspot"; then
     echo "[INFO] Stopping hotspot..."
-    nmcli con down orca-hotspot 2>/dev/null || true
+    sudo nmcli con down orca-hotspot 2>/dev/null || true
 fi
 
 # ── 2. Connect ─────────────────────────────────────────────────
 if [ -z "$PASSWORD" ]; then
     echo "[INFO] Connecting to open network: $SSID"
-    nmcli dev wifi connect "$SSID" ifname wlan0
+    sudo nmcli dev wifi connect "$SSID" ifname wlan0
 else
     echo "[INFO] Connecting to: $SSID"
-    nmcli dev wifi connect "$SSID" password "$PASSWORD" ifname wlan0
+    sudo nmcli dev wifi connect "$SSID" password "$PASSWORD" ifname wlan0
 fi
 
 if [ $? -eq 0 ]; then

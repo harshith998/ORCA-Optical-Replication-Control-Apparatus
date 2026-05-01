@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ORCA (Optical Replication & Control Apparatus) is a dynamic lighting control system for marine phytoplankton research. It replicates real-world light conditions inside laboratory incubation chambers aboard research vessels. The `chamber-pi` software runs on a Raspberry Pi and controls LED strips via PWM based on lux readings from a remote ESP32 sensor module.
 
+## Pi Access
+
+| Method | Address |
+|--------|---------|
+| Ethernet / mDNS | `ssh pi@pi.local` |
+| Hotspot (ORCA-Pi) | `ssh pi@10.42.0.1` |
+
 ## Development Commands
 
 ```bash

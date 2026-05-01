@@ -234,3 +234,4 @@ For questions or collaboration opportunities, please open an issue or contact th
 ---
 
 **Note**: This is an active research project. Design specifications may change as development progresses.
+

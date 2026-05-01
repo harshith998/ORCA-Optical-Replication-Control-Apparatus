@@ -198,39 +198,45 @@ echo "[SUCCESS] orca.service installed and enabled — will start on next boot."
 # Password:  orca1234
 # Pi IP:     10.42.0.1
 # Dashboard: http://10.42.0.1:5000
+#
+# NOTE: nmcli con add does not accept all properties inline on RPi OS.
+# Security and IP settings must be applied via separate modify commands.
+# All nmcli calls require sudo to write to NetworkManager's system config.
 
 echo "[INFO] Configuring hotspot profile (orca-hotspot)..."
-if nmcli con show orca-hotspot &>/dev/null; then
-    echo "[INFO] orca-hotspot profile already exists, skipping creation."
-else
-    nmcli con add \
-        type wifi \
-        ifname wlan0 \
-        con-name orca-hotspot \
-        autoconnect yes \
-        ssid ORCA-Pi \
-        mode ap \
-        ipv4.method shared \
-        ipv4.addresses 10.42.0.1/24 \
-        802-11-wireless-security.key-mgmt wpa-psk \
-        802-11-wireless-security.psk "orca1234"
-    if [ $? -eq 0 ]; then
-        nmcli con modify orca-hotspot connection.autoconnect-priority 100
-        echo "[SUCCESS] orca-hotspot profile created."
-        echo "  SSID:      ORCA-Pi"
-        echo "  Password:  orca1234"
-        echo "  Pi IP:     10.42.0.1"
-    else
-        echo "[WARN] Failed to create hotspot profile. NetworkManager may not be available."
-        echo "       Run 'hotspot' manually after reboot to try again."
-    fi
+if sudo nmcli con show orca-hotspot &>/dev/null; then
+    echo "[INFO] orca-hotspot profile already exists — deleting and recreating..."
+    sudo nmcli con delete orca-hotspot
 fi
 
-# ── 13. Run update to activate venv and install requirements ──
+sudo nmcli con add type wifi ifname wlan0 con-name orca-hotspot ssid "ORCA-Pi" mode ap
+if [ $? -ne 0 ]; then
+    echo "[WARN] Failed to create hotspot profile. NetworkManager may not be available."
+    echo "       Run 'hotspot' manually after reboot to try again."
+else
+    sudo nmcli con modify orca-hotspot wifi.band bg
+    sudo nmcli con modify orca-hotspot wifi-sec.key-mgmt wpa-psk
+    sudo nmcli con modify orca-hotspot wifi-sec.psk "orca1234"
+    sudo nmcli con modify orca-hotspot ipv4.method shared
+    sudo nmcli con modify orca-hotspot ipv4.addresses "10.42.0.1/24"
+    sudo nmcli con modify orca-hotspot ipv6.method disabled
+    sudo nmcli con modify orca-hotspot connection.autoconnect no
+    echo "[SUCCESS] orca-hotspot profile created."
+    echo "  SSID:      ORCA-Pi"
+    echo "  Password:  orca1234"
+    echo "  Pi IP:     10.42.0.1"
+fi
+
+# ── 12. Run update to activate venv and install requirements ──
 echo ""
 echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"
 /usr/local/bin/update
+
+# ── 13. Start hotspot so Pi is reachable immediately after setup ──
+echo ""
+echo "[INFO] Activating hotspot..."
+/usr/local/bin/hotspot
 
 
 echo ""

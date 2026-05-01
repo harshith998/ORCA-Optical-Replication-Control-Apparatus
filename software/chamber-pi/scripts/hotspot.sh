@@ -11,25 +11,25 @@ echo " Switching to Hotspot Mode"
 echo "──────────────────────────────────────"
 
 # ── 1. Verify the hotspot profile exists ───────────────────────
-if ! nmcli con show orca-hotspot &>/dev/null; then
+if ! sudo nmcli con show orca-hotspot &>/dev/null; then
     echo "[ERROR] orca-hotspot profile not found. Has setup.sh been run?"
     exit 1
 fi
 
 # ── 2. Tear down any active WiFi client connection ────────────
-ACTIVE_WIFI=$(nmcli -t -f NAME,TYPE,STATE con show --active \
+ACTIVE_WIFI=$(sudo nmcli -t -f NAME,TYPE,STATE con show --active \
     | grep ":802-11-wireless:activated" \
     | grep -v "^orca-hotspot:" \
     | cut -d: -f1)
 
 if [ -n "$ACTIVE_WIFI" ]; then
     echo "[INFO] Disconnecting from: $ACTIVE_WIFI"
-    nmcli con down "$ACTIVE_WIFI" 2>/dev/null || true
+    sudo nmcli con down "$ACTIVE_WIFI" 2>/dev/null || true
 fi
 
 # ── 3. Bring up hotspot ────────────────────────────────────────
 echo "[INFO] Starting hotspot..."
-nmcli con up orca-hotspot
+sudo nmcli con up orca-hotspot
 if [ $? -eq 0 ]; then
     echo ""
     echo "[SUCCESS] Hotspot active"
