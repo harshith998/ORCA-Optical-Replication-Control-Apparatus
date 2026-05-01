@@ -289,19 +289,28 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
 
     memset(fix, 0, sizeof(*fix));
 
-    // Wake GPS from backup mode: pulse RESET_N low for 100 ms.
-    // GPIO1 drives the base of Q1 (NPN, MMBT3904) through R7 (4.7k), so the
-    // logic is inverted — GPIO1 HIGH turns Q1 on and pulls RESET_N to GND.
-    // Release by driving GPIO1 LOW (Q1 off), then float as input so the GPS
-    // internal 1.8 V pull-up holds RESET_N high during normal operation.
-    gpio_set_direction(GPS_RESET, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPS_RESET, 1); // HIGH → Q1 ON → RESET_N LOW (reset asserted)
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gpio_set_level(GPS_RESET, 0); // LOW → Q1 OFF → RESET_N released HIGH
-    gpio_set_direction(GPS_RESET, GPIO_MODE_INPUT);
-
-    // Initialize GPS UART
+    // Initialize GPS UART first so we can listen before deciding to reset.
     gps_init();
+
+    // If the GPS is already outputting NMEA data it is alive — don't reset it.
+    // Only pulse RESET_N after 1 s of silence (stuck / first boot / powered off).
+    // GPIO1 drives Q1 (NPN, MMBT3904) through R7 (4.7k): GPIO1 HIGH → RESET_N LOW.
+    bool gps_active = gps_update();  // one quick read before the silence window
+    if (!gps_active) {
+        vTaskDelay(pdMS_TO_TICKS(1000));   // wait 1 s for any NMEA output
+        gps_active = gps_update();
+    }
+
+    if (!gps_active) {
+        printf("GPS silent — pulsing RESET_N\n");
+        gpio_set_direction(GPS_RESET, GPIO_MODE_OUTPUT);
+        gpio_set_level(GPS_RESET, 1); // HIGH → Q1 ON → RESET_N LOW (reset asserted)
+        vTaskDelay(pdMS_TO_TICKS(100));
+        gpio_set_level(GPS_RESET, 0); // LOW → Q1 OFF → RESET_N released HIGH
+        gpio_set_direction(GPS_RESET, GPIO_MODE_INPUT);
+    } else {
+        printf("GPS active — skipping reset\n");
+    }
     gps_data_t data;
 
     setenv("TZ", "UTC0", 1); // GPS always outputs UTC

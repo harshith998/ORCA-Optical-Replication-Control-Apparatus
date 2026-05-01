@@ -46,7 +46,7 @@ fi
 # ── 2. Re-install global scripts from repo ────────────────────
 echo ""
 echo "[INFO] Updating global scripts from repo..."
-for ENTRY in "update.sh:update" "start.sh:start"; do
+for ENTRY in "update.sh:update" "start.sh:start" "hotspot.sh:hotspot" "wifi.sh:wifi" "chamber-help.sh:chamber-help"; do
     SRC="$SCRIPTS_DIR/${ENTRY%%:*}"
     DEST="/usr/local/bin/${ENTRY##*:}"
     if [ -f "$SRC" ]; then

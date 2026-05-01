@@ -17,8 +17,12 @@ echo "────────────────────────�
 echo " Setup Script"
 echo "──────────────────────────────────────"
 
+SOURCE_HOTSPOT="$SCRIPT_DIR/hotspot.sh"
+SOURCE_WIFI="$SCRIPT_DIR/wifi.sh"
+SOURCE_HELP="$SCRIPT_DIR/chamber-help.sh"
+
 # ── 1. Verify scripts exist alongside setup.sh ────────────────
-for SCRIPT in "$SOURCE_UPDATE" "$SOURCE_START"; do
+for SCRIPT in "$SOURCE_UPDATE" "$SOURCE_START" "$SOURCE_HOTSPOT" "$SOURCE_WIFI" "$SOURCE_HELP"; do
     if [ ! -f "$SCRIPT" ]; then
         echo "[ERROR] $(basename $SCRIPT) not found at: $SCRIPT"
         echo "        Make sure all scripts are in the same directory as setup.sh."
@@ -40,7 +44,7 @@ else
 fi
 
 # ── 3. Install update and start globally ──────────────────────
-for ENTRY in "update.sh:update" "start.sh:start"; do
+for ENTRY in "update.sh:update" "start.sh:start" "hotspot.sh:hotspot" "wifi.sh:wifi" "chamber-help.sh:chamber-help"; do
     SRC="$SCRIPT_DIR/${ENTRY%%:*}"
     DEST="/usr/local/bin/${ENTRY##*:}"
     echo "[INFO] Installing $DEST..."
@@ -52,7 +56,7 @@ for ENTRY in "update.sh:update" "start.sh:start"; do
     sudo chmod +x "$DEST"
     echo "[SUCCESS] Installed: $DEST"
 done
-echo "[INFO] You can now run 'update' and 'start' from anywhere."
+echo "[INFO] You can now run 'update', 'start', 'hotspot', 'wifi', and 'chamber-help' from anywhere."
 
 # ── 4. Clone the repo (git pull/clone only, no venv yet) ──────
 echo ""
@@ -185,6 +189,42 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable orca
 echo "[SUCCESS] orca.service installed and enabled — will start on next boot."
+
+# ── 11. Create NetworkManager hotspot profile ─────────────────
+# Pi boots into hotspot mode by default (high autoconnect priority).
+# Use 'wifi <ssid> [pass]' to connect to a network; 'hotspot' to switch back.
+#
+# SSID:      ORCA-Pi
+# Password:  orca1234
+# Pi IP:     10.42.0.1
+# Dashboard: http://10.42.0.1:5000
+
+echo "[INFO] Configuring hotspot profile (orca-hotspot)..."
+if nmcli con show orca-hotspot &>/dev/null; then
+    echo "[INFO] orca-hotspot profile already exists, skipping creation."
+else
+    nmcli con add \
+        type wifi \
+        ifname wlan0 \
+        con-name orca-hotspot \
+        autoconnect yes \
+        ssid ORCA-Pi \
+        mode ap \
+        ipv4.method shared \
+        ipv4.addresses 10.42.0.1/24 \
+        802-11-wireless-security.key-mgmt wpa-psk \
+        802-11-wireless-security.psk "orca1234"
+    if [ $? -eq 0 ]; then
+        nmcli con modify orca-hotspot connection.autoconnect-priority 100
+        echo "[SUCCESS] orca-hotspot profile created."
+        echo "  SSID:      ORCA-Pi"
+        echo "  Password:  orca1234"
+        echo "  Pi IP:     10.42.0.1"
+    else
+        echo "[WARN] Failed to create hotspot profile. NetworkManager may not be available."
+        echo "       Run 'hotspot' manually after reboot to try again."
+    fi
+fi
 
 # ── 13. Run update to activate venv and install requirements ──
 echo ""
