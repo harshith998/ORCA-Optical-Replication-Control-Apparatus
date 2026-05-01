@@ -233,11 +233,6 @@ echo "[INFO] Running update to install requirements..."
 echo "──────────────────────────────────────"
 /usr/local/bin/update
 
-# ── 13. Start hotspot so Pi is reachable immediately after setup ──
-echo ""
-echo "[INFO] Activating hotspot..."
-/usr/local/bin/hotspot
-
 
 echo ""
 echo "──────────────────────────────────────"
