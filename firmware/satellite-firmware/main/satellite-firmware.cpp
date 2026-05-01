@@ -289,18 +289,12 @@ static esp_err_t get_gps_fix(gps_fix_t *fix)
 
     memset(fix, 0, sizeof(*fix));
 
-    // Initialize GPS UART first so we can listen before deciding to reset.
+    // Initialize GPS UART
     gps_init();
+    vTaskDelay(pdMS_TO_TICKS(1000));   // wait 1 s for any NMEA output
+    bool gps_active = gps_update();  // Check for active GPS data
 
-    // If the GPS is already outputting NMEA data it is alive — don't reset it.
-    // Only pulse RESET_N after 1 s of silence (stuck / first boot / powered off).
-    // GPIO1 drives Q1 (NPN, MMBT3904) through R7 (4.7k): GPIO1 HIGH → RESET_N LOW.
-    bool gps_active = gps_update();  // one quick read before the silence window
-    if (!gps_active) {
-        vTaskDelay(pdMS_TO_TICKS(1000));   // wait 1 s for any NMEA output
-        gps_active = gps_update();
-    }
-
+    // If no NMEA detected RESET the GPS from standby
     if (!gps_active) {
         printf("GPS silent — pulsing RESET_N\n");
         gpio_set_direction(GPS_RESET, GPIO_MODE_OUTPUT);

@@ -24,9 +24,9 @@ extern "C" {
 #define AS7343_CONFIG_DEFAULT {                     \
     .i2c_address     = I2C_AS7343_DEV_ADDR,         \
     .i2c_clock_speed = I2C_AS7343_DEV_CLK_SPD,      \
-    .gain            = AS7343_GAIN_256X,              \
+    .gain            = AS7343_GAIN_4X,               \
     .atime           = 0,                            \
-    .astep           = 599,                          \
+    .astep           = 65534,                        \
 }
 
 /* ── Gain ─────────────────────────────────────────────────────────────────── */
