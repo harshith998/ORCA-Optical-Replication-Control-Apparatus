@@ -31,7 +31,8 @@ source "$VENV_DIR/bin/activate" || { echo "[ERROR] Failed to activate venv. Has 
 
 # ── 4. Stop the systemd service if it's running ───────────────
 # Prevents port 5000 conflict when running manually alongside the auto-start service.
-if systemctl is-active --quiet orca 2>/dev/null; then
+# Skip this when we ARE the systemd service (systemd sets INVOCATION_ID for managed processes).
+if [ -z "$INVOCATION_ID" ] && systemctl is-active --quiet orca 2>/dev/null; then
     echo "[INFO] Stopping orca systemd service..."
     sudo systemctl stop orca
 fi
