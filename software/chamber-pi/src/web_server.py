@@ -582,10 +582,7 @@ body{
             <div class="sld-row">
                 <span class="sld-lbl">Brightness</span>
                 <input type="range" id="manualPwmSlider" min="0" max="1023" value="0"
-                       oninput="updateManualPwm()"
-                       onmousedown="_sliderDragging=true" onmouseup="_sliderDragging=false"
-                       ontouchstart="_sliderDragging=true" ontouchend="_sliderDragging=false"
-                       disabled>
+                       oninput="updateManualPwm()" disabled>
                 <span class="sld-val dim" id="manualPwmDisplay">0</span>
             </div>
         </div>
@@ -829,8 +826,10 @@ function updateUI(d) {
         document.getElementById('gpsLon').textContent = '--';
     }
 
-    // Sync control mode from SSE whenever the user is not actively dragging the slider
-    if (!_sliderDragging) {
+    // Sync control mode from SSE, but not within 1 s of a web-initiated change.
+    // This prevents the stale server state from overwriting the UI before the
+    // main loop has had a chance to pick up the POST and broadcast the new value.
+    if (Date.now() - _webChangedAt > 1000) {
         const manual = !!d.web_manual_enabled;
         document.getElementById('modeToggle').checked = manual;
         document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
@@ -845,6 +844,7 @@ function updateUI(d) {
 
 // ── Mode toggle (equivalent to clicking rotary knob) ──
 function toggleMode() {
+    _webChangedAt = Date.now();
     const manual = document.getElementById('modeToggle').checked;
     const pwm    = parseInt(document.getElementById('manualPwmSlider').value);
 
@@ -864,9 +864,10 @@ function toggleMode() {
 
 // ── Brightness slider (equivalent to turning rotary knob) ──
 let _pwmDebounceTimer = null;
-let _sliderDragging   = false;
+let _webChangedAt     = 0;   // timestamp of last web-initiated control change
 
 function updateManualPwm() {
+    _webChangedAt = Date.now();
     const pwm = parseInt(document.getElementById('manualPwmSlider').value);
     document.getElementById('manualPwmDisplay').textContent = pwm;
     // Update LED Output % immediately so it tracks the slider in real time
