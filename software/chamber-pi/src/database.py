@@ -47,11 +47,8 @@ class Database:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp REAL NOT NULL,
                     raw_lux INTEGER NOT NULL,
-                    clamped_lux INTEGER NOT NULL,
                     pwm_value INTEGER NOT NULL,
-                    mode TEXT NOT NULL,
-                    bounds_min INTEGER,
-                    bounds_max INTEGER
+                    mode TEXT NOT NULL
                 )
             """)
 
@@ -116,15 +113,14 @@ class Database:
                 VALUES (1, 'manual', 0, 7200, 10, ?)
             """, (time.time(),))
 
-    def log_reading(self, raw_lux: int, clamped_lux: int, pwm_value: int,
-                    mode: str, bounds_min: int, bounds_max: int):
+    def log_reading(self, raw_lux: int, pwm_value: int, mode: str):
         """Log a lux reading to history."""
         with self._cursor() as cursor:
             cursor.execute("""
                 INSERT INTO lux_history
-                (timestamp, raw_lux, clamped_lux, pwm_value, mode, bounds_min, bounds_max)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (time.time(), raw_lux, clamped_lux, pwm_value, mode, bounds_min, bounds_max))
+                (timestamp, raw_lux, pwm_value, mode)
+                VALUES (?, ?, ?, ?)
+            """, (time.time(), raw_lux, pwm_value, mode))
 
     def get_history(self, start_time: Optional[float] = None,
                     end_time: Optional[float] = None,
@@ -151,7 +147,6 @@ class Database:
                     SELECT
                         CAST(timestamp / ? AS INTEGER) * ? AS timestamp,
                         CAST(AVG(raw_lux) AS INTEGER) AS raw_lux,
-                        CAST(AVG(clamped_lux) AS INTEGER) AS clamped_lux,
                         CAST(AVG(pwm_value) AS INTEGER) AS pwm_value
                     FROM lux_history
                     WHERE {where_str}

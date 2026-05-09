@@ -113,7 +113,6 @@ def loop():
         physical_change = True
 
     raw_lux = io.get_lux_value()
-    clamped_lux = io.get_clamped_lux(raw_lux)
     new_packet = io.consume_new_packet()
     spectral = io.get_spectral_channels() if new_packet else {}
     gps = io.get_last_gps()
@@ -134,7 +133,7 @@ def loop():
         actual_pwm = web_manual_pwm
         actual_mode = 'manual'
     elif pwm_enabled:
-        input_norm = clamped_lux / SCALE_CONSTANT
+        input_norm = raw_lux / SCALE_CONSTANT
         input_norm = max(0.0, min(1.0, input_norm))
         actual_pwm = int(input_norm * MAX_PWM_VALUE + 0.5)
         actual_pwm = min(actual_pwm, MAX_PWM_VALUE)
@@ -162,26 +161,19 @@ def loop():
 
     db.log_reading(
         raw_lux=raw_lux,
-        clamped_lux=clamped_lux,
         pwm_value=actual_pwm,
         mode=actual_mode,
-        bounds_min=io.live_min,
-        bounds_max=io.live_max
     )
 
-    usb_logger.log_reading(raw_lux, clamped_lux, actual_pwm, actual_mode,
-                           io.live_min, io.live_max)
+    usb_logger.log_reading(raw_lux, actual_pwm, actual_mode)
 
     if new_packet and spectral:
         db.log_spectral(channels=spectral, gps=gps, sanity_flag=sanity_flag)
 
     update_current_state(
         raw_lux=raw_lux,
-        clamped_lux=clamped_lux,
         pwm_value=actual_pwm,
         mode=actual_mode,
-        bounds_min=io.live_min,
-        bounds_max=io.live_max,
         sw1=sw1,
         sw2=sw2,
         sanity_flag=sanity_flag,

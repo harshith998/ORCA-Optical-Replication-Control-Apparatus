@@ -6,7 +6,6 @@ from config import (
     LORA_SPI_PORT, LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
-    LUX_BUFFER_SIZE,
     LED_GRN_PIN, LED_YLW_PIN,
     ROTARY_A_PIN, ROTARY_B_PIN, ROTARY_BTN_PIN,
 )
@@ -22,18 +21,6 @@ class IOController:
         self.sw2 = True
         self.sw3 = True
         self.lux_value = 0
-
-        # Bounds buffer (1 minute of lux history)
-        self.lux_buffer = [0] * LUX_BUFFER_SIZE
-        self.buffer_index = 0
-        self.buffer_count = 0
-        self.live_min = 0
-        self.live_max = 0
-
-        # Frozen per-minute snapshot used for clamping (updated once per full window)
-        self.frozen_min = 0
-        self.frozen_max = 0
-        self._samples_since_freeze = 0
 
         # Hardware handles
         self.lora = None
@@ -280,52 +267,6 @@ class IOController:
 
     def get_init_report(self):
         return dict(self.status)
-
-    def _update_bounds(self):
-        """Recalculate min/max from buffer."""
-        if self.buffer_count == 0:
-            return
-
-        self.live_min = self.lux_buffer[0]
-        self.live_max = self.lux_buffer[0]
-        for i in range(1, self.buffer_count):
-            if self.lux_buffer[i] < self.live_min:
-                self.live_min = self.lux_buffer[i]
-            if self.lux_buffer[i] > self.live_max:
-                self.live_max = self.lux_buffer[i]
-
-    def get_clamped_lux(self, raw_lux):
-        """Get lux clamped to the previous minute's frozen bounds.
-
-        The accumulation buffer fills for one full window (LUX_BUFFER_SIZE samples).
-        When it completes, live min/max are computed and frozen. Clamping uses the
-        frozen snapshot so bounds only shift once per minute, and never include the
-        value currently being clamped.
-        """
-        # Accumulate into buffer
-        self.lux_buffer[self.buffer_index] = raw_lux
-        self.buffer_index = (self.buffer_index + 1) % LUX_BUFFER_SIZE
-        if self.buffer_count < LUX_BUFFER_SIZE:
-            self.buffer_count += 1
-
-        self._samples_since_freeze += 1
-
-        # Freeze a new snapshot once per full window
-        if self._samples_since_freeze >= LUX_BUFFER_SIZE:
-            self._update_bounds()
-            self.frozen_min = self.live_min
-            self.frozen_max = self.live_max
-            self._samples_since_freeze = 0
-
-        # No frozen snapshot yet — pass through unclamped
-        if self.buffer_count < LUX_BUFFER_SIZE:
-            return raw_lux
-
-        if raw_lux < self.frozen_min:
-            return self.frozen_min
-        if raw_lux > self.frozen_max:
-            return self.frozen_max
-        return raw_lux
 
     def to_string(self):
         """Return string representation for debugging."""

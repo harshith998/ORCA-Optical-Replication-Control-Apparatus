@@ -17,8 +17,7 @@ USB_MOUNT_PATHS = [
 ]
 
 CSV_FILENAME = "chamber_readings.csv"
-CSV_HEADERS = ["timestamp", "datetime", "raw_lux", "clamped_lux", "pwm_value",
-               "mode", "bounds_min", "bounds_max"]
+CSV_HEADERS = ["timestamp", "datetime", "raw_lux", "pwm_value", "mode"]
 
 
 _USB_RETRY_INTERVAL = 10.0  # seconds between find_usb() attempts when no USB present
@@ -79,8 +78,7 @@ class USBLogger:
             self._file_handle = None
             self._writer = None
 
-    def log_reading(self, raw_lux: int, clamped_lux: int, pwm_value: int,
-                    mode: str, bounds_min: int, bounds_max: int) -> bool:
+    def log_reading(self, raw_lux: int, pwm_value: int, mode: str) -> bool:
         """Log a reading to CSV on USB. Returns True if successful."""
         # Throttle USB detection attempts — only retry every _USB_RETRY_INTERVAL seconds
         if not self.usb_path:
@@ -106,7 +104,7 @@ class USBLogger:
             self._writer.writerow([
                 now.timestamp(),
                 now.strftime("%Y-%m-%d %H:%M:%S"),
-                raw_lux, clamped_lux, pwm_value, mode, bounds_min, bounds_max,
+                raw_lux, pwm_value, mode,
             ])
             self._file_handle.flush()
             return True

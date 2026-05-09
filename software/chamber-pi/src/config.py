@@ -74,6 +74,3 @@ RS_RX_BAUD     = 115200
 
 # ---------- Lux Scaling ----------
 SCALE_CONSTANT = 2750 # Lux scaling constant
-
-# ---------- Bounds Buffer Settings ----------
-LUX_BUFFER_SIZE = 600 # 1 minute of samples at 100ms intervals

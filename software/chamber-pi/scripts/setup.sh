@@ -20,9 +20,10 @@ echo "────────────────────────�
 SOURCE_HOTSPOT="$SCRIPT_DIR/hotspot.sh"
 SOURCE_WIFI="$SCRIPT_DIR/wifi.sh"
 SOURCE_HELP="$SCRIPT_DIR/chamber-help.sh"
+SOURCE_DATA_DELETE="$SCRIPT_DIR/data-delete.sh"
 
 # ── 1. Verify scripts exist alongside setup.sh ────────────────
-for SCRIPT in "$SOURCE_UPDATE" "$SOURCE_START" "$SOURCE_HOTSPOT" "$SOURCE_WIFI" "$SOURCE_HELP"; do
+for SCRIPT in "$SOURCE_UPDATE" "$SOURCE_START" "$SOURCE_HOTSPOT" "$SOURCE_WIFI" "$SOURCE_HELP" "$SOURCE_DATA_DELETE"; do
     if [ ! -f "$SCRIPT" ]; then
         echo "[ERROR] $(basename $SCRIPT) not found at: $SCRIPT"
         echo "        Make sure all scripts are in the same directory as setup.sh."
@@ -44,7 +45,7 @@ else
 fi
 
 # ── 3. Install update and start globally ──────────────────────
-for ENTRY in "update.sh:update" "start.sh:start" "hotspot.sh:hotspot" "wifi.sh:wifi" "chamber-help.sh:chamber-help"; do
+for ENTRY in "update.sh:update" "start.sh:start" "hotspot.sh:hotspot" "wifi.sh:wifi" "chamber-help.sh:chamber-help" "data-delete.sh:data-delete"; do
     SRC="$SCRIPT_DIR/${ENTRY%%:*}"
     DEST="/usr/local/bin/${ENTRY##*:}"
     echo "[INFO] Installing $DEST..."
@@ -56,7 +57,7 @@ for ENTRY in "update.sh:update" "start.sh:start" "hotspot.sh:hotspot" "wifi.sh:w
     sudo chmod +x "$DEST"
     echo "[SUCCESS] Installed: $DEST"
 done
-echo "[INFO] You can now run 'update', 'start', 'hotspot', 'wifi', and 'chamber-help' from anywhere."
+echo "[INFO] You can now run 'update', 'start', 'hotspot', 'wifi', 'chamber-help', and 'data-delete' from anywhere."
 
 # ── 4. Clone the repo (git pull/clone only, no venv yet) ──────
 echo ""

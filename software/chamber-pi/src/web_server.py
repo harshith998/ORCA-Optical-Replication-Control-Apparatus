@@ -75,11 +75,8 @@ sse_lock = threading.Lock()
 # Current state cache (updated by main loop)
 current_state = {
     'raw_lux': 0,
-    'clamped_lux': 0,
     'pwm_value': 0,
     'mode': 'lux',
-    'bounds_min': 0,
-    'bounds_max': 0,
     'sw1': False,
     'sw2': False,
     'web_manual_enabled': False,
@@ -92,8 +89,8 @@ current_state = {
 state_lock = threading.Lock()
 
 
-def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
-                         mode: str, bounds_min: int, bounds_max: int,
+def update_current_state(raw_lux: int, pwm_value: int,
+                         mode: str,
                          sw1: bool, sw2: bool,
                          sanity_flag: bool = False,
                          wired_connected: bool = False,
@@ -104,11 +101,8 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
     """Update current state and notify SSE subscribers."""
     with state_lock:
         current_state['raw_lux'] = raw_lux
-        current_state['clamped_lux'] = clamped_lux
         current_state['pwm_value'] = pwm_value
         current_state['mode'] = mode
-        current_state['bounds_min'] = bounds_min
-        current_state['bounds_max'] = bounds_max
         current_state['sw1'] = sw1
         current_state['sw2'] = sw2
         current_state['sanity_flag'] = sanity_flag
@@ -580,11 +574,6 @@ body{
                 <span class="big-val" id="luxVal">--</span>
                 <span class="big-unit">lux</span>
             </div>
-            <div class="big-sub">Clamped: <span id="clampedVal">--</span> lux</div>
-            <div style="margin-top:10px;">
-                <div class="row"><span class="row-k">Bounds min</span><span class="row-v" id="boundsMin">--</span></div>
-                <div class="row"><span class="row-k">Bounds max</span><span class="row-v" id="boundsMax">--</span></div>
-            </div>
         </div>
 
         <!-- LED Output -->
@@ -701,16 +690,6 @@ const luxChart = new Chart(ctx, {
                 tension: 0.3,
                 pointRadius: 0,
                 borderWidth: 1.5
-            },
-            {
-                label: 'Clamped',
-                data: [],
-                borderColor: '#00e5a0',
-                backgroundColor: 'transparent',
-                borderDash: [4,4],
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 1.5
             }
         ]
     },
@@ -801,10 +780,7 @@ function updateUI(d) {
     document.getElementById('sanityChart').style.display = sf ? 'block' : 'none';
 
     // Lux
-    document.getElementById('luxVal').textContent     = Number(d.raw_lux).toLocaleString();
-    document.getElementById('clampedVal').textContent = Number(d.clamped_lux).toLocaleString();
-    document.getElementById('boundsMin').textContent  = Number(d.bounds_min).toLocaleString();
-    document.getElementById('boundsMax').textContent  = Number(d.bounds_max).toLocaleString();
+    document.getElementById('luxVal').textContent = Number(d.raw_lux).toLocaleString();
 
     // PWM
     document.getElementById('pwmPct').textContent = ((d.pwm_value / 1023) * 100).toFixed(1);
@@ -912,12 +888,9 @@ function loadHistory(hours) {
         fetch(`/api/history?hours=${hours}&limit=500`)
             .then(r => r.json())
             .then(data => {
-                luxChart.data.labels             = data.map(d => fmt(d.timestamp));
-                luxChart.data.datasets[0].label  = 'Raw Lux';
-                luxChart.data.datasets[0].data   = data.map(d => d.raw_lux);
-                luxChart.data.datasets[1].label  = 'Clamped';
-                luxChart.data.datasets[1].data   = data.map(d => d.clamped_lux);
-                luxChart.data.datasets[1].hidden = false;
+                luxChart.data.labels            = data.map(d => fmt(d.timestamp));
+                luxChart.data.datasets[0].label = 'Raw Lux';
+                luxChart.data.datasets[0].data  = data.map(d => d.raw_lux);
                 luxChart.update('none');
             });
     } else {
@@ -925,11 +898,9 @@ function loadHistory(hours) {
             .then(r => r.json())
             .then(data => {
                 const lbl = document.getElementById('channelSelect').selectedOptions[0].text;
-                luxChart.data.labels             = data.map(d => fmt(d.timestamp));
-                luxChart.data.datasets[0].label  = lbl;
-                luxChart.data.datasets[0].data   = data.map(d => d[ch] ?? 0);
-                luxChart.data.datasets[1].data   = [];
-                luxChart.data.datasets[1].hidden = true;
+                luxChart.data.labels            = data.map(d => fmt(d.timestamp));
+                luxChart.data.datasets[0].label = lbl;
+                luxChart.data.datasets[0].data  = data.map(d => d[ch] ?? 0);
                 luxChart.update('none');
             });
     }
