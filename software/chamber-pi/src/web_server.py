@@ -97,7 +97,9 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          sw1: bool, sw2: bool,
                          sanity_flag: bool = False,
                          wired_connected: bool = False,
-                         gps: dict = None):
+                         gps: dict = None,
+                         web_manual_enabled: bool = None,
+                         web_manual_pwm: int = None):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         current_state['raw_lux'] = raw_lux
@@ -112,6 +114,10 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['wired_connected'] = wired_connected
         if gps is not None:
             current_state['gps'] = gps
+        if web_manual_enabled is not None:
+            current_state['web_manual_enabled'] = web_manual_enabled
+        if web_manual_pwm is not None:
+            current_state['web_manual_pwm'] = web_manual_pwm
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
@@ -834,31 +840,38 @@ function updateUI(d) {
         document.getElementById('gpsLon').textContent = '--';
     }
 
-    // Control mode — syncs knob state to web UI
-    const manual = !!d.web_manual_enabled;
-    document.getElementById('modeToggle').checked = manual;
+    // Control mode — skip if user just toggled (prevents SSE race from reverting it)
+    if (!_pendingMode) {
+        const manual = !!d.web_manual_enabled;
+        document.getElementById('modeToggle').checked = manual;
+        document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
+        document.getElementById('lblManual').className = manual ? 'mode-lbl active-manual' : 'mode-lbl';
+        const slider = document.getElementById('manualPwmSlider');
+        slider.disabled = !manual;
+        document.getElementById('manualPwmDisplay').className = manual ? 'sld-val' : 'sld-val dim';
+    }
 
-    // Update Auto/Manual label highlights
-    document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
-    document.getElementById('lblManual').className = manual ? 'mode-lbl active-manual' : 'mode-lbl';
-
-    // Slider — only update when not being actively dragged
+    // Slider value — only update when not being actively dragged or debounce pending
     const slider = document.getElementById('manualPwmSlider');
-    slider.disabled = !manual;
     const valEl = document.getElementById('manualPwmDisplay');
-    if (!slider.matches(':active')) {
+    if (!slider.matches(':active') && !_pwmDebounceTimer) {
         slider.value = d.web_manual_pwm;
         valEl.textContent = d.web_manual_pwm;
     }
-    valEl.className = manual ? 'sld-val' : 'sld-val dim';
 }
 
 // ── Mode toggle (equivalent to clicking rotary knob) ──
+let _pendingMode = false, _pendingModeTimer = null;
+
 function toggleMode() {
     const manual = document.getElementById('modeToggle').checked;
     const pwm    = parseInt(document.getElementById('manualPwmSlider').value);
 
-    // Update label highlights immediately
+    // Block SSE from reverting the toggle until the server confirms the change
+    _pendingMode = true;
+    if (_pendingModeTimer) clearTimeout(_pendingModeTimer);
+    _pendingModeTimer = setTimeout(() => { _pendingMode = false; _pendingModeTimer = null; }, 500);
+
     document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
     document.getElementById('lblManual').className = manual ? 'mode-lbl active-manual' : 'mode-lbl';
 
@@ -870,19 +883,25 @@ function toggleMode() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({enabled: manual, pwm: pwm})
-    });
+    }).then(() => { _pendingMode = false; _pendingModeTimer = null; });
 }
 
 // ── Brightness slider (equivalent to turning rotary knob) ──
+let _pwmDebounceTimer = null;
+
 function updateManualPwm() {
     const pwm = parseInt(document.getElementById('manualPwmSlider').value);
     document.getElementById('manualPwmDisplay').textContent = pwm;
     if (document.getElementById('modeToggle').checked) {
-        fetch('/api/control', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({enabled: true, pwm: pwm})
-        });
+        if (_pwmDebounceTimer) clearTimeout(_pwmDebounceTimer);
+        _pwmDebounceTimer = setTimeout(() => {
+            _pwmDebounceTimer = null;
+            fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({enabled: true, pwm: pwm})
+            });
+        }, 150);
     }
 }
 

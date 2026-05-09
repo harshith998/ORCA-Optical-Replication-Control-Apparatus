@@ -183,6 +183,8 @@ def loop():
         sanity_flag=sanity_flag,
         wired_connected=io.is_wired_connected(),
         gps=gps,
+        web_manual_enabled=web_manual_enabled,
+        web_manual_pwm=web_manual_pwm,
     )
 
 
@@ -228,14 +230,22 @@ def main():
     print("=" * 50)
     print("  Chamber Controller Started")
     try:
-        ips = subprocess.check_output(['hostname', '-I'], timeout=2).decode().strip().split()
-        for ip in ips:
-            if ip.startswith('127.'):
-                continue
+        iface_ips = {}
+        for iface, label in (('eth0', 'ethernet'), ('wlan0', 'wifi')):
+            out = subprocess.check_output(
+                ['ip', '-4', 'addr', 'show', iface],
+                timeout=2, stderr=subprocess.DEVNULL,
+            ).decode()
+            for line in out.splitlines():
+                line = line.strip()
+                if line.startswith('inet '):
+                    ip = line.split()[1].split('/')[0]
+                    iface_ips[ip] = label
+        for ip, label in iface_ips.items():
             if ip == HOTSPOT_IP:
                 print(f"  http://{ip}:{WEB_PORT}  (hotspot: join {HOTSPOT_SSID})")
             else:
-                print(f"  http://{ip}:{WEB_PORT}")
+                print(f"  http://{ip}:{WEB_PORT}  ({label})")
     except Exception:
         print(f"  http://localhost:{WEB_PORT}")
     print("  Press Ctrl+C to stop")
