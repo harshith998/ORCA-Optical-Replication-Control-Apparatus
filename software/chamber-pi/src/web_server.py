@@ -232,6 +232,15 @@ def api_spectrum():
     return jsonify(rows)
 
 
+@app.route('/orca_logo.png')
+def serve_logo():
+    path = os.path.join(os.path.dirname(__file__), 'orca_logo.png')
+    if os.path.exists(path):
+        with open(path, 'rb') as f:
+            return Response(f.read(), mimetype='image/png')
+    return Response('', status=404)
+
+
 @app.route('/chart.js')
 def serve_chartjs():
     """Serve Chart.js from local static file for offline operation."""
@@ -309,8 +318,6 @@ body{
 .tb-logo{display:flex;align-items:center;gap:9px;}
 .tb-mark{
     width:26px;height:26px;
-    background:var(--accent);
-    border-radius:5px;
     display:flex;align-items:center;justify-content:center;
 }
 .tb-mark svg{width:14px;height:14px;fill:white;}
@@ -521,7 +528,7 @@ body{
 <div class="tb">
     <div class="tb-logo">
         <div class="tb-mark">
-            <svg viewBox="0 0 24 24"><path d="M12 3L2 21h20L12 3zm0 3.5l7.5 13h-15L12 6.5z"/></svg>
+            <img src="/orca_logo.png" style="width:26px;height:26px;object-fit:contain;border-radius:5px;">
         </div>
         <span class="tb-name">ORCA</span>
     </div>
