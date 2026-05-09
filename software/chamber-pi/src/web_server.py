@@ -13,7 +13,14 @@ from typing import Generator
 from database import db
 from config import MAX_PWM_VALUE
 from usb_logger import usb_logger
+from functools import lru_cache
 from solar_check import get_expected_clear
+
+@lru_cache(maxsize=2048)
+def _cached_solar_max(lat: float, lon: float, unix_time: int):
+    """Memoised wrapper — lat/lon rounded to 0.01° (~1 km), time to 60 s."""
+    return get_expected_clear(lat, lon, unix_time)
+
 
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
@@ -218,10 +225,10 @@ def api_spectrum():
     bucket_secs = (hours * 3600) / limit
     rows = db.get_sensor_history(hours=hours, bucket_secs=bucket_secs)
     for row in rows:
-        lat = row.get('gps_lat') or 0.0
-        lon = row.get('gps_lon') or 0.0
-        t   = int(row.get('gps_unix_time') or row.get('timestamp') or 0)
-        row['solar_max'] = get_expected_clear(lat, lon, t)
+        lat = round(row.get('gps_lat') or 0.0, 2)
+        lon = round(row.get('gps_lon') or 0.0, 2)
+        t   = int((row.get('gps_unix_time') or row.get('timestamp') or 0) // 60) * 60
+        row['solar_max'] = _cached_solar_max(lat, lon, t)
     return jsonify(rows)
 
 
@@ -767,8 +774,6 @@ function connectSSE() {
     es.onmessage = (e) => {
         const d = JSON.parse(e.data);
         updateUI(d);
-        const now = Date.now();
-        if (now - _lastChart > 1000) { _lastChart = now; loadHistory(_hrs); }
     };
     es.onerror = () => {
         setConn(false);
@@ -909,6 +914,8 @@ function updateManualPwm() {
 
 // ── Chart history ──
 let _hrs = 6, _lastChart = 0;
+let _chartAbort  = null;   // AbortController for in-flight fetch pair
+let _chartDebounce = null; // debounce timer so rapid calls coalesce
 
 function loadHistory(hours) {
     _hrs = hours;
@@ -917,16 +924,27 @@ function loadHistory(hours) {
         b.classList.toggle('active', b.textContent === tag);
     });
 
+    // Debounce: if another call arrives within 200 ms, cancel the pending one
+    if (_chartDebounce) clearTimeout(_chartDebounce);
+    _chartDebounce = setTimeout(() => {
+        _chartDebounce = null;
+        _fetchChart(hours);
+    }, 200);
+}
+
+function _fetchChart(hours) {
+    // Cancel any still-running fetch from a previous call
+    if (_chartAbort) { _chartAbort.abort(); }
+    _chartAbort = new AbortController();
+    const sig = _chartAbort.signal;
+
     const ch  = document.getElementById('channelSelect').value;
     const lbl = document.getElementById('channelSelect').selectedOptions[0].text;
 
-    // Fetch chamber history (LED Lux) and sensor spectrum in parallel.
-    // Both are bucketed to the same time grid so timestamps align.
     Promise.all([
-        fetch(`/api/history?hours=${hours}&limit=500`).then(r => r.json()),
-        fetch(`/api/spectrum?hours=${hours}&limit=500`).then(r => r.json()),
+        fetch(`/api/history?hours=${hours}&limit=300`, {signal: sig}).then(r => r.json()),
+        fetch(`/api/spectrum?hours=${hours}&limit=300`, {signal: sig}).then(r => r.json()),
     ]).then(([hist, spec]) => {
-        // Build timestamp→value maps from sensor history for fast lookup
         const specMap  = new Map(spec.map(d => [d.timestamp, d[ch] ?? null]));
         const solarMap = new Map(spec.map(d => [d.timestamp, d.solar_max ?? null]));
 
@@ -936,7 +954,7 @@ function loadHistory(hours) {
         luxChart.data.datasets[1].data  = hist.map(d => d.led_lux);
         luxChart.data.datasets[2].data  = hist.map(d => solarMap.get(d.timestamp) ?? null);
         luxChart.update('none');
-    }).catch(err => console.error('loadHistory failed:', err));
+    }).catch(err => { if (err.name !== 'AbortError') console.error('loadHistory failed:', err); });
 }
 
 function fmt(ts) {
@@ -980,7 +998,7 @@ function postWater(payload) {
 // ── Init ──
 connectSSE();
 loadHistory(6);
-setInterval(() => loadHistory(_hrs), 1000);
+setInterval(() => loadHistory(_hrs), 5000);
 </script>
 </body>
 </html>"""
