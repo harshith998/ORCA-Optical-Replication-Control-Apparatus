@@ -530,10 +530,9 @@ body{
         <div class="tb-mark">
             <img src="/orca_logo.png" style="width:38px;height:38px;object-fit:contain;border-radius:5px;">
         </div>
-        <span class="tb-name">ORCA</span>
     </div>
     <div class="tb-sep"></div>
-    <span class="tb-sub">Optical Replication &amp; Control Apparatus</span>
+    <span class="tb-name">Optical Replication &amp; Control Apparatus</span>
     <div class="tb-sp"></div>
 
     <div id="sanityWarn" class="tb-badge" style="display:none;background:var(--warn-dim);color:var(--warn);border-color:rgba(255,171,64,0.3);">
