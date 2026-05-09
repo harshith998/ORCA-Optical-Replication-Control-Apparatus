@@ -621,11 +621,21 @@ const luxChart = new Chart(ctx, {
         labels: [],
         datasets: [
             {
-                label: 'Raw Lux',
+                label: 'Clear (broadband)',
                 data: [],
                 borderColor: '#2979ff',
                 backgroundColor: 'rgba(41,121,255,0.07)',
                 fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 1.5
+            },
+            {
+                label: 'LED Lux',
+                data: [],
+                borderColor: '#00e676',
+                backgroundColor: 'transparent',
+                fill: false,
                 tension: 0.3,
                 pointRadius: 0,
                 borderWidth: 1.5
@@ -821,28 +831,24 @@ function loadHistory(hours) {
         b.classList.toggle('active', b.textContent === tag);
     });
 
-    const ch = document.getElementById('channelSelect').value;
+    const ch  = document.getElementById('channelSelect').value;
+    const lbl = document.getElementById('channelSelect').selectedOptions[0].text;
 
-    if (ch === 'clear') {
-        fetch(`/api/history?hours=${hours}&limit=500`)
-            .then(r => r.json())
-            .then(data => {
-                luxChart.data.labels            = data.map(d => fmt(d.timestamp));
-                luxChart.data.datasets[0].label = 'LED Lux';
-                luxChart.data.datasets[0].data  = data.map(d => d.led_lux);
-                luxChart.update('none');
-            });
-    } else {
-        fetch(`/api/spectrum?hours=${hours}&limit=500`)
-            .then(r => r.json())
-            .then(data => {
-                const lbl = document.getElementById('channelSelect').selectedOptions[0].text;
-                luxChart.data.labels            = data.map(d => fmt(d.timestamp));
-                luxChart.data.datasets[0].label = lbl;
-                luxChart.data.datasets[0].data  = data.map(d => d[ch] ?? 0);
-                luxChart.update('none');
-            });
-    }
+    // Fetch chamber history (LED Lux) and sensor spectrum in parallel.
+    // Both are bucketed to the same time grid so timestamps align.
+    Promise.all([
+        fetch(`/api/history?hours=${hours}&limit=500`).then(r => r.json()),
+        fetch(`/api/spectrum?hours=${hours}&limit=500`).then(r => r.json()),
+    ]).then(([hist, spec]) => {
+        // Build a timestamp→value map from sensor history for fast lookup
+        const specMap = new Map(spec.map(d => [d.timestamp, d[ch] ?? null]));
+
+        luxChart.data.labels            = hist.map(d => fmt(d.timestamp));
+        luxChart.data.datasets[0].label = lbl;
+        luxChart.data.datasets[0].data  = hist.map(d => specMap.get(d.timestamp) ?? null);
+        luxChart.data.datasets[1].data  = hist.map(d => d.led_lux);
+        luxChart.update('none');
+    });
 }
 
 function fmt(ts) {
