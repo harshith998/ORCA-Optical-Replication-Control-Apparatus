@@ -27,7 +27,7 @@ static constexpr gpio_num_t I2C_SDA_GPIO = GPIO_NUM_18;
 // Sampling & transmit timing configuration
 #define TRANSMIT_CYCLE_MS 10000ULL          // How often to transmit data (ms)
 #define SAMPLES_PER_TRANSMIT 2              // How many samples to average into each transmit cycle
-#define GPS_LOCK_TIMEOUT_MS 5000ULL         // How long to wait for a GPS fix before giving up (ms)
+#define GPS_LOCK_TIMEOUT_MS 6000ULL         // How long to wait for a GPS fix before giving up (ms)
 #define SAMPLING_CYCLE_MS (uint64_t)(TRANSMIT_CYCLE_MS / SAMPLES_PER_TRANSMIT)
 
 // RTC retained-state validation
