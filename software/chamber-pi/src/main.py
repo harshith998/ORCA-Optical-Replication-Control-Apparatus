@@ -16,7 +16,7 @@ from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
 from web_server import update_current_state, run_server, get_web_control, set_web_control
-from solar_check import check_reading, get_sun_elevation
+from solar_check import get_expected_clear, get_sun_elevation
 
 io = IOController()
 lcd = LCDDisplay()
@@ -128,12 +128,14 @@ def loop():
         db.notify_gps_time(gps['unix_time'])
 
     if new_packet and gps.get('valid') and spectral:
-        _last_sanity_flag = check_reading(
-            clear_value=spectral.get('clear', raw_lux),
-            lat=gps['latitude'],
-            lon=gps['longitude'],
-            unix_time=gps['unix_time'],
-        )
+        clear_val  = spectral.get('clear', 0)
+        solar_max  = get_expected_clear(gps['latitude'], gps['longitude'], gps['unix_time'])
+        if solar_max is not None:
+            _last_sanity_flag = clear_val > solar_max
+            if _last_sanity_flag:
+                print(f"[SolarCheck] FLAGGED — clear={clear_val} > solar_max={solar_max:.0f}")
+        else:
+            _last_sanity_flag = False
     sanity_flag = _last_sanity_flag
 
     actual_pwm = 0
