@@ -53,13 +53,11 @@ class LCDDisplay:
             self.bus = None
             self.available = False
             self.status = f"Missing - /dev/i2c-{I2C_BUS} not found. Enable I2C if you plan to use it"
-            print(f" LCD: {self.status}")
             return False
         except Exception as exc:
             self.bus = None
             self.available = False
             self.status = f"Unavailable - could not open I2C bus {I2C_BUS}: {exc}"
-            print(f" LCD: {self.status}")
             return False
 
         time.sleep(0.05)
@@ -94,7 +92,6 @@ class LCDDisplay:
                 pass
             self.bus = None
 
-        print(f" LCD: {self.status}")
         return self.available
 
     def _io_error(self, exc):

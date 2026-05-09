@@ -61,6 +61,11 @@ KNOB_STEP = 10        # PWM units per rotary encoder detent in manual mode
 # ---------- Timing Settings ----------
 LOOP_DELAY_MS = 100   # 100 milliseconds loop delay
 
+# ---------- Hotspot Settings ----------
+HOTSPOT_IP   = '10.42.0.1'
+HOTSPOT_SSID = 'ORCA-Pi'
+WEB_PORT     = 5000
+
 # ---------- RS-485 / Wired UART Settings ----------
 RS_UART_DEVICE = '/dev/serial0'  # Primary hardware UART RX
 RS_RX_BAUD     = 115200

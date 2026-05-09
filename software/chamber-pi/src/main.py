@@ -7,9 +7,10 @@ Includes web server for remote monitoring and control.
 
 import datetime
 import signal
+import subprocess
 import threading
 import time
-from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT, LCD_COLS, KNOB_STEP
+from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT, LCD_COLS, KNOB_STEP, HOTSPOT_IP, HOTSPOT_SSID, WEB_PORT
 from database import db
 from io_controller import IOController
 from lcd_display import LCDDisplay
@@ -46,8 +47,15 @@ def setup():
     signal.signal(signal.SIGINT, signal_handler)    # Catches Ctrl+C termination
     signal.signal(signal.SIGTERM, signal_handler)   # Catches other termination signals
 
-    io.begin()  # Starts IO Controller for sensors and actuators
-    lcd.begin() # Initializes LCD display
+    io.begin()
+    lcd.begin()
+
+    print("==================")
+    print(" Init Diagnostics ")
+    print("==================")
+    for name, status in io.get_init_report().items():
+        print(f"{name.upper():>6}: {status}")
+    print(f"{'LCD':>6}: {lcd.get_init_report()}")
 
     if lcd.available:
         lcd.set_backlight(True)
@@ -177,8 +185,6 @@ def loop():
         gps=gps,
     )
 
-    duty_pct = (actual_pwm / MAX_PWM_VALUE) * 100.0
-    print(f"{io.to_string()} | [PWM] {actual_pwm}/{MAX_PWM_VALUE} ({duty_pct:.1f}%) mode={actual_mode}")
 
 
 def main_loop():
@@ -221,7 +227,17 @@ def main():
 
     print("=" * 50)
     print("  Chamber Controller Started")
-    print("  Web interface: http://localhost:5000")
+    try:
+        ips = subprocess.check_output(['hostname', '-I'], timeout=2).decode().strip().split()
+        for ip in ips:
+            if ip.startswith('127.'):
+                continue
+            if ip == HOTSPOT_IP:
+                print(f"  http://{ip}:{WEB_PORT}  (hotspot: join {HOTSPOT_SSID})")
+            else:
+                print(f"  http://{ip}:{WEB_PORT}")
+    except Exception:
+        print(f"  http://localhost:{WEB_PORT}")
     print("  Press Ctrl+C to stop")
     print("=" * 50)
 

@@ -94,7 +94,6 @@ class LoRaReceiver:
         self._spi        = None
         self._irq_mask   = _IRQ_RX_DONE | _IRQ_CRC_ERR
         self._pkt_count  = 0
-        self._last_beat  = 0.0
 
     # --- Public API ---
 
@@ -174,14 +173,6 @@ class LoRaReceiver:
         Non-blocking packet check. Returns raw payload bytes on RxDone,
         empty bytes on CRC error, or None if nothing has arrived.
         """
-        now = time.time()
-        if now - self._last_beat >= 1.0:
-            r        = self._cmd(_CMD_GET_STATUS, [0x00])
-            mode     = (r[1] >> 4) & 0x07
-            mode_str = _CHIP_MODES.get(mode, f'unknown({mode})')
-            print(f"[LoRa] {now:.1f}  mode={mode_str:<12}  pkts={self._pkt_count}")
-            self._last_beat = now
-
         if not GPIO.input(self._dio1):
             return None
 

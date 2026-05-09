@@ -974,6 +974,8 @@ setInterval(() => loadHistory(_hrs), 30000);
 
 def run_server(host='0.0.0.0', port=5000, debug=False):
     """Run the Flask server."""
+    import logging
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
     app.run(host=host, port=port, debug=debug, threaded=True)
 
 

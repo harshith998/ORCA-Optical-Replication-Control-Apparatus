@@ -150,12 +150,6 @@ class IOController:
             self.lora = None
             self.status['lora'] = f"Unavailable - LoRa init failed: {exc}"
 
-        print("==================")
-        print(" Init Diagnostics ")
-        print("==================")
-        for name in ('gpio', 'pwm', 'lora', 'rs485', 'leds', 'rotary'):
-            print(f"{name.upper():>6}: {self.status[name]}")
-
     def update(self):
         """Update all input states."""
         self._read_switches()
