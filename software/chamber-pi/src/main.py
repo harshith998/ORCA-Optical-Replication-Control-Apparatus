@@ -131,7 +131,7 @@ def loop():
         clear_val  = spectral.get('clear', 0)
         solar_max  = get_expected_clear(gps['latitude'], gps['longitude'], gps['unix_time'])
         if solar_max is not None:
-            _last_sanity_flag = clear_val > solar_max
+            _last_sanity_flag = bool(clear_val > solar_max)
             if _last_sanity_flag:
                 print(f"[SolarCheck] FLAGGED — clear={clear_val} > solar_max={solar_max:.0f}")
         else:

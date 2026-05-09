@@ -46,7 +46,7 @@ def get_expected_clear(lat: float, lon: float, unix_time: int) -> float | None:
             if elevation_deg < MIN_ELEVATION_DEG:
                 return 0.0
             radiation = get_radiation_direct(dt, elevation_deg)
-        return radiation * CLEAR_PER_WM2
+        return float(radiation) * CLEAR_PER_WM2
     except Exception:
         return None
 
