@@ -528,7 +528,7 @@ body{
 <div class="tb">
     <div class="tb-logo">
         <div class="tb-mark">
-            <img src="/orca_logo.png" style="width:26px;height:26px;object-fit:contain;border-radius:5px;">
+            <img src="/orca_logo.png" style="width:38px;height:38px;object-fit:contain;border-radius:5px;">
         </div>
         <span class="tb-name">ORCA</span>
     </div>
