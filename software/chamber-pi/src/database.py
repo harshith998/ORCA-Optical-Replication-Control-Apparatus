@@ -128,9 +128,40 @@ class Database:
 
     def get_history(self, start_time: Optional[float] = None,
                     end_time: Optional[float] = None,
-                    limit: int = 1000) -> List[Dict[str, Any]]:
-        """Get lux history within time range."""
+                    limit: int = 1000,
+                    bucket_secs: Optional[float] = None) -> List[Dict[str, Any]]:
+        """Get lux history within time range.
+
+        When bucket_secs is set, rows are averaged into time buckets of that
+        width so the caller receives ~limit evenly-spaced points regardless of
+        how densely data was logged.
+        """
         with self._cursor() as cursor:
+            if bucket_secs:
+                where_clauses = ["1=1"]
+                where_params: list = []
+                if start_time:
+                    where_clauses.append("timestamp >= ?")
+                    where_params.append(start_time)
+                if end_time:
+                    where_clauses.append("timestamp <= ?")
+                    where_params.append(end_time)
+                where_str = " AND ".join(where_clauses)
+                query = f"""
+                    SELECT
+                        CAST(timestamp / ? AS INTEGER) * ? AS timestamp,
+                        CAST(AVG(raw_lux) AS INTEGER) AS raw_lux,
+                        CAST(AVG(clamped_lux) AS INTEGER) AS clamped_lux,
+                        CAST(AVG(pwm_value) AS INTEGER) AS pwm_value
+                    FROM lux_history
+                    WHERE {where_str}
+                    GROUP BY CAST(timestamp / ? AS INTEGER)
+                    ORDER BY timestamp ASC
+                """
+                params = [bucket_secs, bucket_secs] + where_params + [bucket_secs]
+                cursor.execute(query, params)
+                return [dict(row) for row in cursor.fetchall()]
+
             query = "SELECT * FROM lux_history WHERE 1=1"
             params = []
 
@@ -226,10 +257,35 @@ class Database:
                 int(sanity_flag),
             ))
 
-    def get_spectral_history(self, hours: float = 6, limit: int = 500) -> List[Dict[str, Any]]:
+    def get_spectral_history(self, hours: float = 6, limit: int = 500,
+                             bucket_secs: Optional[float] = None) -> List[Dict[str, Any]]:
         """Get spectral history for the last N hours."""
         start_time = time.time() - (hours * 3600)
         with self._cursor() as cursor:
+            if bucket_secs:
+                cursor.execute("""
+                    SELECT
+                        CAST(timestamp / ? AS INTEGER) * ? AS timestamp,
+                        CAST(AVG(f1)  AS INTEGER) AS f1,
+                        CAST(AVG(f2)  AS INTEGER) AS f2,
+                        CAST(AVG(fz)  AS INTEGER) AS fz,
+                        CAST(AVG(f3)  AS INTEGER) AS f3,
+                        CAST(AVG(f4)  AS INTEGER) AS f4,
+                        CAST(AVG(f5)  AS INTEGER) AS f5,
+                        CAST(AVG(fy)  AS INTEGER) AS fy,
+                        CAST(AVG(f6)  AS INTEGER) AS f6,
+                        CAST(AVG(fxl) AS INTEGER) AS fxl,
+                        CAST(AVG(f7)  AS INTEGER) AS f7,
+                        CAST(AVG(f8)  AS INTEGER) AS f8,
+                        CAST(AVG(nir) AS INTEGER) AS nir,
+                        CAST(AVG(clear) AS INTEGER) AS clear
+                    FROM spectral_history
+                    WHERE timestamp >= ?
+                    GROUP BY CAST(timestamp / ? AS INTEGER)
+                    ORDER BY timestamp ASC
+                """, (bucket_secs, bucket_secs, start_time, bucket_secs))
+                return [dict(row) for row in cursor.fetchall()]
+
             cursor.execute("""
                 SELECT * FROM spectral_history
                 WHERE timestamp >= ?

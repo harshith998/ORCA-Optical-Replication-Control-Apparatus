@@ -194,9 +194,10 @@ def api_control():
 @app.route('/api/history')
 def api_history():
     hours = request.args.get('hours', 24, type=float)
-    limit = request.args.get('limit', 1000, type=int)
+    limit = request.args.get('limit', 500, type=int)
     start_time = time.time() - (hours * 3600)
-    return jsonify(db.get_history(start_time=start_time, limit=limit))
+    bucket_secs = (hours * 3600) / limit
+    return jsonify(db.get_history(start_time=start_time, bucket_secs=bucket_secs))
 
 
 @app.route('/api/stats')
@@ -248,7 +249,8 @@ def api_water():
 def api_spectrum():
     hours = request.args.get('hours', 6, type=float)
     limit = request.args.get('limit', 500, type=int)
-    return jsonify(db.get_spectral_history(hours=hours, limit=limit))
+    bucket_secs = (hours * 3600) / limit
+    return jsonify(db.get_spectral_history(hours=hours, bucket_secs=bucket_secs))
 
 
 @app.route('/chart.js')
@@ -762,7 +764,7 @@ function connectSSE() {
         const d = JSON.parse(e.data);
         updateUI(d);
         const now = Date.now();
-        if (now - _lastChart > 10000) { _lastChart = now; loadHistory(_hrs); }
+        if (now - _lastChart > 1000) { _lastChart = now; loadHistory(_hrs); }
     };
     es.onerror = () => {
         setConn(false);
@@ -974,7 +976,7 @@ function postWater(payload) {
 // ── Init ──
 connectSSE();
 loadHistory(6);
-setInterval(() => loadHistory(_hrs), 30000);
+setInterval(() => loadHistory(_hrs), 1000);
 </script>
 </body>
 </html>"""
