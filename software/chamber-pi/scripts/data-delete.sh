@@ -8,7 +8,7 @@
 
 REPO_DIR="$HOME/ORCA-Optical-Replication-Control-Apparatus"
 CHAMBER_DIR="$REPO_DIR/software/chamber-pi"
-DB_PATH="$CHAMBER_DIR/src/chamber_data.db"
+DB_PATH="$CHAMBER_DIR/chamber_data.db"
 
 echo "──────────────────────────────────────"
 echo " ORCA Data Delete"
@@ -36,8 +36,8 @@ fi
 python3 - "$DB_PATH" <<'EOF'
 import sqlite3, sys
 db = sqlite3.connect(sys.argv[1])
-db.execute("DELETE FROM lux_history")
-db.execute("DELETE FROM spectral_history")
+db.execute("DROP TABLE IF EXISTS lux_history")
+db.execute("DROP TABLE IF EXISTS spectral_history")
 db.commit()
 db.isolation_level = None
 db.execute("VACUUM")
