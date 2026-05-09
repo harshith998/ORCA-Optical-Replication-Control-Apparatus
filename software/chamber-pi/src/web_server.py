@@ -628,7 +628,8 @@ const luxChart = new Chart(ctx, {
                 fill: true,
                 tension: 0.3,
                 pointRadius: 0,
-                borderWidth: 1.5
+                borderWidth: 1.5,
+                spanGaps: true
             },
             {
                 label: 'LED Lux',
@@ -848,7 +849,7 @@ function loadHistory(hours) {
         luxChart.data.datasets[0].data  = hist.map(d => specMap.get(d.timestamp) ?? null);
         luxChart.data.datasets[1].data  = hist.map(d => d.led_lux);
         luxChart.update('none');
-    });
+    }).catch(err => console.error('loadHistory failed:', err));
 }
 
 function fmt(ts) {
