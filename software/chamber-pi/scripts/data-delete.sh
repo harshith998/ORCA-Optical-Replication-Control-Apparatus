@@ -33,11 +33,19 @@ if [ "$CONFIRM" != "YES" ]; then
     exit 0
 fi
 
-sqlite3 "$DB_PATH" "DELETE FROM lux_history; DELETE FROM spectral_history; VACUUM;"
+python3 - "$DB_PATH" <<'EOF'
+import sqlite3, sys
+db = sqlite3.connect(sys.argv[1])
+db.execute("DELETE FROM lux_history")
+db.execute("DELETE FROM spectral_history")
+db.execute("VACUUM")
+db.commit()
+db.close()
+EOF
 
 if [ $? -eq 0 ]; then
     echo "[SUCCESS] All data deleted and database compacted."
 else
-    echo "[ERROR] sqlite3 failed. Is sqlite3 installed? (sudo apt install sqlite3)"
+    echo "[ERROR] Failed to delete data."
     exit 1
 fi
