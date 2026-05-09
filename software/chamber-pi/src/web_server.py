@@ -726,20 +726,7 @@ const luxChart = new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top', align: 'end',
-                labels: {
-                    color: '#5a7a9e',
-                    font: {size: 11},
-                    generateLabels(chart) {
-                        return chart.data.datasets.map((ds, i) => ({
-                            text:         ds.label,
-                            fillStyle:    ds.borderColor,
-                            strokeStyle:  ds.borderColor,
-                            pointStyle:   'circle',
-                            hidden:       !chart.isDatasetVisible(i),
-                            datasetIndex: i,
-                        }));
-                    }
-                }
+                labels: {color:'#5a7a9e', usePointStyle:true, pointStyleWidth:8, font:{size:11}}
             },
             tooltip: {
                 backgroundColor:'#0e1b2e',
