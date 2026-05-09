@@ -160,6 +160,38 @@ def api_stats():
     return jsonify(db.get_stats(hours))
 
 
+@app.route('/api/download/chamber')
+def download_chamber():
+    import csv, io
+    rows = db.get_chamber_history()
+    buf = io.StringIO()
+    if rows:
+        w = csv.DictWriter(buf, fieldnames=rows[0].keys())
+        w.writeheader()
+        w.writerows(rows)
+    return Response(
+        buf.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename="chamber_history.csv"'}
+    )
+
+
+@app.route('/api/download/sensor')
+def download_sensor():
+    import csv, io
+    rows = db.get_sensor_history(hours=24 * 365)  # all data
+    buf = io.StringIO()
+    if rows:
+        w = csv.DictWriter(buf, fieldnames=rows[0].keys())
+        w.writeheader()
+        w.writerows(rows)
+    return Response(
+        buf.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename="sensor_history.csv"'}
+    )
+
+
 @app.route('/api/stream')
 def api_stream():
     return Response(
@@ -435,6 +467,15 @@ body{
 }
 .tbtn:hover{color:var(--text-hi);}
 .tbtn.active{background:var(--accent);color:#fff;}
+.dl-btn{
+    display:flex;align-items:center;gap:7px;width:100%;
+    padding:7px 11px;border:1px solid var(--rim2);border-radius:3px;
+    background:transparent;color:var(--text-mid);font-size:11px;font-weight:600;
+    cursor:pointer;transition:all 0.12s;text-decoration:none;
+    letter-spacing:0.04em;
+}
+.dl-btn:hover{border-color:var(--accent-rim);color:var(--text-hi);}
+.dl-btn svg{flex-shrink:0;opacity:0.6;}
 .chart-wrap{flex:1;min-height:0;position:relative;}
 
 /* Sanity warning */
@@ -552,6 +593,21 @@ body{
             <div class="row"><span class="row-k">Fix</span><span class="row-v" id="gpsFix">--</span></div>
             <div class="row"><span class="row-k">Latitude</span><span class="row-v" id="gpsLat">--</span></div>
             <div class="row"><span class="row-k">Longitude</span><span class="row-v" id="gpsLon">--</span></div>
+        </div>
+
+        <!-- Download -->
+        <div class="sb-sec" style="margin-top:auto;">
+            <div class="lbl">Export Data</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+                <a class="dl-btn" href="/api/download/chamber">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Chamber History
+                </a>
+                <a class="dl-btn" href="/api/download/sensor">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Sensor History
+                </a>
+            </div>
         </div>
 
     </div>

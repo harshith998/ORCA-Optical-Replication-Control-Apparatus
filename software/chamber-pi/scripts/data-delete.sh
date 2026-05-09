@@ -21,10 +21,10 @@ fi
 
 echo ""
 echo " This will permanently delete ALL rows from:"
-echo "   • lux_history"
-echo "   • spectral_history"
+echo "   • chamber_history"
+echo "   • sensor_history"
 echo ""
-echo " The database file is kept. System settings are not affected."
+echo " The database file is kept."
 echo ""
 read -r -p " Type YES to confirm: " CONFIRM
 
