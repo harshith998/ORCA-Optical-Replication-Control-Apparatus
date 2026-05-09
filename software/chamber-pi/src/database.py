@@ -263,7 +263,10 @@ class Database:
                         CAST(AVG(f7)    AS INTEGER) AS f7,
                         CAST(AVG(f8)    AS INTEGER) AS f8,
                         CAST(AVG(nir)   AS INTEGER) AS nir,
-                        CAST(AVG(clear) AS INTEGER) AS clear
+                        CAST(AVG(clear) AS INTEGER) AS clear,
+                        AVG(CASE WHEN gps_valid = 1 THEN gps_lat  ELSE NULL END) AS gps_lat,
+                        AVG(CASE WHEN gps_valid = 1 THEN gps_lon  ELSE NULL END) AS gps_lon,
+                        MAX(CASE WHEN gps_valid = 1 THEN gps_unix_time ELSE NULL END) AS gps_unix_time
                     FROM sensor_history
                     WHERE timestamp >= ?
                     GROUP BY CAST(timestamp / ? AS INTEGER)

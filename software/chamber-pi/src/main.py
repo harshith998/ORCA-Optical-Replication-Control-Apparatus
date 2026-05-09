@@ -21,11 +21,12 @@ from solar_check import check_reading, get_sun_elevation
 io = IOController()
 lcd = LCDDisplay()
 
-pwm_enabled   = False
-running       = True
-last_knob_pos = 0       # previous encoder position for delta tracking
-_lcd_cache    = ['', '', '', '']  # last-written content per row; skip write if unchanged
-_log_tick     = 0       # counts 100 ms ticks; DB write happens every 10 (1 s)
+pwm_enabled       = False
+running           = True
+last_knob_pos     = 0       # previous encoder position for delta tracking
+_lcd_cache        = ['', '', '', '']  # last-written content per row; skip write if unchanged
+_log_tick         = 0       # counts 100 ms ticks; DB write happens every 10 (1 s)
+_last_sanity_flag = False   # persists across ticks so the UI badge stays visible
 
 
 def lcd_row(row: int, text: str):
@@ -85,7 +86,7 @@ def setup():
 
 
 def loop():
-    global pwm_enabled, last_knob_pos, _log_tick
+    global pwm_enabled, last_knob_pos, _log_tick, _last_sanity_flag
 
     io.update()
 
@@ -126,14 +127,14 @@ def loop():
     if new_packet and gps.get('valid') and gps.get('unix_time', 0) > 0:
         db.notify_gps_time(gps['unix_time'])
 
-    sanity_flag = False
     if new_packet and gps.get('valid') and spectral:
-        sanity_flag = check_reading(
+        _last_sanity_flag = check_reading(
             clear_value=spectral.get('clear', raw_lux),
             lat=gps['latitude'],
             lon=gps['longitude'],
             unix_time=gps['unix_time'],
         )
+    sanity_flag = _last_sanity_flag
 
     actual_pwm = 0
     actual_mode = 'auto'

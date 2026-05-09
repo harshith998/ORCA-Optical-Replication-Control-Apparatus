@@ -34,6 +34,23 @@ SANITY_TOLERANCE = 5.0
 MIN_ELEVATION_DEG = 5.0
 
 
+def get_expected_clear(lat: float, lon: float, unix_time: int) -> float | None:
+    """Return expected AS7343 clear channel count from solar model, or None if unavailable."""
+    if not _PYSOLAR_AVAILABLE or unix_time <= 0 or (lat == 0.0 and lon == 0.0):
+        return None
+    try:
+        dt = datetime.datetime.fromtimestamp(unix_time, tz=datetime.timezone.utc)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            elevation_deg = get_altitude(lat, lon, dt)
+            if elevation_deg < MIN_ELEVATION_DEG:
+                return 0.0
+            radiation = get_radiation_direct(dt, elevation_deg)
+        return radiation * CLEAR_PER_WM2
+    except Exception:
+        return None
+
+
 def get_sun_elevation(lat: float, lon: float, unix_time: int) -> float | None:
     """Return sun elevation angle in degrees, or None if unavailable."""
     if not _PYSOLAR_AVAILABLE or unix_time <= 0 or (lat == 0.0 and lon == 0.0):
@@ -82,7 +99,9 @@ def check_reading(clear_value: int, lat: float, lon: float, unix_time: int) -> b
             # Flag only if reading is very high (sensor malfunction)
             return bool(clear_value > 1000)
 
-        radiation = get_radiation_direct(dt, elevation_deg)  # W/m²
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            radiation = get_radiation_direct(dt, elevation_deg)  # W/m²
         expected_clear = radiation * CLEAR_PER_WM2
 
         if expected_clear <= 0:

@@ -13,6 +13,7 @@ from typing import Generator
 from database import db
 from config import MAX_PWM_VALUE
 from usb_logger import usb_logger
+from solar_check import get_expected_clear
 
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
@@ -215,7 +216,13 @@ def api_spectrum():
     hours = request.args.get('hours', 6, type=float)
     limit = request.args.get('limit', 500, type=int)
     bucket_secs = (hours * 3600) / limit
-    return jsonify(db.get_sensor_history(hours=hours, bucket_secs=bucket_secs))
+    rows = db.get_sensor_history(hours=hours, bucket_secs=bucket_secs)
+    for row in rows:
+        lat = row.get('gps_lat') or 0.0
+        lon = row.get('gps_lon') or 0.0
+        t   = int(row.get('gps_unix_time') or row.get('timestamp') or 0)
+        row['solar_max'] = get_expected_clear(lat, lon, t)
+    return jsonify(rows)
 
 
 @app.route('/chart.js')
@@ -696,6 +703,18 @@ const luxChart = new Chart(ctx, {
                 tension: 0.3,
                 pointRadius: 0,
                 borderWidth: 1.5
+            },
+            {
+                label: 'Solar Max (theoretical)',
+                data: [],
+                borderColor: '#ff9800',
+                backgroundColor: 'transparent',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 1.5,
+                borderDash: [5, 4],
+                spanGaps: true
             }
         ]
     },
@@ -707,7 +726,7 @@ const luxChart = new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top', align: 'end',
-                labels: {color:'#5a7a9e', usePointStyle:true, pointStyleWidth:10, font:{size:11}}
+                labels: {color:'#5a7a9e', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
             },
             tooltip: {
                 backgroundColor:'#0e1b2e',
@@ -907,13 +926,15 @@ function loadHistory(hours) {
         fetch(`/api/history?hours=${hours}&limit=500`).then(r => r.json()),
         fetch(`/api/spectrum?hours=${hours}&limit=500`).then(r => r.json()),
     ]).then(([hist, spec]) => {
-        // Build a timestamp→value map from sensor history for fast lookup
-        const specMap = new Map(spec.map(d => [d.timestamp, d[ch] ?? null]));
+        // Build timestamp→value maps from sensor history for fast lookup
+        const specMap  = new Map(spec.map(d => [d.timestamp, d[ch] ?? null]));
+        const solarMap = new Map(spec.map(d => [d.timestamp, d.solar_max ?? null]));
 
         luxChart.data.labels            = hist.map(d => fmt(d.timestamp));
         luxChart.data.datasets[0].label = lbl;
-        luxChart.data.datasets[0].data  = hist.map(d => specMap.get(d.timestamp) ?? null);
+        luxChart.data.datasets[0].data  = hist.map(d => specMap.get(d.timestamp)  ?? null);
         luxChart.data.datasets[1].data  = hist.map(d => d.led_lux);
+        luxChart.data.datasets[2].data  = hist.map(d => solarMap.get(d.timestamp) ?? null);
         luxChart.update('none');
     }).catch(err => console.error('loadHistory failed:', err));
 }
