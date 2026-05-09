@@ -726,7 +726,7 @@ const luxChart = new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top', align: 'end',
-                labels: {color:'#5a7a9e', usePointStyle:true, pointStyleWidth:8, font:{size:11}}
+                labels: {color:'#5a7a9e', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
             },
             tooltip: {
                 backgroundColor:'#0e1b2e',
