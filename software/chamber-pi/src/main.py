@@ -98,15 +98,19 @@ def loop():
     delta    = knob_pos - last_knob_pos
     last_knob_pos = knob_pos
 
+    physical_change = False
+
     if clicked:
         init_pwm = web_manual_pwm if web_manual_enabled else 0
         db.set_web_control_state(enabled=not web_manual_enabled, pwm_value=init_pwm)
         web_manual_enabled = not web_manual_enabled
         web_manual_pwm = init_pwm
+        physical_change = True
 
     if web_manual_enabled and delta != 0:
         web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * KNOB_STEP))
         db.set_web_control_state(enabled=True, pwm_value=web_manual_pwm)
+        physical_change = True
 
     raw_lux = io.get_lux_value()
     clamped_lux = io.get_clamped_lux(raw_lux)
@@ -185,6 +189,7 @@ def loop():
         gps=gps,
         web_manual_enabled=web_manual_enabled,
         web_manual_pwm=web_manual_pwm,
+        physical_change=physical_change,
     )
 
 

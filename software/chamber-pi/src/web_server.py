@@ -99,7 +99,8 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
                          wired_connected: bool = False,
                          gps: dict = None,
                          web_manual_enabled: bool = None,
-                         web_manual_pwm: int = None):
+                         web_manual_pwm: int = None,
+                         physical_change: bool = False):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         current_state['raw_lux'] = raw_lux
@@ -121,6 +122,7 @@ def update_current_state(raw_lux: int, clamped_lux: int, pwm_value: int,
         current_state['timestamp'] = time.time()
         state_copy = current_state.copy()
 
+    state_copy['physical_change'] = physical_change
     broadcast_sse(state_copy)
 
 
@@ -840,8 +842,8 @@ function updateUI(d) {
         document.getElementById('gpsLon').textContent = '--';
     }
 
-    // Control mode — skip if user just toggled (prevents SSE race from reverting it)
-    if (!_pendingMode) {
+    // Control mode — only apply from SSE when the physical knob was used
+    if (d.physical_change) {
         const manual = !!d.web_manual_enabled;
         document.getElementById('modeToggle').checked = manual;
         document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
@@ -849,28 +851,15 @@ function updateUI(d) {
         const slider = document.getElementById('manualPwmSlider');
         slider.disabled = !manual;
         document.getElementById('manualPwmDisplay').className = manual ? 'sld-val' : 'sld-val dim';
-    }
-
-    // Slider value — only update when not being actively dragged or debounce pending
-    const slider = document.getElementById('manualPwmSlider');
-    const valEl = document.getElementById('manualPwmDisplay');
-    if (!slider.matches(':active') && !_pwmDebounceTimer) {
         slider.value = d.web_manual_pwm;
-        valEl.textContent = d.web_manual_pwm;
+        document.getElementById('manualPwmDisplay').textContent = d.web_manual_pwm;
     }
 }
 
 // ── Mode toggle (equivalent to clicking rotary knob) ──
-let _pendingMode = false, _pendingModeTimer = null;
-
 function toggleMode() {
     const manual = document.getElementById('modeToggle').checked;
     const pwm    = parseInt(document.getElementById('manualPwmSlider').value);
-
-    // Block SSE from reverting the toggle until the server confirms the change
-    _pendingMode = true;
-    if (_pendingModeTimer) clearTimeout(_pendingModeTimer);
-    _pendingModeTimer = setTimeout(() => { _pendingMode = false; _pendingModeTimer = null; }, 500);
 
     document.getElementById('lblAuto').className   = manual ? 'mode-lbl'               : 'mode-lbl active-auto';
     document.getElementById('lblManual').className = manual ? 'mode-lbl active-manual' : 'mode-lbl';
@@ -883,7 +872,7 @@ function toggleMode() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({enabled: manual, pwm: pwm})
-    }).then(() => { _pendingMode = false; _pendingModeTimer = null; });
+    });
 }
 
 // ── Brightness slider (equivalent to turning rotary knob) ──
