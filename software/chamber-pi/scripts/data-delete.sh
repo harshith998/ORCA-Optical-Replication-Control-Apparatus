@@ -38,8 +38,9 @@ import sqlite3, sys
 db = sqlite3.connect(sys.argv[1])
 db.execute("DELETE FROM lux_history")
 db.execute("DELETE FROM spectral_history")
-db.execute("VACUUM")
 db.commit()
+db.isolation_level = None
+db.execute("VACUUM")
 db.close()
 EOF
 
