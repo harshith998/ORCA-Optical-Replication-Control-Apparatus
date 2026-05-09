@@ -788,9 +788,11 @@ function updateUI(d) {
     // Lux
     document.getElementById('luxVal').textContent = Number(d.raw_lux).toLocaleString();
 
-    // PWM
-    document.getElementById('pwmPct').textContent = ((d.pwm_value / 1023) * 100).toFixed(1);
-    document.getElementById('pwmRaw').textContent  = d.pwm_value;
+    // PWM — skip SSE update during the web-change lockout window
+    if (Date.now() - _webChangedAt > 1000) {
+        document.getElementById('pwmPct').textContent = ((d.pwm_value / 1023) * 100).toFixed(1);
+        document.getElementById('pwmRaw').textContent  = d.pwm_value;
+    }
 
     // Data link
     const lb   = document.getElementById('dataLinkBadge');
