@@ -14,56 +14,6 @@ from database import db
 from config import MAX_PWM_VALUE
 from usb_logger import usb_logger
 
-# ---------------------------------------------------------------------------
-# Water / Solenoid Scheduler
-# ---------------------------------------------------------------------------
-
-class WaterScheduler:
-    """Background thread that drives the solenoid in auto or manual mode."""
-
-    def __init__(self):
-        self._thread = None
-        self._stop_event = threading.Event()
-        self._valve_open = False
-        self._lock = threading.Lock()
-
-    def start(self):
-        self._stop_event.clear()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
-
-    def stop(self):
-        self._stop_event.set()
-        self._set_valve(False)
-
-    def _set_valve(self, on: bool):
-        with self._lock:
-            self._valve_open = on
-
-    def get_valve_open(self) -> bool:
-        with self._lock:
-            return self._valve_open
-
-    def _run(self):
-        while not self._stop_event.is_set():
-            state = db.get_water_control_state()
-            if state['mode'] == 'manual':
-                self._set_valve(state['manual_open'])
-                self._stop_event.wait(0.5)
-            else:  # auto
-                interval = max(1, state['auto_interval_s'])
-                duration = max(1, state['auto_duration_s'])
-                self._set_valve(True)
-                self._stop_event.wait(duration)
-                if self._stop_event.is_set():
-                    break
-                self._set_valve(False)
-                self._stop_event.wait(max(0, interval - duration))
-        self._set_valve(False)
-
-
-water_scheduler = WaterScheduler()
-
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 app = Flask(__name__)
@@ -79,6 +29,7 @@ current_state = {
     'mode': 'lux',
     'sw1': False,
     'sw2': False,
+    'sw3': False,
     'web_manual_enabled': False,
     'web_manual_pwm': 0,
     'sanity_flag': False,
@@ -89,9 +40,22 @@ current_state = {
 state_lock = threading.Lock()
 
 
+def get_web_control():
+    """Return (web_manual_enabled, web_manual_pwm) from the shared state cache."""
+    with state_lock:
+        return current_state['web_manual_enabled'], current_state['web_manual_pwm']
+
+
+def set_web_control(enabled: bool, pwm: int):
+    """Update web manual control state in the shared cache."""
+    with state_lock:
+        current_state['web_manual_enabled'] = enabled
+        current_state['web_manual_pwm'] = pwm
+
+
 def update_current_state(raw_lux: int, pwm_value: int,
                          mode: str,
-                         sw1: bool, sw2: bool,
+                         sw1: bool, sw2: bool, sw3: bool,
                          sanity_flag: bool = False,
                          wired_connected: bool = False,
                          gps: dict = None,
@@ -105,6 +69,7 @@ def update_current_state(raw_lux: int, pwm_value: int,
         current_state['mode'] = mode
         current_state['sw1'] = sw1
         current_state['sw2'] = sw2
+        current_state['sw3'] = sw3
         current_state['sanity_flag'] = sanity_flag
         current_state['wired_connected'] = wired_connected
         if gps is not None:
@@ -170,18 +135,13 @@ def api_status():
 @app.route('/api/control', methods=['GET', 'POST'])
 def api_control():
     if request.method == 'GET':
-        return jsonify(db.get_web_control_state())
+        enabled, pwm = get_web_control()
+        return jsonify({'enabled': enabled, 'pwm': pwm})
 
     data = request.get_json() or {}
     enabled = data.get('enabled', False)
     pwm = max(0, min(MAX_PWM_VALUE, int(data.get('pwm', 0))))
-
-    db.set_web_control_state(enabled, pwm)
-
-    with state_lock:
-        current_state['web_manual_enabled'] = enabled
-        current_state['web_manual_pwm'] = pwm
-
+    set_web_control(enabled, pwm)
     return jsonify({'success': True, 'enabled': enabled, 'pwm': pwm})
 
 
@@ -191,7 +151,7 @@ def api_history():
     limit = request.args.get('limit', 500, type=int)
     start_time = time.time() - (hours * 3600)
     bucket_secs = (hours * 3600) / limit
-    return jsonify(db.get_history(start_time=start_time, bucket_secs=bucket_secs))
+    return jsonify(db.get_chamber_history(start_time=start_time, bucket_secs=bucket_secs))
 
 
 @app.route('/api/stats')
@@ -218,33 +178,12 @@ def api_usb():
     return jsonify(usb_logger.get_status())
 
 
-@app.route('/api/water', methods=['GET', 'POST'])
-def api_water():
-    if request.method == 'GET':
-        state = db.get_water_control_state()
-        state['valve_open'] = water_scheduler.get_valve_open()
-        return jsonify(state)
-
-    data = request.get_json() or {}
-    mode = data.get('mode', 'manual')
-    if mode not in ('manual', 'auto'):
-        return jsonify({'error': 'mode must be manual or auto'}), 400
-
-    manual_open = bool(data.get('manual_open', False))
-    auto_interval_s = max(1, int(data.get('auto_interval_s', 7200)))
-    auto_duration_s = max(1, int(data.get('auto_duration_s', 10)))
-
-    db.set_water_control_state(mode, manual_open, auto_interval_s, auto_duration_s)
-    return jsonify({'success': True, 'mode': mode, 'manual_open': manual_open,
-                    'auto_interval_s': auto_interval_s, 'auto_duration_s': auto_duration_s})
-
-
 @app.route('/api/spectrum')
 def api_spectrum():
     hours = request.args.get('hours', 6, type=float)
     limit = request.args.get('limit', 500, type=int)
     bucket_secs = (hours * 3600) / limit
-    return jsonify(db.get_spectral_history(hours=hours, bucket_secs=bucket_secs))
+    return jsonify(db.get_sensor_history(hours=hours, bucket_secs=bucket_secs))
 
 
 @app.route('/chart.js')
@@ -889,8 +828,8 @@ function loadHistory(hours) {
             .then(r => r.json())
             .then(data => {
                 luxChart.data.labels            = data.map(d => fmt(d.timestamp));
-                luxChart.data.datasets[0].label = 'Raw Lux';
-                luxChart.data.datasets[0].data  = data.map(d => d.raw_lux);
+                luxChart.data.datasets[0].label = 'LED Lux';
+                luxChart.data.datasets[0].data  = data.map(d => d.led_lux);
                 luxChart.update('none');
             });
     } else {

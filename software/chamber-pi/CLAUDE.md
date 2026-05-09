@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Timestamp Sync Quirk
+
+Timestamps in `chamber_history` and `sensor_history` use a best-effort sync strategy implemented in `database.py` (`TimestampSync`):
+
+1. **NTP synced** — if `datetime.now().year >= 2024` at startup, the Pi's system clock is assumed correct and `time.time()` is used directly.
+2. **GPS sync** — if NTP is not confirmed, the first valid GPS packet calls `db.notify_gps_time(unix_time)`, which sets an offset so subsequent timestamps are GPS-derived.
+3. **Fallback** — if neither has occurred, the offset from the last DB row is applied so timestamps increment monotonically from where they left off.
+
+**Known quirk:** if the fallback is active and then GPS or NTP sync arrives, timestamps jump forward to the correct time. This creates a discontinuity in the recorded data. This is intentional — correctness after sync is preferred over a smooth-but-wrong sequence. Do not attempt to "fix" this jump; it is expected behavior.
+
 ## Project Overview
 
 ORCA (Optical Replication & Control Apparatus) is a dynamic lighting control system for marine phytoplankton research. It replicates real-world light conditions inside laboratory incubation chambers aboard research vessels. The `chamber-pi` software runs on a Raspberry Pi and controls LED strips via PWM based on lux readings from a remote ESP32 sensor module.

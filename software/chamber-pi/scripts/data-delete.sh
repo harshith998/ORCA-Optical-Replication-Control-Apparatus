@@ -36,8 +36,8 @@ fi
 python3 - "$DB_PATH" <<'EOF'
 import sqlite3, sys
 db = sqlite3.connect(sys.argv[1])
-db.execute("DROP TABLE IF EXISTS lux_history")
-db.execute("DROP TABLE IF EXISTS spectral_history")
+db.execute("DROP TABLE IF EXISTS chamber_history")
+db.execute("DROP TABLE IF EXISTS sensor_history")
 db.commit()
 db.isolation_level = None
 db.execute("VACUUM")

@@ -15,7 +15,7 @@ from database import db
 from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
-from web_server import update_current_state, run_server, water_scheduler
+from web_server import update_current_state, run_server, get_web_control, set_web_control
 from solar_check import check_reading, get_sun_elevation
 
 io = IOController()
@@ -25,6 +25,7 @@ pwm_enabled   = False
 running       = True
 last_knob_pos = 0       # previous encoder position for delta tracking
 _lcd_cache    = ['', '', '', '']  # last-written content per row; skip write if unchanged
+_log_tick     = 0       # counts 100 ms ticks; DB write happens every 10 (1 s)
 
 
 def lcd_row(row: int, text: str):
@@ -73,24 +74,28 @@ def setup():
 
     io.set_pwm(0)
 
+    # Restore last known mode from DB so a reboot resumes the previous state
+    last = db.get_latest_state()
+    if last:
+        set_web_control(
+            enabled=bool(last.get('led_mode', 0)),
+            pwm=last.get('led_lux', 0),
+        )
+
 
 
 def loop():
-    global pwm_enabled, last_knob_pos
+    global pwm_enabled, last_knob_pos, _log_tick
 
     io.update()
 
     sw1 = io.get_switch1()
     sw2 = io.get_switch2()
+    sw3 = io.get_switch3()
 
-    web_state = db.get_web_control_state()
-    web_manual_enabled = web_state['web_manual_enabled']
-    web_manual_pwm = web_state['web_manual_pwm']
+    web_manual_enabled, web_manual_pwm = get_web_control()
 
-    if sw2:
-        pwm_enabled = True
-    else:
-        pwm_enabled = False
+    pwm_enabled = bool(sw2)
 
     # Rotary: compute delta and toggle mode on button click
     knob_pos = io.get_rotary_position()
@@ -102,20 +107,24 @@ def loop():
 
     if clicked:
         init_pwm = web_manual_pwm if web_manual_enabled else 0
-        db.set_web_control_state(enabled=not web_manual_enabled, pwm_value=init_pwm)
         web_manual_enabled = not web_manual_enabled
         web_manual_pwm = init_pwm
+        set_web_control(web_manual_enabled, web_manual_pwm)
         physical_change = True
 
     if web_manual_enabled and delta != 0:
         web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * KNOB_STEP))
-        db.set_web_control_state(enabled=True, pwm_value=web_manual_pwm)
+        set_web_control(True, web_manual_pwm)
         physical_change = True
 
     raw_lux = io.get_lux_value()
     new_packet = io.consume_new_packet()
     spectral = io.get_spectral_channels() if new_packet else {}
     gps = io.get_last_gps()
+
+    # Sync timestamp from GPS when a valid fix arrives
+    if new_packet and gps.get('valid') and gps.get('unix_time', 0) > 0:
+        db.notify_gps_time(gps['unix_time'])
 
     sanity_flag = False
     if new_packet and gps.get('valid') and spectral:
@@ -159,16 +168,25 @@ def loop():
         else:
             lcd_row(3, "NO SAT TIME")
 
-    db.log_reading(
-        raw_lux=raw_lux,
-        pwm_value=actual_pwm,
-        mode=actual_mode,
-    )
-
-    usb_logger.log_reading(raw_lux, actual_pwm, actual_mode)
+    # Log to DB and USB once per second (every 10 ticks at 100 ms)
+    _log_tick += 1
+    if _log_tick >= 10:
+        _log_tick = 0
+        led_mode_int = 1 if web_manual_enabled else 0
+        db.log_chamber(
+            led_lux=actual_pwm,
+            led_mode=led_mode_int,
+            s1=1 if sw1 else 0,
+            s2=1 if sw2 else 0,
+            s3=1 if sw3 else 0,
+        )
+        usb_logger.log_reading(actual_pwm, led_mode_int,
+                               1 if sw1 else 0,
+                               1 if sw2 else 0,
+                               1 if sw3 else 0)
 
     if new_packet and spectral:
-        db.log_spectral(channels=spectral, gps=gps, sanity_flag=sanity_flag)
+        db.log_sensor(channels=spectral, gps=gps, sanity_flag=sanity_flag)
 
     update_current_state(
         raw_lux=raw_lux,
@@ -176,6 +194,7 @@ def loop():
         mode=actual_mode,
         sw1=sw1,
         sw2=sw2,
+        sw3=sw3,
         sanity_flag=sanity_flag,
         wired_connected=io.is_wired_connected(),
         gps=gps,
@@ -206,7 +225,6 @@ def main_loop():
             time.sleep(1)
 
     io.set_pwm(0)
-    water_scheduler.stop()
     io.cleanup()
     lcd.cleanup()
     db.close()
@@ -222,7 +240,6 @@ def main():
 
     web_thread = threading.Thread(target=run_web_server, daemon=True)
     web_thread.start()
-    water_scheduler.start()
 
     print("=" * 50)
     print("  Chamber Controller Started")
