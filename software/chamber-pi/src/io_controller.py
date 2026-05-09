@@ -2,12 +2,11 @@ import RPi.GPIO as GPIO
 from rpi_hardware_pwm import HardwarePWM
 
 from config import (
-    SWITCH1_PIN, SWITCH2_PIN, PWM_PIN,
+    SWITCH1_PIN, SWITCH2_PIN, SWITCH3_PIN, PWM_PIN,
     LORA_SPI_PORT, LORA_SPI_DEVICE, LORA_NRESET_PIN, LORA_BUSY_PIN, LORA_DIO1_PIN,
     LORA_FREQ_MHZ, LORA_BW_KHZ, LORA_SF, LORA_CR, LORA_SYNC_WORD,
     PWM_FREQ, MAX_PWM_VALUE,
     LUX_BUFFER_SIZE,
-    SOLENOID_PIN,
     LED_GRN_PIN, LED_YLW_PIN,
     ROTARY_A_PIN, ROTARY_B_PIN, ROTARY_BTN_PIN,
 )
@@ -21,6 +20,7 @@ class IOController:
         # State variables
         self.sw1 = True
         self.sw2 = True
+        self.sw3 = True
         self.lux_value = 0
 
         # Bounds buffer (1 minute of lux history)
@@ -61,7 +61,6 @@ class IOController:
             'gpio': 'Not initialized',
             'pwm': 'Not initialized',
             'lora': 'Not initialized',
-            'solenoid': 'Not initialized',
             'rs485': 'Not initialized',
             'leds': 'Not initialized',
             'rotary': 'Not initialized',
@@ -70,7 +69,6 @@ class IOController:
             'gpio': False,
             'pwm': False,
             'lora': False,
-            'solenoid': False,
         }
 
     def begin(self):
@@ -79,16 +77,13 @@ class IOController:
         try:
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
-            # BCM 14 = UART TX: skip GPIO.setup so it stays in ALT0 (UART) mode.
-            # SW1 is not used for control logic; default to released (True).
+            GPIO.setup(SWITCH1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(SWITCH2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(SOLENOID_PIN, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(SWITCH3_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             self.status['gpio'] = (
-                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN} skipped/UART-TX, S2=BCM{SWITCH2_PIN}, PWM=BCM{PWM_PIN}, SOL=BCM{SOLENOID_PIN})"
+                f"OK - GPIO ready (S1=BCM{SWITCH1_PIN}, S2=BCM{SWITCH2_PIN}, S3=BCM{SWITCH3_PIN}, PWM=BCM{PWM_PIN})"
             )
             self.hardware_ready['gpio'] = True
-            self.hardware_ready['solenoid'] = True
-            self.status['solenoid'] = f"OK - Solenoid on BCM{SOLENOID_PIN}, initially CLOSED"
         except Exception as exc:
             self.status['gpio'] = f"Unavailable - GPIO init failed: {exc}"
 
@@ -158,7 +153,7 @@ class IOController:
         print("==================")
         print(" Init Diagnostics ")
         print("==================")
-        for name in ('gpio', 'pwm', 'lora', 'solenoid', 'rs485', 'leds', 'rotary'):
+        for name in ('gpio', 'pwm', 'lora', 'rs485', 'leds', 'rotary'):
             print(f"{name.upper():>6}: {self.status[name]}")
 
     def update(self):
@@ -198,8 +193,9 @@ class IOController:
             self.sw1 = True
             self.sw2 = True
             return
-        self.sw1 = True  # BCM 14 = UART TX; not configured as GPIO — default released
+        self.sw1 = GPIO.input(SWITCH1_PIN)
         self.sw2 = GPIO.input(SWITCH2_PIN)
+        self.sw3 = GPIO.input(SWITCH3_PIN)
 
     def _read_lora(self):
         """Poll SX1262 for a received packet and decode it."""
@@ -257,17 +253,14 @@ class IOController:
         duty = max(0.0, min(100.0, duty))
         self._pwm.change_duty_cycle(duty)
 
-    def set_solenoid(self, on: bool):
-        """Open (True) or close (False) the solenoid valve."""
-        if not self.hardware_ready['solenoid']:
-            return
-        GPIO.output(SOLENOID_PIN, GPIO.HIGH if on else GPIO.LOW)
-
     def get_switch1(self):
         return self.sw1
 
     def get_switch2(self):
         return self.sw2
+
+    def get_switch3(self):
+        return self.sw3
 
     def get_lux_value(self):
         return self.lux_value

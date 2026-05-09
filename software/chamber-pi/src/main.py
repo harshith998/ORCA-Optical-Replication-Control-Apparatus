@@ -9,14 +9,13 @@ import datetime
 import signal
 import threading
 import time
-from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT, LCD_COLS
+from config import LOOP_DELAY_MS, MAX_PWM_VALUE, SCALE_CONSTANT, LCD_COLS, KNOB_STEP
 from database import db
 from io_controller import IOController
 from lcd_display import LCDDisplay
 from usb_logger import usb_logger
-from web_server import update_current_state, run_server, water_scheduler, register_solenoid_setter
+from web_server import update_current_state, run_server, water_scheduler
 from solar_check import check_reading, get_sun_elevation
-
 
 io = IOController()
 lcd = LCDDisplay()
@@ -44,22 +43,11 @@ def signal_handler(sig, frame):
 
 def setup():
     """Initialize all peripherals."""
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)    # Catches Ctrl+C termination
+    signal.signal(signal.SIGTERM, signal_handler)   # Catches other termination signals
 
-    io.begin()
-    lcd.begin()
-
-    print("========================")
-    print(" Hardware Init Summary ")
-    print("========================")
-    for name, status in io.get_init_report().items():
-        print(f"{name.upper():>4}: {status}")
-    print(f" LCD: {lcd.get_init_report()}")
-    print("------------------------")
-    print("The controller will keep running even if optional hardware is missing.")
-    print("Missing hardware reports mean 'not connected' or 'not responding'.")
-    print("------------------------")
+    io.begin()  # Starts IO Controller for sensors and actuators
+    lcd.begin() # Initializes LCD display
 
     if lcd.available:
         lcd.set_backlight(True)
@@ -76,10 +64,7 @@ def setup():
         time.sleep(2)
 
     io.set_pwm(0)
-    register_solenoid_setter(io.set_solenoid)
 
-
-_KNOB_STEP = 10  # PWM units per encoder detent in manual mode
 
 
 def loop():
@@ -112,7 +97,7 @@ def loop():
         web_manual_pwm = init_pwm
 
     if web_manual_enabled and delta != 0:
-        web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * _KNOB_STEP))
+        web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * KNOB_STEP))
         db.set_web_control_state(enabled=True, pwm_value=web_manual_pwm)
 
     raw_lux = io.get_lux_value()

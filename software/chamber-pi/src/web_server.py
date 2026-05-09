@@ -18,14 +18,6 @@ from usb_logger import usb_logger
 # Water / Solenoid Scheduler
 # ---------------------------------------------------------------------------
 
-_solenoid_setter = None  # injected by main.py: callable (bool) -> None
-
-
-def register_solenoid_setter(fn):
-    global _solenoid_setter
-    _solenoid_setter = fn
-
-
 class WaterScheduler:
     """Background thread that drives the solenoid in auto or manual mode."""
 
@@ -47,8 +39,6 @@ class WaterScheduler:
     def _set_valve(self, on: bool):
         with self._lock:
             self._valve_open = on
-        if _solenoid_setter:
-            _solenoid_setter(on)
 
     def get_valve_open(self) -> bool:
         with self._lock:
