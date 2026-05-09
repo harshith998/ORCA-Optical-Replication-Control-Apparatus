@@ -21,9 +21,9 @@ except ImportError:
     print("[SolarCheck] pysolar not installed — sanity checking disabled. Run: pip install pysolar")
 
 
-# Empirical scaling: approximate AS7343 `clear` counts per W/m²
-# Tune this once you have real paired measurements.
-CLEAR_PER_WM2 = 5.0
+# Luminous efficacy of direct sunlight: lux per W/m².
+# Standard value for direct solar irradiance — no sensor calibration needed.
+SOLAR_LUMINOUS_EFFICACY = 93.0
 
 # How many times outside the expected range before we flag it.
 # e.g. 5 means the reading must be <1/5 or >5x the expected value to be flagged.
@@ -46,7 +46,7 @@ def get_expected_clear(lat: float, lon: float, unix_time: int) -> float | None:
             if elevation_deg < MIN_ELEVATION_DEG:
                 return 0.0
             radiation = get_radiation_direct(dt, elevation_deg)
-        return float(radiation) * CLEAR_PER_WM2
+        return float(radiation) * SOLAR_LUMINOUS_EFFICACY
     except Exception:
         return None
 
