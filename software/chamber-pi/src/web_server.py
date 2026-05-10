@@ -267,27 +267,27 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <script src="/chart.js"></script>
 <style>
 :root {
-    --bg:           #080f1c;
-    --bg-panel:     #0b1525;
-    --bg-card:      #0e1b2e;
-    --bg-raised:    #152236;
-    --bg-input:     #0a1220;
-    --text-hi:      #dce6f5;
-    --text-mid:     #5a7a9e;
-    --text-lo:      #2d4a64;
-    --accent:       #2979ff;
-    --accent-dim:   rgba(41,121,255,0.12);
-    --accent-rim:   rgba(41,121,255,0.28);
-    --ok:           #00e5a0;
-    --ok-dim:       rgba(0,229,160,0.12);
-    --ok-rim:       rgba(0,229,160,0.25);
-    --warn:         #ffab40;
-    --warn-dim:     rgba(255,171,64,0.12);
-    --err:          #ff5252;
-    --err-dim:      rgba(255,82,82,0.12);
-    --err-rim:      rgba(255,82,82,0.25);
-    --rim:          rgba(255,255,255,0.055);
-    --rim2:         rgba(255,255,255,0.09);
+    --bg:           #eef2f5;
+    --bg-panel:     #e4eaef;
+    --bg-card:      #ffffff;
+    --bg-raised:    #d6e0e8;
+    --bg-input:     #f4f7f9;
+    --text-hi:      #0b1e2c;
+    --text-mid:     #3a5a72;
+    --text-lo:      #7a9aae;
+    --accent:       #00717e;
+    --accent-dim:   rgba(0,113,126,0.10);
+    --accent-rim:   rgba(0,113,126,0.30);
+    --ok:           #00695c;
+    --ok-dim:       rgba(0,105,92,0.10);
+    --ok-rim:       rgba(0,105,92,0.28);
+    --warn:         #bf6000;
+    --warn-dim:     rgba(191,96,0,0.10);
+    --err:          #b71c1c;
+    --err-dim:      rgba(183,28,28,0.10);
+    --err-rim:      rgba(183,28,28,0.28);
+    --rim:          rgba(0,0,0,0.07);
+    --rim2:         rgba(0,0,0,0.13);
     --sb:           292px;
     --tb:           50px;
 }
@@ -333,8 +333,8 @@ body{
     letter-spacing:0.09em;text-transform:uppercase;
     border:1px solid transparent;
 }
-.tb-badge.wired{background:var(--accent-dim);color:#6fa3ff;border-color:var(--accent-rim);}
-.tb-badge.wireless{background:rgba(168,85,247,0.1);color:#c084fc;border-color:rgba(168,85,247,0.25);}
+.tb-badge.wired{background:var(--accent-dim);color:#005f6b;border-color:var(--accent-rim);}
+.tb-badge.wireless{background:rgba(2,119,189,0.1);color:#01579b;border-color:rgba(2,119,189,0.28);}
 .tb-badge.live{background:var(--ok-dim);color:var(--ok);border-color:var(--ok-rim);}
 .tb-badge.offline{background:var(--err-dim);color:var(--err);border-color:var(--err-rim);}
 .tb-time{font-size:13px;color:var(--text-mid);font-variant-numeric:tabular-nums;letter-spacing:0.03em;}
@@ -699,28 +699,28 @@ const luxChart = new Chart(ctx, {
             {
                 label: 'Clear (broadband)',
                 data: [],
-                borderColor: '#2979ff',
-                backgroundColor: 'rgba(41,121,255,0.07)',
+                borderColor: '#00717e',
+                backgroundColor: 'rgba(0,113,126,0.08)',
                 fill: true,
                 tension: 0.3,
                 pointRadius: 0,
-                borderWidth: 1.5,
+                borderWidth: 2,
                 spanGaps: true
             },
             {
                 label: 'LED Lux',
                 data: [],
-                borderColor: '#00e676',
+                borderColor: '#2e7d32',
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0.3,
                 pointRadius: 0,
-                borderWidth: 1.5
+                borderWidth: 2
             },
             {
                 label: 'Solar Max (theoretical)',
                 data: [],
-                borderColor: '#ff9800',
+                borderColor: '#e65100',
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0.3,
@@ -739,28 +739,28 @@ const luxChart = new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top', align: 'end',
-                labels: {color:'#5a7a9e', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
+                labels: {color:'#3a5a72', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
             },
             tooltip: {
-                backgroundColor:'#0e1b2e',
-                borderColor:'rgba(255,255,255,0.07)',
+                backgroundColor:'#ffffff',
+                borderColor:'rgba(0,0,0,0.13)',
                 borderWidth:1,
-                titleColor:'#dce6f5',
-                bodyColor:'#5a7a9e',
+                titleColor:'#0b1e2c',
+                bodyColor:'#3a5a72',
                 titleFont:{size:11},
                 bodyFont:{size:11}
             }
         },
         scales: {
             x: {
-                grid:{color:'rgba(255,255,255,0.035)'},
-                ticks:{color:'#2d4a64', maxTicksLimit:8, font:{size:10}},
-                border:{color:'rgba(255,255,255,0.055)'}
+                grid:{color:'rgba(0,0,0,0.06)'},
+                ticks:{color:'#7a9aae', maxTicksLimit:8, font:{size:10}},
+                border:{color:'rgba(0,0,0,0.10)'}
             },
             y: {
-                grid:{color:'rgba(255,255,255,0.035)'},
-                ticks:{color:'#2d4a64', font:{size:10}},
-                border:{color:'rgba(255,255,255,0.055)'},
+                grid:{color:'rgba(0,0,0,0.06)'},
+                ticks:{color:'#7a9aae', font:{size:10}},
+                border:{color:'rgba(0,0,0,0.10)'},
                 beginAtZero:true
             }
         }
