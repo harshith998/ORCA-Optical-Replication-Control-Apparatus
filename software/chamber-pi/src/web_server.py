@@ -267,25 +267,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <script src="/chart.js"></script>
 <style>
 :root {
-    --bg:           #eef2f5;
-    --bg-panel:     #e4eaef;
-    --bg-card:      #ffffff;
-    --bg-raised:    #d6e0e8;
-    --bg-input:     #f4f7f9;
-    --text-hi:      #0b1e2c;
-    --text-mid:     #3a5a72;
-    --text-lo:      #7a9aae;
-    --accent:       #00717e;
-    --accent-dim:   rgba(0,113,126,0.10);
-    --accent-rim:   rgba(0,113,126,0.30);
-    --ok:           #00695c;
-    --ok-dim:       rgba(0,105,92,0.10);
-    --ok-rim:       rgba(0,105,92,0.28);
-    --warn:         #bf6000;
-    --warn-dim:     rgba(191,96,0,0.10);
-    --err:          #b71c1c;
-    --err-dim:      rgba(183,28,28,0.10);
-    --err-rim:      rgba(183,28,28,0.28);
+    --bg:           #f6f4e8;
+    --bg-panel:     #e5eee4;
+    --bg-card:      #fdfcf5;
+    --bg-raised:    #d2e6db;
+    --bg-input:     #f6f4e8;
+    --text-hi:      #142118;
+    --text-mid:     #3c5a4a;
+    --text-lo:      #7a9885;
+    --accent:       #2d7a5f;
+    --accent-dim:   rgba(45,122,95,0.12);
+    --accent-rim:   rgba(45,122,95,0.32);
+    --ok:           #1e7a56;
+    --ok-dim:       rgba(30,122,86,0.12);
+    --ok-rim:       rgba(30,122,86,0.30);
+    --warn:         #9a5a2a;
+    --warn-dim:     rgba(154,90,42,0.12);
+    --err:          #b54545;
+    --err-dim:      rgba(181,69,69,0.12);
+    --err-rim:      rgba(181,69,69,0.28);
     --rim:          rgba(0,0,0,0.07);
     --rim2:         rgba(0,0,0,0.13);
     --sb:           292px;
@@ -333,8 +333,8 @@ body{
     letter-spacing:0.09em;text-transform:uppercase;
     border:1px solid transparent;
 }
-.tb-badge.wired{background:var(--accent-dim);color:#005f6b;border-color:var(--accent-rim);}
-.tb-badge.wireless{background:rgba(2,119,189,0.1);color:#01579b;border-color:rgba(2,119,189,0.28);}
+.tb-badge.wired{background:var(--accent-dim);color:#1e6b4e;border-color:var(--accent-rim);}
+.tb-badge.wireless{background:rgba(2,100,160,0.10);color:#015a8a;border-color:rgba(2,100,160,0.28);}
 .tb-badge.live{background:var(--ok-dim);color:var(--ok);border-color:var(--ok-rim);}
 .tb-badge.offline{background:var(--err-dim);color:var(--err);border-color:var(--err-rim);}
 .tb-time{font-size:13px;color:var(--text-mid);font-variant-numeric:tabular-nums;letter-spacing:0.03em;}
@@ -699,8 +699,8 @@ const luxChart = new Chart(ctx, {
             {
                 label: 'Clear (broadband)',
                 data: [],
-                borderColor: '#00717e',
-                backgroundColor: 'rgba(0,113,126,0.08)',
+                borderColor: '#2d7a5f',
+                backgroundColor: 'rgba(45,122,95,0.10)',
                 fill: true,
                 tension: 0.3,
                 pointRadius: 0,
@@ -710,7 +710,7 @@ const luxChart = new Chart(ctx, {
             {
                 label: 'LED Lux',
                 data: [],
-                borderColor: '#2e7d32',
+                borderColor: '#1a6694',
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0.3,
@@ -720,7 +720,7 @@ const luxChart = new Chart(ctx, {
             {
                 label: 'Solar Max (theoretical)',
                 data: [],
-                borderColor: '#e65100',
+                borderColor: '#b54545',
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0.3,
@@ -739,14 +739,14 @@ const luxChart = new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top', align: 'end',
-                labels: {color:'#3a5a72', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
+                labels: {color:'#3c5a4a', usePointStyle:true, pointStyle:'circle', pointStyleWidth:8, font:{size:11}}
             },
             tooltip: {
-                backgroundColor:'#ffffff',
+                backgroundColor:'#fdfcf5',
                 borderColor:'rgba(0,0,0,0.13)',
                 borderWidth:1,
-                titleColor:'#0b1e2c',
-                bodyColor:'#3a5a72',
+                titleColor:'#142118',
+                bodyColor:'#3c5a4a',
                 titleFont:{size:11},
                 bodyFont:{size:11}
             }
@@ -754,12 +754,12 @@ const luxChart = new Chart(ctx, {
         scales: {
             x: {
                 grid:{color:'rgba(0,0,0,0.06)'},
-                ticks:{color:'#7a9aae', maxTicksLimit:8, font:{size:10}},
+                ticks:{color:'#7a9885', maxTicksLimit:8, font:{size:10}},
                 border:{color:'rgba(0,0,0,0.10)'}
             },
             y: {
                 grid:{color:'rgba(0,0,0,0.06)'},
-                ticks:{color:'#7a9aae', font:{size:10}},
+                ticks:{color:'#7a9885', font:{size:10}},
                 border:{color:'rgba(0,0,0,0.10)'},
                 beginAtZero:true
             }
