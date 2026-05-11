@@ -541,17 +541,12 @@ body{
         &#9888;&nbsp;Sanity flag
     </div>
 
+    <span class="tb-time" id="gpsTimeTb">--:--:-- UTC</span>
+
     <div id="dataLinkBadge" class="tb-badge wired" style="display:none;">
         <span class="dot acc"></span>
         <span id="dataLinkText">Wired</span>
         <span id="dataLinkAge" style="opacity:0.6;font-weight:400;margin-left:4px;"></span>
-    </div>
-
-    <span class="tb-time" id="gpsTimeTb">--:--:-- UTC</span>
-
-    <div id="connBadge" class="tb-badge live">
-        <span class="dot ok pulse" id="connDot"></span>
-        <span id="connText">Connecting</span>
     </div>
 </div>
 
@@ -808,22 +803,13 @@ function connectSSE() {
 }
 
 function setConn(ok) {
-    const badge = document.getElementById('connBadge');
-    const dot   = document.getElementById('connDot');
-    const txt   = document.getElementById('connText');
-    const sdot  = document.getElementById('statusDot');
-    const stxt  = document.getElementById('statusTxt');
+    const sdot = document.getElementById('statusDot');
+    const stxt = document.getElementById('statusTxt');
     if (ok) {
-        badge.className = 'tb-badge live';
-        dot.className   = 'dot ok pulse';
-        txt.textContent = 'Live';
-        sdot.className  = 'dot ok pulse';
+        sdot.className   = 'dot ok pulse';
         stxt.textContent = 'Operational';
     } else {
-        badge.className = 'tb-badge offline';
-        dot.className   = 'dot err';
-        txt.textContent = 'Offline';
-        sdot.className  = 'dot err';
+        sdot.className   = 'dot err';
         stxt.textContent = 'Disconnected';
     }
 }
