@@ -40,7 +40,7 @@ static void init_gpio(void)
         .intr_type    = GPIO_INTR_DISABLE,
     };
     gpio_config(&en_cfg);
-    gpio_set_level(RS_EN_PIN, 0);  // Idle low
+    gpio_set_level(RS_EN_PIN, 1);  // RS_EN override: held HIGH permanently
 
     s_gpio_ready = true;
 }
@@ -94,14 +94,11 @@ bool rs485_send(const rs_report_payload_t *payload)
 
     if (n >= (int)sizeof(buf)) return false;  // Overflowed
 
-    // Assert RS_EN to drive the RS-485 bus, send via the console UART
-    // (GPIO 16 = UART0 TX = RS_TX — same pin, no reassignment needed),
-    // then wait for the hardware TX FIFO to drain before releasing.
-    gpio_set_level(RS_EN_PIN, 1);
+    // RS_EN override: RS_EN_PIN is held HIGH permanently, so no toggle needed.
+    // Send via the console UART (GPIO16 = UART0 TX = RS_TX — same pin).
     printf("%s", buf);
     fflush(stdout);
     vTaskDelay(pdMS_TO_TICKS(30));  // Wait for UART0 TX FIFO to drain (~17 ms at 115200)
-    gpio_set_level(RS_EN_PIN, 0);
 
     return true;
 }
