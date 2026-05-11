@@ -297,6 +297,12 @@ class Database:
             row = cursor.fetchone()
             return dict(row) if row else {}
 
+    def clear_all_data(self):
+        """Delete all rows from chamber_history and sensor_history."""
+        with self._cursor() as cursor:
+            cursor.execute("DELETE FROM chamber_history")
+            cursor.execute("DELETE FROM sensor_history")
+
     def cleanup_old_data(self, max_age_hours: int = 168):
         """Delete data older than max_age_hours (default 7 days)."""
         cutoff = time.time() - (max_age_hours * 3600)

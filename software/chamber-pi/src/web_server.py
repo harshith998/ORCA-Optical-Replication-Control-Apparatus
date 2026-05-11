@@ -202,6 +202,12 @@ def download_sensor():
     )
 
 
+@app.route('/api/clear', methods=['POST'])
+def api_clear():
+    db.clear_all_data()
+    return jsonify({'ok': True})
+
+
 @app.route('/api/stream')
 def api_stream():
     return Response(
@@ -324,7 +330,7 @@ body{
 }
 .tb-mark svg{width:14px;height:14px;fill:white;}
 .tb-name{font-size:14px;font-weight:700;letter-spacing:0.06em;color:var(--text-hi);}
-.tb-sep{width:1px;height:18px;background:var(--rim2);margin:0 10px;}
+.tb-sep{width:1px;height:18px;background:var(--rim2);margin-left:10px;}
 .tb-sub{font-size:13px;color:var(--text-mid);}
 .tb-sp{flex:1;}
 .tb-badge{
@@ -625,6 +631,10 @@ body{
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Sensor History
                 </a>
+                <button class="dl-btn" style="background:var(--err-dim);color:var(--err);border-color:rgba(220,60,60,0.3);cursor:pointer;width:100%;text-align:left;" onclick="clearAllData()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete All Data
+                </button>
             </div>
         </div>
 
@@ -779,6 +789,12 @@ setInterval(function() {
         document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
     }
 }, 1000);
+
+// ── Clear all data ──
+function clearAllData() {
+    if (!confirm('Delete all chamber and sensor history? This cannot be undone.')) return;
+    fetch('/api/clear', {method: 'POST'}).then(() => loadHistory(_hrs));
+}
 
 // ── SSE ──
 let es = null, reconnTimer = null;
