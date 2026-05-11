@@ -204,6 +204,7 @@ def loop():
         web_manual_enabled=web_manual_enabled,
         web_manual_pwm=web_manual_pwm,
         physical_change=physical_change,
+        new_packet=new_packet,
     )
 
 

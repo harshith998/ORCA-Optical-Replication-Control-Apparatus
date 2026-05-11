@@ -69,7 +69,8 @@ def update_current_state(raw_lux: int, pwm_value: int,
                          gps: dict = None,
                          web_manual_enabled: bool = None,
                          web_manual_pwm: int = None,
-                         physical_change: bool = False):
+                         physical_change: bool = False,
+                         new_packet: bool = False):
     """Update current state and notify SSE subscribers."""
     with state_lock:
         current_state['raw_lux'] = raw_lux
@@ -90,6 +91,7 @@ def update_current_state(raw_lux: int, pwm_value: int,
         state_copy = current_state.copy()
 
     state_copy['physical_change'] = physical_change
+    state_copy['new_packet'] = new_packet
     broadcast_sse(state_copy)
 
 
@@ -788,7 +790,7 @@ function connectSSE() {
     };
     es.onmessage = (e) => {
         const d = JSON.parse(e.data);
-        _lastPacketAt = Date.now();
+        if (d.new_packet) _lastPacketAt = Date.now();
         updateUI(d);
     };
     es.onerror = () => {
