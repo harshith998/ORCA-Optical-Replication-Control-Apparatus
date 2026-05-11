@@ -173,7 +173,7 @@ def api_stats():
 @app.route('/api/download/chamber')
 def download_chamber():
     import csv, io
-    rows = db.get_chamber_history()
+    rows = db.get_chamber_history(limit=None)
     buf = io.StringIO()
     if rows:
         w = csv.DictWriter(buf, fieldnames=rows[0].keys())
@@ -189,7 +189,7 @@ def download_chamber():
 @app.route('/api/download/sensor')
 def download_sensor():
     import csv, io
-    rows = db.get_sensor_history(hours=24 * 365)  # all data
+    rows = db.get_sensor_history(hours=24 * 365, limit=None)  # all data
     buf = io.StringIO()
     if rows:
         w = csv.DictWriter(buf, fieldnames=rows[0].keys())

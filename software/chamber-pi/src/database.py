@@ -237,8 +237,11 @@ class Database:
             if end_time:
                 query += " AND timestamp <= ?"
                 params.append(end_time)
-            query += " ORDER BY timestamp DESC LIMIT ?"
-            params.append(limit)
+            if limit is not None:
+                query += " ORDER BY timestamp DESC LIMIT ?"
+                params.append(limit)
+            else:
+                query += " ORDER BY timestamp DESC"
             cursor.execute(query, params)
             return [dict(row) for row in reversed(cursor.fetchall())]
 
@@ -274,11 +277,18 @@ class Database:
                 """, (bucket_secs, bucket_secs, start_time, bucket_secs))
                 return [dict(row) for row in cursor.fetchall()]
 
-            cursor.execute("""
-                SELECT * FROM sensor_history
-                WHERE timestamp >= ?
-                ORDER BY timestamp DESC LIMIT ?
-            """, (start_time, limit))
+            if limit is not None:
+                cursor.execute("""
+                    SELECT * FROM sensor_history
+                    WHERE timestamp >= ?
+                    ORDER BY timestamp DESC LIMIT ?
+                """, (start_time, limit))
+            else:
+                cursor.execute("""
+                    SELECT * FROM sensor_history
+                    WHERE timestamp >= ?
+                    ORDER BY timestamp DESC
+                """, (start_time,))
             return [dict(row) for row in reversed(cursor.fetchall())]
 
     def get_stats(self, hours: int = 24) -> Dict[str, Any]:
