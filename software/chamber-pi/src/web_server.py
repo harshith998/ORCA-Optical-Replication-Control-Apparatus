@@ -767,6 +767,20 @@ const luxChart = new Chart(ctx, {
     }
 });
 
+// ── UTC clock ──
+let _gpsSyncBrowserMs = null; // Date.now() when GPS time was received
+let _gpsSyncUnixMs    = null; // GPS unix_time * 1000 at that moment
+
+setInterval(function() {
+    if (_gpsSyncBrowserMs === null) return;
+    const elapsed = Date.now() - _gpsSyncBrowserMs;
+    const dt = new Date(_gpsSyncUnixMs + elapsed);
+    const hh = String(dt.getUTCHours()).padStart(2,'0');
+    const mm = String(dt.getUTCMinutes()).padStart(2,'0');
+    const ss = String(dt.getUTCSeconds()).padStart(2,'0');
+    document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
+}, 1000);
+
 // ── SSE ──
 let es = null, reconnTimer = null;
 
@@ -845,7 +859,8 @@ function updateUI(d) {
         document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
         document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
         if (gps.unix_time > 0) {
-            _gpsTimeOffset = (gps.unix_time * 1000) - Date.now();
+            _gpsSyncUnixMs    = gps.unix_time * 1000;
+            _gpsSyncBrowserMs = Date.now();
         }
     } else {
         fixEl.textContent = 'No Fix';
@@ -889,19 +904,6 @@ function toggleMode() {
         body: JSON.stringify({enabled: manual, pwm: pwm})
     });
 }
-
-// ── UTC clock (GPS-synced, ticks every second) ──
-let _gpsTimeOffset = null; // ms offset: gps_unix_ms - Date.now() at sync moment
-(function _startUtcClock() {
-    setInterval(function() {
-        if (_gpsTimeOffset === null) return;
-        const dt = new Date(Date.now() + _gpsTimeOffset);
-        const hh = String(dt.getUTCHours()).padStart(2,'0');
-        const mm = String(dt.getUTCMinutes()).padStart(2,'0');
-        const ss = String(dt.getUTCSeconds()).padStart(2,'0');
-        document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
-    }, 1000);
-})();
 
 // ── Brightness slider (equivalent to turning rotary knob) ──
 let _pwmDebounceTimer = null;
