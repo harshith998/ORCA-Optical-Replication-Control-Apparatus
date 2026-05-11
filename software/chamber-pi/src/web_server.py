@@ -770,12 +770,19 @@ const luxChart = new Chart(ctx, {
     }
 });
 
-// ── Packet age counter ──
-let _lastPacketAt = null;
+// ── Packet age counter + GPS UTC clock ──
+let _lastPacketAt  = null;
+let _gpsSyncUnixMs = null; // GPS unix_time*1000 from last satellite packet
 setInterval(function() {
     const el = document.getElementById('dataLinkAge');
-    if (!el) return;
-    el.textContent = _lastPacketAt === null ? '' : Math.round((Date.now() - _lastPacketAt) / 1000) + 's ago';
+    if (el) el.textContent = _lastPacketAt === null ? '' : Math.round((Date.now() - _lastPacketAt) / 1000) + 's ago';
+    if (_lastPacketAt !== null && _gpsSyncUnixMs !== null) {
+        const dt = new Date(_gpsSyncUnixMs + (Date.now() - _lastPacketAt));
+        const hh = String(dt.getUTCHours()).padStart(2,'0');
+        const mm = String(dt.getUTCMinutes()).padStart(2,'0');
+        const ss = String(dt.getUTCSeconds()).padStart(2,'0');
+        document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
+    }
 }, 1000);
 
 // ── SSE ──
@@ -856,12 +863,8 @@ function updateUI(d) {
         fixEl.style.color = 'var(--ok)';
         document.getElementById('gpsLat').textContent = gps.latitude.toFixed(6) + '\u00b0';
         document.getElementById('gpsLon').textContent = gps.longitude.toFixed(6) + '\u00b0';
-        if (gps.unix_time > 0) {
-            const dt = new Date(gps.unix_time * 1000);
-            const hh = String(dt.getUTCHours()).padStart(2,'0');
-            const mm = String(dt.getUTCMinutes()).padStart(2,'0');
-            const ss = String(dt.getUTCSeconds()).padStart(2,'0');
-            document.getElementById('gpsTimeTb').textContent = `${hh}:${mm}:${ss} UTC`;
+        if (d.new_packet && gps.unix_time > 0) {
+            _gpsSyncUnixMs = gps.unix_time * 1000;
         }
     } else {
         fixEl.textContent = 'No Fix';
