@@ -324,7 +324,7 @@ body{
 }
 .tb-mark svg{width:14px;height:14px;fill:white;}
 .tb-name{font-size:14px;font-weight:700;letter-spacing:0.06em;color:var(--text-hi);}
-.tb-sep{width:1px;height:18px;background:var(--rim2);}
+.tb-sep{width:1px;height:18px;background:var(--rim2);margin:0 10px;}
 .tb-sub{font-size:13px;color:var(--text-mid);}
 .tb-sp{flex:1;}
 .tb-badge{
