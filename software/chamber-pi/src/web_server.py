@@ -542,6 +542,7 @@ body{
     <div id="dataLinkBadge" class="tb-badge wired" style="display:none;">
         <span class="dot acc"></span>
         <span id="dataLinkText">Wired</span>
+        <span id="dataLinkAge" style="opacity:0.6;font-weight:400;margin-left:4px;"></span>
     </div>
 
     <span class="tb-time" id="gpsTimeTb">--:--:-- UTC</span>
@@ -767,6 +768,14 @@ const luxChart = new Chart(ctx, {
     }
 });
 
+// ── Packet age counter ──
+let _lastPacketAt = null;
+setInterval(function() {
+    const el = document.getElementById('dataLinkAge');
+    if (!el) return;
+    el.textContent = _lastPacketAt === null ? '' : Math.round((Date.now() - _lastPacketAt) / 1000) + 's ago';
+}, 1000);
+
 // ── SSE ──
 let es = null, reconnTimer = null;
 
@@ -779,6 +788,7 @@ function connectSSE() {
     };
     es.onmessage = (e) => {
         const d = JSON.parse(e.data);
+        _lastPacketAt = Date.now();
         updateUI(d);
     };
     es.onerror = () => {
