@@ -159,7 +159,7 @@ def loop():
         duty_pct_int = int((actual_pwm / MAX_PWM_VALUE) * 100.0)
         mode_str     = "MANUAL" if web_manual_enabled else "AUTO  "
 
-        lcd_row(0, f"{mode_str:<6}[{conn_str}] {duty_pct_int:>3}%")
+        lcd_row(0, f"Mode:{mode_str:<6} [{conn_str}] {duty_pct_int:>3}%")
         lcd_row(1, f"Lux:{raw_lux:<7} Out:{duty_pct_int:>3}%    ")
 
         if gps.get('valid'):
