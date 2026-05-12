@@ -20,7 +20,7 @@ A dynamic lighting system designed for the Cassar Lab to accurately replicate en
 
 ORCA consists of two interconnected modules:
 
-### Sensor Module (Outdoor)
+### Satellite Module (Outdoor)
 - Collects environmental light intensity data using dual VEML7700 sensors
 - GPS positioning and inclination data via NEO-6M
 - ESP32-C3 microcontroller for data processing

@@ -114,7 +114,9 @@ def loop():
         physical_change = True
 
     if web_manual_enabled and delta != 0:
-        web_manual_pwm = max(0, min(MAX_PWM_VALUE, web_manual_pwm + delta * KNOB_STEP))
+        pct = round((web_manual_pwm / MAX_PWM_VALUE) * 100) + delta
+        pct = max(0, min(100, pct))
+        web_manual_pwm = round(pct / 100 * MAX_PWM_VALUE)
         set_web_control(True, web_manual_pwm)
         physical_change = True
 
@@ -158,7 +160,7 @@ def loop():
         mode_str     = "MANUAL" if web_manual_enabled else "AUTO  "
 
         lcd_row(0, f"Mode:{mode_str:<6} [{conn_str}] {duty_pct_int:>3}%")
-        lcd_row(1, f"Lux:{raw_lux:<7} PWM:{actual_pwm:<6}")
+        lcd_row(1, f"Lux:{raw_lux:<7} Out:{duty_pct_int:>3}%    ")
 
         if gps.get('valid'):
             lcd_row(2, f"{gps['latitude']:>9.4f} {gps['longitude']:>10.4f}")

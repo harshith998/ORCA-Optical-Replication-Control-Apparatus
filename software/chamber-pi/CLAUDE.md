@@ -138,14 +138,21 @@ Each 100ms tick:
 
 **Thread safety**: `database.py` uses thread-local SQLite connections. The web server and main loop share state via locks. SSE subscribers are tracked with a lock.
 
+**SSE `new_packet` flag**: `update_current_state()` accepts a `new_packet` boolean that is passed through as a transient field in the SSE payload (not persisted in `current_state`). The dashboard uses this to distinguish real satellite packets from the constant 100 ms heartbeat ticks — the UTC clock sync and packet-age counter only update when `d.new_packet` is true.
+
+**CSV download row limit**: `get_chamber_history()` and `get_sensor_history()` default to `limit=1000` for chart/API queries. The download routes pass `limit=None` to bypass this and export all rows. Do not add a limit to the download routes.
+
 ### Web API (port 5000)
 
 - `GET /` — Dashboard HTML
 - `GET /api/status` — Current lux, PWM, mode, hardware diagnostics
 - `GET|POST /api/control` — Read/set web manual control (enable flag + PWM value)
 - `GET /api/history` — Time-series data (`?hours=24&limit=1000`)
-- `GET /api/stream` — SSE live updates
+- `GET /api/stream` — SSE live updates (broadcasts every 100 ms control loop tick)
 - `GET /api/usb` — USB logger status
+- `GET /api/download/chamber` — Full chamber history as CSV (no row limit)
+- `GET /api/download/sensor` — Full sensor history as CSV (no row limit)
+- `POST /api/clear` — Delete all rows from both tables and reset autoincrement IDs
 
 ### Hardware Interfaces
 
@@ -255,3 +262,23 @@ If it shows `ttyS0`, add `dtoverlay=disable-bt` to `/boot/firmware/config.txt` a
 |-----|-----|---------|
 | GRN | 23  | Solid on when RJ45 cable is plugged in (SNS pin LOW) |
 | YLW | 27  | Flashes ~500 ms after each RS-485 packet is received |
+
+---
+
+## Dashboard UI Notes
+
+### Topbar layout (left → right)
+Logo → divider line (`margin-left:10px` only, no right margin) → title → spacer → sanity flag badge → UTC clock → Wired/Wireless badge
+
+### UTC clock (`#gpsTimeTb`)
+Ticks every second using the browser's own elapsed time. Syncs only when `d.new_packet` is true — not on every SSE heartbeat. Uses `_lastPacketAt` (the `Date.now()` stamp of the last real satellite packet) as the anchor: `new Date(_gpsSyncUnixMs + (Date.now() - _lastPacketAt))`.
+
+### Packet age counter (`#dataLinkAge`)
+Shown inside the Wired/Wireless badge. Counts seconds since the last satellite packet using the same `_lastPacketAt` anchor. Both the UTC clock and packet age share a single `setInterval` at 1 s.
+
+### Wired/Wireless badge
+Replaces the former "Live/Offline" badge in the topbar. The "Operational / Disconnected" status in the sidebar serves the same connection-state purpose and is the only remaining indicator of SSE health.
+
+### Data management (sidebar Export section)
+- **Chamber History** / **Sensor History** — download full CSV with no row limit.
+- **Delete All Data** (red button) — calls `POST /api/clear`, which truncates both tables and resets `sqlite_sequence` so IDs restart from 1.
